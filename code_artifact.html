@@ -12,18 +12,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Identity Services -->
-    <script>
-        // 延遲載入 GIS，確保 page 準備好再初始化
-        window.initGoogleGIS = function() {
-            google.accounts.id.initialize({
-                client_id: "520002624675-rsr1nkbnvartcab6ru0k81usjpuvqo92.apps.googleusercontent.com",
-                callback: handleGoogleCredential,
-                ux_mode: "redirect",
-                auto_prompt: false
-            });
-        };
-    </script>
-    <script src="https://accounts.google.com/gsi/client" onload="initGoogleGIS()" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         tailwind.config = {
             theme: {
@@ -1240,7 +1229,11 @@
 
         // ─── Google 登入 ──────────────────────────
         function startGoogleSignIn() {
-            google.accounts.id.prompt();
+            if (typeof google !== 'undefined' && google.accounts) {
+                google.accounts.id.prompt();
+            } else {
+                showToast('⚠️ Google 登入尚未載入，請稍後再試');
+            }
         }
 
         function handleGoogleCredential(response) {
@@ -1486,6 +1479,17 @@
             initMap();
             setAIPersona('socratic', true);
             setTimeout(() => { map.invalidateSize(); }, 500);
+
+            // ✨ 初始化 Google 登入
+            if (typeof google !== 'undefined' && google.accounts) {
+                google.accounts.id.initialize({
+                    client_id: "520002624675-rsr1nkbnvartcab6ru0k81usjpuvqo92.apps.googleusercontent.com",
+                    callback: handleGoogleCredential,
+                    ux_mode: "redirect",
+                    auto_prompt: false
+                });
+                // 如果 URL 有憑證 hash，自動處理
+            }
 
             // ✨ 背景載入歷史沙龍資料
             syncForumFromGAS();
