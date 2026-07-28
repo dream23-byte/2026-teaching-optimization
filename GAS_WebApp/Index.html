@@ -208,16 +208,19 @@
 <body>
   <div class="container">
     <!-- Header -->
-    <div class="header">
-      <h1><span>📜</span> 歷史沙龍</h1>
-      <div class="user-badge">
-        <div class="avatar"><?= userEmail.charAt(0).toUpperCase() ?></div>
-        <div>
-          <div style="font-size:13px;font-weight:600;"><?= userEmail.split('@')[0] ?></div>
-          <div class="email"><?= userEmail ?></div>
+      <div class="header">
+        <h1><span>📜</span> 歷史沙龍</h1>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button onclick="window.close()" class="btn btn-secondary btn-sm" style="font-size:12px;">⬅ 返回互動實驗室</button>
+          <div class="user-badge">
+            <div class="avatar"><?= userEmail.charAt(0).toUpperCase() ?></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;"><?= userEmail.split('@')[0] ?></div>
+              <div class="email"><?= userEmail ?></div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
     <!-- Stats -->
     <div class="stats" id="stats">
@@ -240,7 +243,7 @@
   <div class="form-overlay" id="post-form">
     <div class="form-box">
       <h2>📝 發起新議題</h2>
-      <form method="POST" action="<?= ScriptApp.getService().getUrl() ?>">
+      <form method="POST" action="<?= appUrl ?>">
         <input type="hidden" name="action" value="addPost">
         <label>作者顯示名稱</label>
         <input type="text" name="author" required placeholder="例如：歷史思辨家" value="<?= userEmail.split('@')[0] ?>">
@@ -270,7 +273,7 @@
     <div class="form-box">
       <h2>💬 回覆議題</h2>
       <p id="reply-target" style="font-size:14px;color:#888;margin-bottom:16px;padding:10px;background:#0f0f1a;border-radius:8px;"></p>
-      <form method="POST" action="<?= ScriptApp.getService().getUrl() ?>">
+      <form method="POST" action="<?= appUrl ?>">
         <input type="hidden" name="action" value="addReply">
         <input type="hidden" name="postTitle" id="reply-post-title">
         <label>您的顯示名稱</label>

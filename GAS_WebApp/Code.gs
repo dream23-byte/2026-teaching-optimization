@@ -27,40 +27,41 @@ function ensureSheetsExist() {
 
 // ─── doGet：雙模式 ─────────────────────────────
 //   無參數 → 顯示網頁介面（需 Google 登入）
-//   ?mode=json → 回傳 JSON（給 code_artifact.html 用）
-//   ?callback=xxx → 回傳 JSONP（跨域使用）
+//   ?callback=xxx → 回傳 JSONP（跨域供 code_artifact.html 使用）
 function doGet(e) {
-  ensureSheetsExist();
+  try { ensureSheetsExist(); } catch (ex) { /* 忽略 */ }
 
-  // ── JSON / JSONP 模式（供外部頁面讀取資料）──
-  if (e && e.parameter && (e.parameter.mode === "json" || e.parameter.callback)) {
+  // ── JSONP 模式 ──
+  if (e && e.parameter && e.parameter.callback) {
     const data = buildForumData();
     const payload = JSON.stringify(data);
-    if (e.parameter.callback) {
-      return ContentService
-        .createTextOutput(e.parameter.callback + "(" + payload + ")")
-        .setMimeType(ContentService.MimeType.JAVASCRIPT);
-    }
     return ContentService
-      .createTextOutput(payload)
-      .setMimeType(ContentService.MimeType.JSON);
+      .createTextOutput(e.parameter.callback + "(" + payload + ")")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
 
   // ── 網頁模式 ──
-  const template = HtmlService.createTemplateFromFile("Index");
-  template.userEmail = Session.getActiveUser().getEmail();
-
-  // 如果取不到使用者（未登入或權限不足）
-  if (!template.userEmail || template.userEmail === "") {
+  const email = Session.getActiveUser().getEmail();
+  if (!email) {
     return HtmlService.createHtmlOutput(
-      '<html><body style="font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;background:#1a1a2e;color:#eee;"><div style="text-align:center;max-width:400px;"><h1 style="color:#d4af37;">🔐 需要 Google 登入</h1><p style="font-size:18px;margin:20px 0;">請使用您的 Google 帳號登入才能使用歷史沙龍。</p><p style="font-size:14px;color:#999;">請點按右上角「選擇帳戶」或重新整理頁面。</p></div></body></html>'
+      '<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
+      '<style>body{font-family:sans-serif;background:#1a1a2e;color:#eee;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;padding:20px;text-align:center;}' +
+      'h1{color:#d4af37;}p{max-width:400px;line-height:1.8;}' +
+      '</style></head><body>' +
+      '<div><h1>🔐 需要 Google 登入</h1>' +
+      '<p>請使用您的 Google 帳號登入才能使用歷史沙龍。</p>' +
+      '<p style="font-size:14px;color:#999;">👉 部署時請將「存取權」設為「任何人」<br>使用者第一次開啟時需選擇 Google 帳號</p></div></body></html>'
     ).setTitle("歷史沙龍 — 請登入");
   }
+
+  // ── 設定部署網址供 Index.html 使用 ──
+  const template = HtmlService.createTemplateFromFile("Index");
+  template.userEmail = email;
+  template.appUrl = ScriptApp.getService().getUrl();
 
   return template
     .evaluate()
     .setTitle("歷史沙龍 — 互動式歷史討論區")
-    .setFaviconUrl("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📜</text></svg>")
     .addMetaTag("viewport", "width=device-width, initial-scale=1.0");
 }
 
@@ -70,37 +71,35 @@ function doPost(e) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const userEmail = Session.getActiveUser().getEmail();
   const params = e.parameter;
+  let msg = "";
 
-  if (params.action === "addPost") {
-    const sheet = ss.getSheetByName(SHEET_NAME_POSTS);
-    sheet.appendRow([
-      new Date(),
-      userEmail,
-      params.author,
-      params.tag,
-      params.title,
-      params.content
-    ]);
-    return HtmlService.createHtmlOutput(
-      '<html><body><script>window.top.location.href="' + ScriptApp.getService().getUrl() + '";</script></body></html>'
-    );
+  try {
+    if (params.action === "addPost") {
+      const sheet = ss.getSheetByName(SHEET_NAME_POSTS);
+      sheet.appendRow([new Date(), userEmail, params.author, params.tag, params.title, params.content]);
+      msg = "✅ 議題發布成功！";
+    } else if (params.action === "addReply") {
+      const sheet = ss.getSheetByName(SHEET_NAME_REPLIES);
+      sheet.appendRow([new Date(), userEmail, params.author, params.postTitle, params.replyContent]);
+      msg = "✅ 回覆發布成功！";
+    } else {
+      msg = "⚠️ 未知操作";
+    }
+  } catch (err) {
+    msg = "❌ 寫入失敗：" + err.message;
   }
 
-  if (params.action === "addReply") {
-    const sheet = ss.getSheetByName(SHEET_NAME_REPLIES);
-    sheet.appendRow([
-      new Date(),
-      userEmail,
-      params.author,
-      params.postTitle,
-      params.replyContent
-    ]);
-    return HtmlService.createHtmlOutput(
-      '<html><body><script>window.top.location.href="' + ScriptApp.getService().getUrl() + '";</script></body></html>'
-    );
-  }
-
-  return HtmlService.createHtmlOutput('<html><body>未知操作</body></html>');
+  const backUrl = ScriptApp.getService().getUrl();
+  return HtmlService.createHtmlOutput(
+    '<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
+    '<style>body{font-family:sans-serif;background:#1a1a2e;color:#eee;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;padding:20px;text-align:center;}' +
+    'h2{color:#d4af37;margin-bottom:20px;}' +
+    '.btn{display:inline-block;background:#d4af37;color:#1a1a2e;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:bold;margin-top:20px;}' +
+    '.btn-grey{display:inline-block;background:#333;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;margin-top:12px;}' +
+    '</style></head><body>' +
+    '<div><h2>' + msg + '</h2>' +
+    '<a class="btn" href="' + backUrl + '">📜 返回歷史沙龍</a></div></body></html>'
+  );
 }
 
 // ─── 共用：讀取試算表資料 ─────────────────────
