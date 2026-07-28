@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>歷史沙龍</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', 'Noto Sans TC', system-ui, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      padding: 20px 24px;
+      border-radius: 16px;
+      border: 1px solid #2a2a4a;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header h1 {
+      font-size: 24px;
+      color: #d4af37;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header h1 span { font-size: 28px; }
+    .user-badge {
+      background: #2a2a4a;
+      padding: 8px 16px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      border: 1px solid #3a3a5a;
+    }
+    .user-badge .email { color: #aaa; font-size: 13px; }
+    .user-badge .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #d4af37;
+      color: #1a1a2e;
+      display: flex;
+      align-items: center; justify-content: center;
+      font-weight: bold; font-size: 14px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary {
+      background: #d4af37; color: #1a1a2e;
+    }
+    .btn-primary:hover { background: #e5c24e; transform: translateY(-1px); }
+    .btn-secondary {
+      background: #2a2a4a; color: #d4af37; border: 1px solid #3a3a5a;
+    }
+    .btn-secondary:hover { background: #3a3a5a; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+    .btn-danger { background: #5c1a1a; color: #ff6b6b; }
+    .btn-danger:hover { background: #7a2222; }
+
+    /* Stats */
+    .stats {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #1a1a2e; border: 1px solid #2a2a4a;
+      border-radius: 12px; padding: 14px 20px; flex: 1; min-width: 120px;
+      text-align: center;
+    }
+    .stat-card .num { font-size: 28px; font-weight: bold; color: #d4af37; }
+    .stat-card .label { font-size: 12px; color: #888; margin-top: 4px; }
+
+    /* Post Card */
+    .post-card {
+      background: #1a1a2e; border: 1px solid #2a2a4a;
+      border-radius: 14px; padding: 20px; margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .post-card:hover { border-color: #3a3a5a; }
+    .post-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 10px; flex-wrap: wrap; gap: 8px;
+    }
+    .post-tag {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 600; background: #2a2a4a; color: #d4af37;
+    }
+    .post-author {
+      font-size: 13px; color: #888;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .post-author .dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #d4af37;
+    }
+    .post-title {
+      font-size: 18px; font-weight: 700; color: #f0f0f0;
+      margin-bottom: 6px; cursor: pointer;
+    }
+    .post-title:hover { color: #d4af37; }
+    .post-content {
+      font-size: 14px; color: #b0b0b0; line-height: 1.7;
+      margin-bottom: 12px; white-space: pre-wrap;
+    }
+    .post-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 12px; border-top: 1px solid #2a2a4a;
+      font-size: 13px; color: #666;
+    }
+    .reply-count {
+      display: flex; align-items: center; gap: 4px; color: #888;
+    }
+    .reply-count i { color: #d4af37; }
+
+    /* Replies */
+    .replies-section { display: none; margin-top: 16px; }
+    .replies-section.open { display: block; }
+    .reply-card {
+      background: #15152a; border: 1px solid #2a2a4a;
+      border-radius: 10px; padding: 14px; margin-bottom: 10px;
+    }
+    .reply-meta {
+      font-size: 12px; color: #666; margin-bottom: 6px;
+      display: flex; justify-content: space-between;
+    }
+    .reply-meta .author { color: #d4af37; font-weight: 600; }
+    .reply-text {
+      font-size: 14px; color: #ccc; line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    /* Forms */
+    .form-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+      z-index: 1000; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .form-overlay.open { display: flex; }
+    .form-box {
+      background: #1a1a2e; border: 1px solid #3a3a5a;
+      border-radius: 16px; padding: 28px; width: 100%; max-width: 560px;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .form-box h2 {
+      font-size: 20px; color: #d4af37; margin-bottom: 20px;
+      border-bottom: 1px solid #2a2a4a; padding-bottom: 12px;
+    }
+    .form-box label {
+      display: block; font-size: 13px; color: #aaa; margin-bottom: 4px; font-weight: 500;
+    }
+    .form-box input, .form-box textarea, .form-box select {
+      width: 100%; padding: 10px 14px; margin-bottom: 16px;
+      background: #0f0f1a; border: 1px solid #3a3a5a; border-radius: 8px;
+      color: #f0f0f0; font-size: 14px; transition: border-color 0.2s;
+    }
+    .form-box input:focus, .form-box textarea:focus, .form-box select:focus {
+      outline: none; border-color: #d4af37;
+    }
+    .form-box textarea { resize: vertical; min-height: 80px; }
+    .form-box .form-actions {
+      display: flex; gap: 10px; justify-content: flex-end;
+    }
+    .form-box select option { background: #1a1a2e; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: #555;
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { font-size: 16px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 30px; right: 30px;
+      background: #1a1a2e; border: 1px solid #d4af37; color: #f0f0f0;
+      padding: 14px 24px; border-radius: 12px;
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.3s; z-index: 2000;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 600px) {
+      .header { flex-direction: column; text-align: center; }
+      .header h1 { font-size: 20px; }
+      .form-box { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1><span>📜</span> 歷史沙龍</h1>
+      <div class="user-badge">
+        <div class="avatar"><?= userEmail.charAt(0).toUpperCase() ?></div>
+        <div>
+          <div style="font-size:13px;font-weight:600;"><?= userEmail.split('@')[0] ?></div>
+          <div class="email"><?= userEmail ?></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats" id="stats">
+      <div class="stat-card"><div class="num" id="stat-posts">0</div><div class="label">議題總數</div></div>
+      <div class="stat-card"><div class="num" id="stat-replies">0</div><div class="label">回覆總數</div></div>
+      <div class="stat-card"><div class="num" id="stat-users">0</div><div class="label">參與者</div></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+      <button class="btn btn-primary" onclick="openForm('post')">➕ 發起新議題</button>
+      <button class="btn btn-secondary btn-sm" onclick="location.reload()">🔄 重新整理</button>
+    </div>
+
+    <!-- Post List -->
+    <div id="post-list"></div>
+  </div>
+
+  <!-- Post Form Overlay -->
+  <div class="form-overlay" id="post-form">
+    <div class="form-box">
+      <h2>📝 發起新議題</h2>
+      <form method="POST" action="<?= ScriptApp.getService().getUrl() ?>">
+        <input type="hidden" name="action" value="addPost">
+        <label>作者顯示名稱</label>
+        <input type="text" name="author" required placeholder="例如：歷史思辨家" value="<?= userEmail.split('@')[0] ?>">
+        <label>分類標籤</label>
+        <select name="tag">
+          <option value="歷史思辨">歷史思辨</option>
+          <option value="古代文明">古代文明</option>
+          <option value="帝國擴張">帝國擴張</option>
+          <option value="轉型正義">轉型正義</option>
+          <option value="現代局勢">現代局勢</option>
+          <option value="人物評價">人物評價</option>
+        </select>
+        <label>議題標題</label>
+        <input type="text" name="title" required placeholder="請輸入討論標題...">
+        <label>您的論述</label>
+        <textarea name="content" required rows="5" placeholder="請理性闡述您的觀點..."></textarea>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeForm('post')">取消</button>
+          <button type="submit" class="btn btn-primary">📤 發布議題</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Reply Form Overlay -->
+  <div class="form-overlay" id="reply-form">
+    <div class="form-box">
+      <h2>💬 回覆議題</h2>
+      <p id="reply-target" style="font-size:14px;color:#888;margin-bottom:16px;padding:10px;background:#0f0f1a;border-radius:8px;"></p>
+      <form method="POST" action="<?= ScriptApp.getService().getUrl() ?>">
+        <input type="hidden" name="action" value="addReply">
+        <input type="hidden" name="postTitle" id="reply-post-title">
+        <label>您的顯示名稱</label>
+        <input type="text" name="author" required value="<?= userEmail.split('@')[0] ?>">
+        <label>回覆內容</label>
+        <textarea name="replyContent" required rows="4" placeholder="寫下您的觀點..."></textarea>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeForm('reply')">取消</button>
+          <button type="submit" class="btn btn-primary">📤 送出回覆</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let forumData = null;
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function openForm(type) {
+      document.getElementById(type + '-form').classList.add('open');
+    }
+    function closeForm(type) {
+      document.getElementById(type + '-form').classList.remove('open');
+    }
+
+    function openReplyForm(title, content) {
+      document.getElementById('reply-post-title').value = title;
+      document.getElementById('reply-target').innerHTML = '<strong style="color:#d4af37;">' + escHtml(title) + '</strong>';
+      openForm('reply');
+    }
+
+    function escHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function loadData() {
+      const data = google.script.run
+        .withSuccessHandler(function(data) {
+          forumData = data;
+          render(data);
+        })
+        .withFailureHandler(function(err) {
+          document.getElementById('post-list').innerHTML =
+            '<div class="empty-state"><div class="icon">⚠️</div><p>載入失敗：' + escHtml(String(err)) + '</p></div>';
+        })
+        .getForumData();
+    }
+
+    function render(data) {
+      const posts = data.posts;
+      const replies = data.replies;
+
+      // Stats
+      document.getElementById('stat-posts').textContent = posts.length;
+      document.getElementById('stat-replies').textContent = replies.length;
+      const uniqueUsers = new Set();
+      posts.forEach(p => { if (p.author) uniqueUsers.add(p.author); });
+      replies.forEach(r => { if (r.author) uniqueUsers.add(r.author); });
+      document.getElementById('stat-users').textContent = uniqueUsers.size;
+
+      if (posts.length === 0) {
+        document.getElementById('post-list').innerHTML =
+          '<div class="empty-state"><div class="icon">📭</div><p>目前還沒有任何議題。<br>按下「發起新議題」開始討論吧！</p></div>';
+        return;
+      }
+
+      // 反轉：最新在上
+      posts.reverse();
+
+      let html = '';
+      posts.forEach(p => {
+        const postReplies = replies.filter(r => r.postTitle === p.title);
+        const timeStr = p.timestamp ? p.timestamp.slice(0, 10) : '';
+
+        html += `
+          <div class="post-card">
+            <div class="post-header">
+              <span class="post-tag">${escHtml(p.tag)}</span>
+              <span class="post-author"><span class="dot"></span> ${escHtml(p.author)} · ${timeStr}</span>
+            </div>
+            <div class="post-title" onclick="toggleReplies('${escHtml(p.title).replace(/'/g, "\\'")}')">
+              ${escHtml(p.title)}
+            </div>
+            <div class="post-content">${escHtml(p.content)}</div>
+            <div class="post-footer">
+              <span class="reply-count">💬 ${postReplies.length} 則回覆</span>
+              <button class="btn btn-secondary btn-sm" onclick="openReplyForm('${escHtml(p.title).replace(/'/g, "\\'")}')">
+                💬 回覆
+              </button>
+            </div>
+            <div class="replies-section" id="replies-${escHtml(p.title).replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '_')}">
+              ${postReplies.length === 0 ? '<div style="color:#555;font-size:14px;padding:12px;text-align:center;">尚無回覆，成為第一個回覆的人！</div>' : ''}
+              ${postReplies.map(r => `
+                <div class="reply-card">
+                  <div class="reply-meta">
+                    <span class="author">${escHtml(r.author)}</span>
+                    <span>${r.timestamp ? r.timestamp.slice(0, 10) : ''}</span>
+                  </div>
+                  <div class="reply-text">${escHtml(r.replyContent)}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById('post-list').innerHTML = html;
+
+      // Auto-open if has hash (for redirect back)
+      if (window.location.hash) {
+        document.querySelectorAll('.replies-section').forEach(el => el.classList.add('open'));
+      }
+    }
+
+    function toggleReplies(title) {
+      const safeId = 'replies-' + title.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '_');
+      const el = document.getElementById(safeId);
+      if (el) el.classList.toggle('open');
+    }
+
+    // Check for success toast after form redirect
+    if (window.location.href.includes('?') || window.location.hash) {
+      window.location.hash = '';
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('action')) {
+        showToast('✅ 操作成功！');
+        // Clean URL
+        history.replaceState(null, '', window.location.pathname);
+      }
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>

@@ -254,13 +254,15 @@
                         </div>
                         <p class="text-gray-400">理性思辨的公共領域，針對古今各項歷史爭議議題進行思辨交流。</p>
                     </div>
-                    <div class="flex items-center gap-3 shrink-0">
-                        <!-- 身分設定 -->
-                        <div id="identity-bar" class="flex items-center gap-2 bg-panel border border-gray-700 rounded-full px-3 py-1.5 shadow"></div>
-                        <button onclick="openNewPostModal()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-4 py-2 rounded shadow-lg transition whitespace-nowrap">
-                            <i class="fa-solid fa-pen-fancy mr-1"></i> 發起新議題
-                        </button>
-                    </div>
+            <div class="flex items-center gap-3 shrink-0">
+                                <!-- 前往 GAS 歷史沙龍（Google 登入） -->
+                                <button onclick="openGASForum('newPost')" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-4 py-2 rounded shadow-lg transition whitespace-nowrap">
+                                    <i class="fa-solid fa-pen-fancy mr-1"></i> 發起新議題
+                                </button>
+                                <button onclick="window.open(GAS_WEBAPP, '_blank')" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-2 rounded-lg text-sm transition whitespace-nowrap border border-gray-600">
+                                    <i class="fa-brands fa-google mr-1"></i> Google 登入
+                                </button>
+                            </div>
                 </div>
 
                 <div id="forum-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10">
@@ -272,28 +274,6 @@
     </main>
 
     <!-- Modals -->
-    <div id="forum-write-modal" class="fixed inset-0 modal-bg hidden items-center justify-center z-[9990] px-4">
-        <div class="bg-panel border border-gray-700 rounded-xl max-w-xl w-full shadow-2xl relative flex flex-col p-6">
-            <h2 class="text-2xl font-bold text-primary mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-pen-to-square mr-2"></i>發起新議題</h2>
-            <label class="text-sm text-gray-400 mb-1">議題標題</label>
-            <input type="text" id="new-post-title" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner" placeholder="請輸入討論標題...">
-            <label class="text-sm text-gray-400 mb-1">標籤分類</label>
-            <select id="new-post-tag" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner">
-                <option value="歷史思辨">歷史思辨</option>
-                <option value="文明起源">文明起源</option>
-                <option value="帝國擴張">帝國擴張</option>
-                <option value="轉型正義">轉型正義</option>
-                <option value="現代局勢">現代局勢</option>
-            </select>
-            <label class="text-sm text-gray-400 mb-1">您的論述內容</label>
-            <textarea id="new-post-content" rows="5" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary resize-none mb-6 shadow-inner" placeholder="請理性闡述您的觀點..."></textarea>
-            <div class="flex justify-end gap-4">
-                <button onclick="closeModal('forum-write-modal')" class="text-gray-400 hover:text-white px-4 py-2 font-medium">取消</button>
-                <button onclick="submitNewPost()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-6 py-2 rounded-lg transition shadow-lg">發布議題</button>
-            </div>
-        </div>
-    </div>
-
     <div id="forum-read-modal" class="fixed inset-0 modal-bg hidden items-center justify-center z-[9990] px-4">
         <div class="bg-panel border border-gray-700 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
             <button onclick="closeModal('forum-read-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl transition-transform hover:rotate-90"><i class="fa-solid fa-xmark"></i></button>
@@ -312,25 +292,12 @@
                 <div class="space-y-4 mb-6" id="mock-comments">
                     <!-- 留言由 JS 依該議題的資料動態生成 -->
                 </div>
-                <div class="flex gap-3 bg-gray-900 p-3 rounded-xl border border-gray-700 shadow-inner">
-                    <input type="text" id="forum-reply-input" class="flex-1 bg-transparent border-none p-2 text-sm text-white focus:outline-none placeholder-gray-500" placeholder="發表您的回覆 (按 Enter 傳送)...">
-                    <button onclick="submitForumReply()" class="bg-gray-800 text-primary border border-gray-600 px-5 py-2 rounded-lg text-sm font-bold hover:bg-gray-700 transition shadow">回覆</button>
+                <div class="flex justify-center">
+                    <button onclick="submitForumReply()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-5 py-2.5 rounded-lg text-sm transition shadow-lg whitespace-nowrap">
+                        <i class="fa-brands fa-google mr-1"></i> 前往歷史沙龍回覆
+                    </button>
+                    <p class="text-[11px] text-gray-500 mt-2 text-center w-full">需使用 Google 帳號登入</p>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 身分設定 Modal -->
-    <div id="identity-modal" class="fixed inset-0 modal-bg hidden items-center justify-center z-[9999] px-4">
-        <div class="bg-panel border border-gray-700 rounded-xl max-w-md w-full shadow-2xl relative flex flex-col p-6">
-            <h2 class="text-2xl font-bold text-primary mb-2"><i class="fa-solid fa-id-badge mr-2"></i>設定你的沙龍身分</h2>
-            <p class="text-xs text-gray-400 mb-4 leading-relaxed">這個名字會顯示在你發表的議題與留言上。<br>身分目前僅儲存在<span class="text-gray-200 font-bold">這台裝置的瀏覽器</span>中（若要跨裝置、多人共用，需接後端如 Firebase）。</p>
-            <label class="text-sm text-gray-400 mb-1">顯示名稱</label>
-            <input type="text" id="identity-name-input" maxlength="20" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-2 shadow-inner" placeholder="例如：思辨中的歷史人 / 清廷觀點代言人...">
-            <p class="text-[11px] text-gray-500 mb-6">小技巧：你也可以取一個「歷史視角」名稱，用某個立場參與討論（歷史觀點取替）。</p>
-            <div class="flex justify-end gap-4">
-                <button onclick="closeIdentityModal()" class="text-gray-400 hover:text-white px-4 py-2 font-medium">取消</button>
-                <button onclick="saveIdentityFromModal()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-6 py-2 rounded-lg transition shadow-lg">儲存身分</button>
             </div>
         </div>
     </div>
@@ -344,9 +311,9 @@
         // 註：在 Gemini Canvas / Google AI Studio 環境會自動注入金鑰。獨立開啟時請填入自己的 Gemini API Key。
         const apiKey = "";
         
-        // ✨ 【設定區】請將您部署的 Google Apps Script (Web App) 網址貼在下方引號中
-        // 部署步驟：Code.gs → 部署 → 新增部署 → 網頁應用程式 → 執行身份：任何人
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbx_oD4a67MiGtpK2Z0pBU8S2r98AvA6YOKbpf87TFTb_YJW0tYOkROoLUUX6O-mWCYcJA/exec"; 
+        // ✨ 【設定區】GAS 網頁應用（歷史沙龍後端）
+        // 負責 Google 登入、貼文/回覆儲存、資料查詢
+        const GAS_WEBAPP = "https://script.google.com/macros/s/AKfycbwj4xDjUFd5_x14eLZxz5qoogWcCxb7AdoZPqarLULtvL4zcuh_Mkc6BvfUqM4Ss4e_lQ/exec"; 
 
         let currentPersona = null;
         let aiChatHistory = [];
@@ -1225,96 +1192,13 @@
         }
 
         // ===================================================================
-        //  歷史沙龍 —— 本地身分系統 + localStorage 持久化 + 連結地圖事件
+        //  歷史沙龍 — 整合 GAS 網頁應用（Google 登入 + 試算表儲存）
         // ===================================================================
-        const AVATAR_COLORS = ['bg-blue-600','bg-red-600','bg-green-600','bg-purple-600','bg-pink-600','bg-amber-600','bg-teal-600','bg-indigo-600'];
-        let userIdentity = null;
-        let pendingIdentityAction = null;
         let forumPosts = [];
         let currentOpenPostId = null;
 
-        function colorForName(name) {
-            let h = 0;
-            for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-            return AVATAR_COLORS[h % AVATAR_COLORS.length];
-        }
-        function loadIdentity() {
-            const raw = store.get('hlab_identity');
-            if (raw) { try { return JSON.parse(raw); } catch(e){} }
-            return null;
-        }
-        function saveIdentity(id) {
-            userIdentity = id;
-            store.set('hlab_identity', JSON.stringify(id));
-            renderIdentityBar();
-        }
-        function renderIdentityBar() {
-            const bar = document.getElementById('identity-bar');
-            if (!bar) return;
-            if (userIdentity && userIdentity.name) {
-                bar.innerHTML = `
-                    <div class="w-7 h-7 rounded-full ${userIdentity.color} flex items-center justify-center text-white text-xs font-bold shadow-inner">${escapeHtml(userIdentity.name.charAt(0).toUpperCase())}</div>
-                    <span class="text-sm text-gray-200 font-medium max-w-[120px] truncate">${escapeHtml(userIdentity.name)}</span>
-                    <button onclick="openIdentityModal()" class="text-xs text-gray-400 hover:text-primary underline ml-1">更換</button>`;
-            } else {
-                bar.innerHTML = `
-                    <i class="fa-regular fa-circle-user text-gray-500"></i>
-                    <span class="text-sm text-gray-500">訪客（未設定身分）</span>
-                    <button onclick="openIdentityModal()" class="text-xs text-primary hover:underline ml-1 font-bold">設定身分</button>`;
-            }
-        }
-        function openIdentityModal(onDone = null) {
-            pendingIdentityAction = (typeof onDone === 'function') ? onDone : null;
-            document.getElementById('identity-name-input').value = userIdentity?.name || '';
-            const m = document.getElementById('identity-modal');
-            m.classList.remove('hidden'); m.classList.add('flex');
-            setTimeout(() => document.getElementById('identity-name-input').focus(), 50);
-        }
-        function closeIdentityModal() {
-            pendingIdentityAction = null;
-            closeModal('identity-modal');
-        }
-        function saveIdentityFromModal() {
-            const name = document.getElementById('identity-name-input').value.trim();
-            if (!name) { showToast('請先輸入一個名字'); return; }
-            saveIdentity({ name: name, color: colorForName(name) });
-            closeModal('identity-modal');
-            showToast('✅ 已設定身分：' + name);
-            const cb = pendingIdentityAction; pendingIdentityAction = null;
-            if (cb) cb();
-        }
-        function requireIdentity(next) {
-            if (userIdentity && userIdentity.name) { next(); }
-            else { showToast('發言前，請先設定你在沙龍中的身分'); openIdentityModal(next); }
-        }
-
-        // ===================================================================
-        //  Google Sheets 雲端連線與本地儲存雙軌機制
-        // ===================================================================
-        function seedPosts() {
-            return [{
-                id: 'seed_hammurabi',
-                title: '如何評價《漢穆拉比法典》中的「以眼還眼」原則？',
-                content: '法典中明文規定了同態復仇，但如果仔細閱讀，會發現處罰嚴重程度完全取決於階級（被害人是奴隸或貴族）。這到底是法治的萌芽，還是統治階級鞏固特權的工具？',
-                author: 'Hammurabi_Critic', avatarColor: 'bg-blue-600',
-                tag: '古代法制', tagBg: 'bg-red-900', tagText: 'text-red-200',
-                timeText: '系統預設',
-                comments: [{ author: '歷史思辨學者', color: 'text-primary', text: '這是一個非常好的切入點！讓我們能穿透文獻表面，探究統治階層底層的權力架構，這正是歷史思辨的價值。', timeText: '剛剛', mine: false }]
-            }];
-        }
-        
-        function loadForumPostsLocal() {
-            const raw = store.get('hlab_forum');
-            if (raw) { try { const a = JSON.parse(raw); if (Array.isArray(a) && a.length) return a; } catch(e){} }
-            return seedPosts();
-        }
-        
-        function saveForumPostsLocal() { 
-            store.set('hlab_forum', JSON.stringify(forumPosts)); 
-        }
-
-        // ✨ 1. 從 Google Sheets 載入貼文與回覆（JSONP 跨域）
-        function loadPostsJSONP() {
+        // 載入貼文與回覆（JSONP 跨域）
+        function loadForumJSONP() {
             return new Promise((resolve, reject) => {
                 const cb = 'gasCB_' + Date.now();
                 window[cb] = function(data) {
@@ -1325,151 +1209,77 @@
                 };
                 const script = document.createElement('script');
                 script.id = 'gas-jsonp-script';
-                script.src = GAS_URL + '?callback=' + cb;
+                script.src = GAS_WEBAPP + '?callback=' + cb;
                 script.onerror = function() {
                     delete window[cb];
-                    document.body.removeChild(script);
-                    reject(new Error('JSONP load failed'));
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    reject(new Error('JSONP 載入失敗'));
                 };
                 document.body.appendChild(script);
             });
         }
 
-        async function syncPostsFromGAS() {
+        async function syncForumFromGAS() {
             const statusEl = document.getElementById('cloud-status');
-            if (!GAS_URL || GAS_URL.trim() === "") {
-                forumPosts = loadForumPostsLocal();
-                renderForum();
-                return;
-            }
+            if (!GAS_WEBAPP) { renderForum(); return; }
             try {
-                statusEl.innerText = "雲端同步中...";
+                statusEl.innerText = "同步中...";
                 statusEl.className = "text-[10px] bg-yellow-900 text-yellow-300 px-2 py-1 rounded shadow-inner animate-pulse";
-                
-                const data = await loadPostsJSONP();
-                
+                const data = await loadForumJSONP();
                 if (data && data.posts) {
                     forumPosts = data.posts.reverse().map(p => ({
-                        id: 'post_' + p.title.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '_') + '_' + new Date(p.timestamp).getTime(),
-                        title: p.title,
-                        content: p.content,
-                        author: p.author,
-                        avatarColor: 'bg-blue-600',
-                        tag: p.tag || '歷史思辨',
-                        tagBg: 'bg-gray-700',
-                        tagText: 'text-gray-200',
-                        timeText: p.timestamp,
-                        userEmail: p.userEmail,
+                        id: 'post_' + p.title.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '_'),
+                        title: p.title, content: p.content, author: p.author,
+                        tag: p.tag || '歷史思辨', tagBg: 'bg-gray-700', tagText: 'text-gray-200',
+                        timeText: p.timestamp ? p.timestamp.slice(0, 10) : '',
                         comments: (data.replies || [])
                             .filter(r => r.postTitle === p.title)
-                            .map(r => ({
-                                author: r.author,
-                                color: 'text-green-400',
-                                text: r.replyContent,
-                                timeText: r.timestamp,
-                                userEmail: r.userEmail,
-                                mine: false
-                            }))
+                            .map(r => ({ author: r.author, text: r.replyContent, timeText: r.timestamp ? r.timestamp.slice(0, 10) : '' }))
                     }));
-                    
-                    if (forumPosts.length === 0) {
-                        forumPosts = seedPosts();
-                        const seedPost = forumPosts[0];
-                        syncPostToGAS('addPost', {
-                            userEmail: '',
-                            author: seedPost.author,
-                            tag: seedPost.tag,
-                            title: seedPost.title,
-                            content: seedPost.content
-                        });
-                        seedPost.comments.forEach(c => {
-                            syncPostToGAS('addReply', {
-                                userEmail: '',
-                                author: c.author,
-                                postTitle: seedPost.title,
-                                replyContent: c.text
-                            });
-                        });
-                    }
-                    saveForumPostsLocal();
-                } else {
-                    forumPosts = loadForumPostsLocal();
                 }
-                
-                statusEl.innerText = "雲端已連線";
+                statusEl.innerText = "已連線歷史沙龍";
                 statusEl.className = "text-[10px] bg-green-900 text-green-300 px-2 py-1 rounded shadow-inner";
                 renderForum();
             } catch (e) {
-                console.error("GAS Load Error", e);
-                forumPosts = loadForumPostsLocal();
-                renderForum();
-                statusEl.innerText = "離線 (本機紀錄)";
+                console.error("Forum Load Error", e);
+                statusEl.innerText = "離線模式";
                 statusEl.className = "text-[10px] bg-red-900 text-red-300 px-2 py-1 rounded shadow-inner";
+                renderForum();
             }
         }
 
-        // ✨ 2. 將新增的發文或回覆推送到 Google Sheets（form POST 避開 CORS）
-        async function syncPostToGAS(action, postData) {
-            if (!GAS_URL || GAS_URL.trim() === "") return;
-            try {
-                // 用 form 編碼 + 隱藏 iframe 方式送出，相容性最高
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = GAS_URL;
-                form.target = 'gas-iframe';
-                form.style.display = 'none';
-                const input = document.createElement('input');
-                input.name = 'payload';
-                input.value = JSON.stringify({ action: action, data: postData });
-                form.appendChild(input);
-                document.body.appendChild(form);
-                form.submit();
-                document.body.removeChild(form);
-            } catch (e) {
-                console.error("GAS Sync Error", e);
-            }
+        // 前往 GAS 網頁應用（Google 登入後發文/回覆）
+        function openGASForum(action, postTitle) {
+            let url = GAS_WEBAPP;
+            if (action === 'newPost') url += '?action=newPost';
+            if (action === 'reply' && postTitle) url += '?action=reply&title=' + encodeURIComponent(postTitle);
+            window.open(url, '_blank');
         }
 
         function renderForum() {
             const grid = document.getElementById('forum-grid');
             grid.innerHTML = '';
+            if (forumPosts.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-12"><i class="fa-regular fa-message text-4xl mb-4 block"></i><p>尚無議題，點擊上方按鈕前往歷史沙龍發起討論</p></div>';
+                return;
+            }
             forumPosts.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'bg-panel p-5 rounded-xl border border-gray-800 hover:border-gray-500 transition cursor-pointer shadow-lg fade-in';
                 card.onclick = () => openForumPost(p.id);
-                const linked = p.eventId ? `<span class="inline-block text-[10px] text-primary border border-primary/50 rounded px-1.5 py-0.5 ml-1 align-middle"><i class="fa-solid fa-location-dot mr-1"></i>連結地圖事件</span>` : '';
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-3">
                         <span class="${p.tagBg} ${p.tagText} text-xs px-2 py-1 rounded">${escapeHtml(p.tag)}</span>
                         <span class="text-gray-500 text-xs">${escapeHtml(p.timeText)}</span>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-200 mb-2">${escapeHtml(p.title)}${linked}</h3>
+                    <h3 class="text-lg font-bold text-gray-200 mb-2">${escapeHtml(p.title)}</h3>
                     <p class="text-gray-400 text-sm mb-4 line-clamp-3">${escapeHtml(p.content)}</p>
                     <div class="flex items-center justify-between text-gray-500 text-sm">
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-full ${p.avatarColor} flex items-center justify-center text-white text-xs shadow-inner">${escapeHtml(p.author.charAt(0).toUpperCase())}</div>
-                            <span>${escapeHtml(p.author)}</span>
-                        </div>
-                        <div><i class="fa-regular fa-comment-dots mr-1 text-primary"></i> ${p.comments.length} 則思辨</div>
+                        <span>✍️ ${escapeHtml(p.author)}</span>
+                        <span>💬 ${p.comments.length} 則回覆</span>
                     </div>`;
                 grid.appendChild(card);
             });
-        }
-
-        function renderComments(p) {
-            const c = document.getElementById('mock-comments');
-            if (!p.comments.length) {
-                c.innerHTML = `<div class="text-sm text-gray-500 italic text-center py-4">尚無留言，成為第一個發表思辨的人。</div>`;
-                return;
-            }
-            c.innerHTML = p.comments.map(cm => `
-                <div class="bg-panel p-4 rounded-lg border border-gray-800 shadow-sm ${cm.mine ? 'border-l-4 border-l-green-500' : ''}">
-                    <div class="flex justify-between items-center mb-2">
-                        <div class="text-xs font-bold ${cm.color || 'text-primary'}">${escapeHtml(cm.author)}${cm.mine ? ' (您)' : ''}</div>
-                        <div class="text-xs text-gray-500">${escapeHtml(cm.timeText)}</div>
-                    </div>
-                    <p class="text-sm text-gray-200 leading-relaxed">${escapeHtml(cm.text).replace(/\n/g, '<br>')}</p>
-                </div>`).join('');
         }
 
         function openForumPost(postId) {
@@ -1479,159 +1289,67 @@
             document.getElementById('read-post-title').innerText = p.title;
             document.getElementById('read-post-content').innerText = p.content;
             document.getElementById('read-post-author').innerText = p.author;
-            const av = document.getElementById('read-post-avatar');
-            av.innerText = p.author.charAt(0).toUpperCase();
-            av.className = `w-6 h-6 rounded-full ${p.avatarColor} flex items-center justify-center text-white text-xs shadow-inner`;
             document.getElementById('read-post-time').innerText = p.timeText;
             const tagEl = document.getElementById('read-post-tag');
             tagEl.innerText = p.tag;
             tagEl.className = `text-xs px-2 py-1 rounded mb-3 inline-block ${p.tagBg} ${p.tagText}`;
             document.getElementById('forum-reply-input').value = '';
-            renderComments(p);
-            const m = document.getElementById('forum-read-modal');
-            m.classList.remove('hidden'); m.classList.add('flex');
+
+            const c = document.getElementById('mock-comments');
+            if (!p.comments.length) {
+                c.innerHTML = '<div class="text-sm text-gray-500 italic text-center py-4">尚無回覆</div>';
+            } else {
+                c.innerHTML = p.comments.map(cm => `
+                    <div class="bg-panel p-4 rounded-lg border border-gray-800 shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-xs font-bold text-primary">${escapeHtml(cm.author)}</div>
+                            <div class="text-xs text-gray-500">${escapeHtml(cm.timeText)}</div>
+                        </div>
+                        <p class="text-sm text-gray-200 leading-relaxed">${escapeHtml(cm.text).replace(/\n/g, '<br>')}</p>
+                    </div>`).join('');
+            }
+
+            document.getElementById('forum-read-modal').classList.remove('hidden');
+            document.getElementById('forum-read-modal').classList.add('flex');
         }
 
         function openNewPostModal() {
-            requireIdentity(() => {
-                document.getElementById('new-post-title').value = '';
-                document.getElementById('new-post-content').value = '';
-                const m = document.getElementById('forum-write-modal');
-                m.classList.remove('hidden'); m.classList.add('flex');
-            });
-        }
-
-        function submitNewPost() {
-            const title = document.getElementById('new-post-title').value.trim();
-            const content = document.getElementById('new-post-content').value.trim();
-            const tag = document.getElementById('new-post-tag').value;
-
-            if(!title || !content) { showToast("標題與內容不能留白！"); return; }
-
-            requireIdentity(() => {
-                const currentUser = userIdentity.name;
-                const colors = [{bg: 'bg-blue-900', text: 'text-blue-200'}, {bg: 'bg-yellow-900', text: 'text-yellow-200'}, {bg: 'bg-purple-900', text: 'text-purple-200'}, {bg: 'bg-green-900', text: 'text-green-200'}];
-                const c = colors[Math.floor(Math.random() * colors.length)];
-                
-                const newPost = {
-                    id: 'post_' + Date.now(),
-                    title: title,
-                    content: content,
-                    author: currentUser,
-                    avatarColor: userIdentity.color || 'bg-red-600',
-                    tag: tag,
-                    tagBg: c.bg,
-                    tagText: c.text,
-                    timeText: new Date().toLocaleDateString(),
-                    comments: []
-                };
-
-                // ✨ 先更新畫面，再背景同步至 Google Sheets
-                forumPosts.unshift(newPost);
-                saveForumPostsLocal();
-                renderForum();
-                syncPostToGAS('addPost', {
-                    userEmail: '',
-                    author: newPost.author,
-                    tag: newPost.tag,
-                    title: newPost.title,
-                    content: newPost.content
-                }); 
-
-                closeModal('forum-write-modal');
-                showToast("✅ 新議題發布成功！已記錄至歷史沙龍。");
-            });
+            openGASForum('newPost');
         }
 
         function submitForumReply() {
-            const inputEl = document.getElementById('forum-reply-input');
-            const text = inputEl.value.trim();
-            if (!text) { showToast("回覆內容不能為空！"); return; }
-            requireIdentity(() => {
-                const p = forumPosts.find(x => x.id === currentOpenPostId);
-                if (!p) return;
-                p.comments.push({ author: userIdentity.name, color: 'text-green-400', text: text, timeText: new Date().toLocaleDateString(), mine: true });
-                
-                // ✨ 更新畫面並背景同步至 Google Sheets
-                saveForumPostsLocal();
-                renderComments(p);
-                renderForum();
-                syncPostToGAS('addReply', {
-                    userEmail: '',
-                    author: userIdentity.name,
-                    postTitle: p.title,
-                    replyContent: text
-                });
-
-                inputEl.value = '';
-                const modalBox = document.querySelector('#forum-read-modal > div');
-                modalBox.scrollTo({ top: modalBox.scrollHeight, behavior: 'smooth' });
-                showToast("✅ 回覆已同步發布！");
-            });
+            const p = forumPosts.find(x => x.id === currentOpenPostId);
+            if (p) openGASForum('reply', p.title);
         }
 
         function discussSelectedEvent() {
             if (!selectedEvent) return;
-            const event = selectedEvent;
-            requireIdentity(() => {
-                let post = forumPosts.find(p => p.eventId === event.id);
-                if (!post) {
-                    const yearStr = event.year < 0 ? `西元前 ${Math.abs(event.year)}` : `西元 ${event.year}`;
-                    post = {
-                        id: 'evt_' + event.id,
-                        title: `【地圖事件討論】${event.title}`,
-                        content: `針對 ${yearStr} 年的「${event.title}」展開討論。\n\n事件背景：${event.desc}`,
-                        author: '時空地圖', avatarColor: 'bg-primary',
-                        tag: event.track, tagBg: 'bg-gray-700', tagText: 'text-gray-200',
-                        timeText: new Date().toLocaleDateString(), comments: [], eventId: event.id
-                    };
-                    
-                    // ✨ 自動建置並推上雲端
-                    forumPosts.unshift(post);
-                    saveForumPostsLocal();
-                    renderForum();
-                    syncPostToGAS('addPost', {
-                        userEmail: '',
-                        author: post.author,
-                        tag: post.tag,
-                        title: post.title,
-                        content: post.content
-                    });
-                }
-                closeEventPanel();
-                switchTab('social-view');
-                openForumPost(post.id);
-            });
+            const yearStr = selectedEvent.year < 0 ? `西元前 ${Math.abs(selectedEvent.year)}` : `西元 ${selectedEvent.year}`;
+            const title = `【${yearStr}】${selectedEvent.title}`;
+            openGASForum('newPost');
+            closeEventPanel();
+            switchTab('social-view');
+            showToast('📜 已開啟歷史沙龍，請用 Google 登入後發文討論');
         }
 
         // ===================================================================
         //  事件綁定與啟動
         // ===================================================================
-        document.getElementById('forum-reply-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitForumReply(); }
-        });
-        document.getElementById('identity-name-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') { e.preventDefault(); saveIdentityFromModal(); }
-        });
         document.getElementById('ai-input').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIMessage(); }
         });
 
         window.onload = () => {
-            userIdentity = loadIdentity();
-            forumPosts = loadForumPostsLocal(); // 先載入本機暫存墊檔
-            renderIdentityBar();
             renderForum();
             updateTrackFilterUI();
             initMap();
             setAIPersona('socratic', true);
             setTimeout(() => { map.invalidateSize(); }, 500);
 
-            // ✨ 背景啟動 Google Sheets 雲端連線
-            syncPostsFromGAS();
+            // ✨ 背景載入歷史沙龍資料
+            syncForumFromGAS();
         };
         window.addEventListener('resize', () => { if (map) map.invalidateSize(); });
     </script>
-    <iframe id="gas-iframe" name="gas-iframe" style="display:none"></iframe>
 </body>
 </html>
