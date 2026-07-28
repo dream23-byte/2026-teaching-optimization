@@ -11,6 +11,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         tailwind.config = {
             theme: {
@@ -254,13 +256,12 @@
                         </div>
                         <p class="text-gray-400">理性思辨的公共領域，針對古今各項歷史爭議議題進行思辨交流。</p>
                     </div>
-            <div class="flex items-center gap-3 shrink-0">
-                                <!-- 前往 GAS 歷史沙龍（Google 登入） -->
-                                <button onclick="openGASForum('newPost')" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-4 py-2 rounded shadow-lg transition whitespace-nowrap">
+            <div class="flex items-center gap-3 shrink-0 flex-wrap">
+                                <div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com" data-callback="handleGoogleCredential" data-auto_prompt="false"></div>
+                                <div id="google-signin-btn" class="g_id_signin" data-type="standard" data-size="medium" data-theme="filled_black" data-text="sign_in_with" data-shape="pill"></div>
+                                <div id="user-status" class="hidden items-center gap-2 bg-panel border border-gray-700 rounded-full px-3 py-1.5 shadow"></div>
+                                <button id="btn-new-post" onclick="openNewPostModal()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-4 py-2 rounded shadow-lg transition whitespace-nowrap">
                                     <i class="fa-solid fa-pen-fancy mr-1"></i> 發起新議題
-                                </button>
-                                <button onclick="window.open(GAS_WEBAPP, '_blank')" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-2 rounded-lg text-sm transition whitespace-nowrap border border-gray-600">
-                                    <i class="fa-brands fa-google mr-1"></i> Google 登入
                                 </button>
                             </div>
                 </div>
@@ -274,6 +275,33 @@
     </main>
 
     <!-- Modals -->
+    <!-- 發起新議題 Modal -->
+    <div id="forum-write-modal" class="fixed inset-0 modal-bg hidden items-center justify-center z-[9990] px-4">
+        <div class="bg-panel border border-gray-700 rounded-xl max-w-xl w-full shadow-2xl relative flex flex-col p-6" style="max-height:90vh;overflow-y:auto;">
+            <button onclick="closeModal('forum-write-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-primary mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-pen-to-square mr-2"></i> 發起新議題</h2>
+            <label class="text-sm text-gray-400 mb-1">作者名稱</label>
+            <input type="text" id="new-post-author" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner" readonly>
+            <label class="text-sm text-gray-400 mb-1">議題標題</label>
+            <input type="text" id="new-post-title" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner" placeholder="請輸入討論標題...">
+            <label class="text-sm text-gray-400 mb-1">分類標籤</label>
+            <select id="new-post-tag" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner">
+                <option value="歷史思辨">歷史思辨</option>
+                <option value="文明起源">文明起源</option>
+                <option value="帝國擴張">帝國擴張</option>
+                <option value="轉型正義">轉型正義</option>
+                <option value="現代局勢">現代局勢</option>
+            </select>
+            <label class="text-sm text-gray-400 mb-1">您的論述內容</label>
+            <textarea id="new-post-content" rows="5" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary resize-none mb-6 shadow-inner" placeholder="請理性闡述您的觀點..."></textarea>
+            <div class="flex justify-end gap-4">
+                <button onclick="closeModal('forum-write-modal')" class="text-gray-400 hover:text-white px-4 py-2 font-medium">取消</button>
+                <button onclick="submitNewPost()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-6 py-2 rounded-lg transition shadow-lg">發布議題</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 閱讀議題 Modal -->
     <div id="forum-read-modal" class="fixed inset-0 modal-bg hidden items-center justify-center z-[9990] px-4">
         <div class="bg-panel border border-gray-700 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
             <button onclick="closeModal('forum-read-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl transition-transform hover:rotate-90"><i class="fa-solid fa-xmark"></i></button>
@@ -292,12 +320,11 @@
                 <div class="space-y-4 mb-6" id="mock-comments">
                     <!-- 留言由 JS 依該議題的資料動態生成 -->
                 </div>
-                <div class="flex justify-center">
-                    <button onclick="submitForumReply()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-5 py-2.5 rounded-lg text-sm transition shadow-lg whitespace-nowrap">
-                        <i class="fa-brands fa-google mr-1"></i> 前往歷史沙龍回覆
-                    </button>
-                    <p class="text-[11px] text-gray-500 mt-2 text-center w-full">需使用 Google 帳號登入</p>
+                <div class="flex gap-3 bg-gray-900 p-3 rounded-xl border border-gray-700 shadow-inner">
+                    <input type="text" id="forum-reply-input" class="flex-1 bg-transparent border-none p-2 text-sm text-white focus:outline-none placeholder-gray-500" placeholder="寫下您的回覆...">
+                    <button onclick="submitForumReply()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-5 py-2 rounded-lg text-sm transition shadow-lg whitespace-nowrap">回覆</button>
                 </div>
+                <p id="reply-login-hint" class="text-[11px] text-gray-500 mt-2 text-center">💡 請先使用 Google 登入後即可回覆</p>
             </div>
         </div>
     </div>
@@ -1192,12 +1219,50 @@
         }
 
         // ===================================================================
-        //  歷史沙龍 — 整合 GAS 網頁應用（Google 登入 + 試算表儲存）
+        //  歷史沙龍 — Google 登入 + GAS 試算表儲存
         // ===================================================================
         let forumPosts = [];
         let currentOpenPostId = null;
+        let googleUser = null;
 
-        // 載入貼文與回覆（JSONP 跨域）
+        // ─── Google 登入回呼 ──────────────────────
+        function handleGoogleCredential(response) {
+            try {
+                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                googleUser = { email: payload.email, name: payload.name, picture: payload.picture };
+                updateLoginUI();
+                showToast('✅ Google 登入成功：' + googleUser.email);
+            } catch (e) {
+                showToast('⚠️ Google 登入解析失敗');
+            }
+        }
+
+        function updateLoginUI() {
+            const statusEl = document.getElementById('user-status');
+            const btn = document.getElementById('google-signin-btn');
+            const hint = document.getElementById('reply-login-hint');
+            if (googleUser) {
+                btn.style.display = 'none';
+                statusEl.style.display = 'flex';
+                statusEl.innerHTML = `
+                    <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-dark text-xs font-bold">${googleUser.name.charAt(0).toUpperCase()}</div>
+                    <span class="text-sm text-gray-200 max-w-[120px] truncate">${googleUser.name}</span>
+                    <button onclick="logoutGoogle()" class="text-xs text-gray-400 hover:text-red-400 ml-1">登出</button>`;
+                if (hint) hint.style.display = 'none';
+            } else {
+                btn.style.display = 'inline-block';
+                statusEl.style.display = 'none';
+                if (hint) hint.style.display = 'block';
+            }
+        }
+
+        function logoutGoogle() {
+            googleUser = null;
+            updateLoginUI();
+            showToast('已登出');
+        }
+
+        // ─── 載入貼文（JSONP）─────────────────────
         function loadForumJSONP() {
             return new Promise((resolve, reject) => {
                 const cb = 'gasCB_' + Date.now();
@@ -1248,19 +1313,41 @@
             }
         }
 
-        // 前往 GAS 網頁應用（Google 登入後發文/回覆）
-        function openGASForum(action, postTitle) {
-            let url = GAS_WEBAPP;
-            if (action === 'newPost') url += '?action=newPost';
-            if (action === 'reply' && postTitle) url += '?action=reply&title=' + encodeURIComponent(postTitle);
-            window.open(url, '_blank');
+        // ─── 寫入 GAS（form POST + 隱藏 iframe）──
+        function writeToGAS(action, data) {
+            return new Promise((resolve) => {
+                const iframe = document.getElementById('gas-write-frame') || (function() {
+                    const f = document.createElement('iframe');
+                    f.id = 'gas-write-frame';
+                    f.name = 'gas-write-frame';
+                    f.style.display = 'none';
+                    document.body.appendChild(f);
+                    return f;
+                })();
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = GAS_WEBAPP;
+                form.target = 'gas-write-frame';
+                form.style.display = 'none';
+                Object.keys(data).forEach(k => {
+                    const inp = document.createElement('input');
+                    inp.name = k;
+                    inp.value = data[k];
+                    form.appendChild(inp);
+                });
+                iframe.onload = function() { setTimeout(resolve, 500); };
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+            });
         }
 
+        // ─── 渲染 & UI ────────────────────────────
         function renderForum() {
             const grid = document.getElementById('forum-grid');
             grid.innerHTML = '';
             if (forumPosts.length === 0) {
-                grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-12"><i class="fa-regular fa-message text-4xl mb-4 block"></i><p>尚無議題，點擊上方按鈕前往歷史沙龍發起討論</p></div>';
+                grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-12"><i class="fa-regular fa-message text-4xl mb-4 block"></i><p>尚無議題，按下「發起新議題」開始討論吧！</p></div>';
                 return;
             }
             forumPosts.forEach(p => {
@@ -1313,23 +1400,58 @@
             document.getElementById('forum-read-modal').classList.add('flex');
         }
 
+        // ─── 發文 & 回覆 ──────────────────────────
         function openNewPostModal() {
-            openGASForum('newPost');
+            if (!googleUser) { showToast('⚠️ 請先點擊 Google 登入'); return; }
+            document.getElementById('new-post-author').value = googleUser.name + ' (' + googleUser.email + ')';
+            document.getElementById('new-post-title').value = '';
+            document.getElementById('new-post-content').value = '';
+            document.getElementById('forum-write-modal').classList.remove('hidden');
+            document.getElementById('forum-write-modal').classList.add('flex');
         }
 
-        function submitForumReply() {
+        async function submitNewPost() {
+            const title = document.getElementById('new-post-title').value.trim();
+            const content = document.getElementById('new-post-content').value.trim();
+            const tag = document.getElementById('new-post-tag').value;
+            if (!title || !content) { showToast('⚠️ 標題與內容不能留白'); return; }
+            if (!googleUser) { showToast('⚠️ 請先 Google 登入'); return; }
+            await writeToGAS('addPost', {
+                action: 'addPost', author: googleUser.name,
+                tag: tag, title: title, content: content
+            });
+            closeModal('forum-write-modal');
+            showToast('✅ 議題發布成功！');
+            syncForumFromGAS();
+        }
+
+        async function submitForumReply() {
+            const inputEl = document.getElementById('forum-reply-input');
+            const text = inputEl.value.trim();
+            if (!text) { showToast('⚠️ 請輸入回覆內容'); return; }
+            if (!googleUser) { showToast('⚠️ 請先 Google 登入'); return; }
             const p = forumPosts.find(x => x.id === currentOpenPostId);
-            if (p) openGASForum('reply', p.title);
+            if (!p) return;
+            await writeToGAS('addReply', {
+                action: 'addReply', author: googleUser.name,
+                postTitle: p.title, replyContent: text
+            });
+            inputEl.value = '';
+            showToast('✅ 回覆成功！');
+            syncForumFromGAS();
         }
 
         function discussSelectedEvent() {
             if (!selectedEvent) return;
+            if (!googleUser) { showToast('⚠️ 請先 Google 登入'); return; }
             const yearStr = selectedEvent.year < 0 ? `西元前 ${Math.abs(selectedEvent.year)}` : `西元 ${selectedEvent.year}`;
-            const title = `【${yearStr}】${selectedEvent.title}`;
-            openGASForum('newPost');
+            document.getElementById('new-post-author').value = googleUser.name + ' (' + googleUser.email + ')';
+            document.getElementById('new-post-title').value = `【${yearStr}】${selectedEvent.title}`;
+            document.getElementById('new-post-content').value = `事件背景：${selectedEvent.desc}`;
+            document.getElementById('forum-write-modal').classList.remove('hidden');
+            document.getElementById('forum-write-modal').classList.add('flex');
             closeEventPanel();
             switchTab('social-view');
-            showToast('📜 已開啟歷史沙龍，請用 Google 登入後發文討論');
         }
 
         // ===================================================================

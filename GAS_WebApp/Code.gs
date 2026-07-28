@@ -89,16 +89,12 @@ function doPost(e) {
     msg = "❌ 寫入失敗：" + err.message;
   }
 
-  const backUrl = ScriptApp.getService().getUrl();
   return HtmlService.createHtmlOutput(
     '<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
     '<style>body{font-family:sans-serif;background:#1a1a2e;color:#eee;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;padding:20px;text-align:center;}' +
     'h2{color:#d4af37;margin-bottom:20px;}' +
-    '.btn{display:inline-block;background:#d4af37;color:#1a1a2e;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:bold;margin-top:20px;}' +
-    '.btn-grey{display:inline-block;background:#333;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;margin-top:12px;}' +
     '</style></head><body>' +
-    '<div><h2>' + msg + '</h2>' +
-    '<a class="btn" href="' + backUrl + '">📜 返回歷史沙龍</a></div></body></html>'
+    '<div><h2>' + msg + '</h2></div></body></html>'
   );
 }
 
