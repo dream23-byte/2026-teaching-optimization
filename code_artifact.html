@@ -1251,19 +1251,21 @@
 
         function updateLoginUI() {
             const statusEl = document.getElementById('user-status');
-            const btn = document.getElementById('google-signin-btn');
+            const btn = document.getElementById('btn-google-signin');
             const hint = document.getElementById('reply-login-hint');
             if (googleUser) {
-                btn.style.display = 'none';
-                statusEl.style.display = 'flex';
-                statusEl.innerHTML = `
-                    <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-dark text-xs font-bold">${googleUser.name.charAt(0).toUpperCase()}</div>
-                    <span class="text-sm text-gray-200 max-w-[120px] truncate">${googleUser.name}</span>
-                    <button onclick="logoutGoogle()" class="text-xs text-gray-400 hover:text-red-400 ml-1">登出</button>`;
+                if (btn) btn.style.display = 'none';
+                if (statusEl) {
+                    statusEl.style.display = 'flex';
+                    statusEl.innerHTML = `
+                        <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-dark text-xs font-bold">${googleUser.name.charAt(0).toUpperCase()}</div>
+                        <span class="text-sm text-gray-200 max-w-[120px] truncate">${googleUser.name}</span>
+                        <button onclick="logoutGoogle()" class="text-xs text-gray-400 hover:text-red-400 ml-1">登出</button>`;
+                }
                 if (hint) hint.style.display = 'none';
             } else {
-                btn.style.display = 'inline-block';
-                statusEl.style.display = 'none';
+                if (btn) btn.style.display = 'inline-block';
+                if (statusEl) statusEl.style.display = 'none';
                 if (hint) hint.style.display = 'block';
             }
         }
