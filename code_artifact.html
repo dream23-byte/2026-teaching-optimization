@@ -1228,12 +1228,13 @@
         // ─── Google 登入回呼 ──────────────────────
         function handleGoogleCredential(response) {
             try {
-                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                const base64 = response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+                const payload = JSON.parse(atob(base64));
                 googleUser = { email: payload.email, name: payload.name, picture: payload.picture };
                 updateLoginUI();
                 showToast('✅ Google 登入成功：' + googleUser.email);
             } catch (e) {
-                showToast('⚠️ Google 登入解析失敗');
+                showToast('⚠️ Google 登入解析失敗：' + e.message);
             }
         }
 
