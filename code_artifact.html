@@ -1446,7 +1446,7 @@
                     '</div>' +
                     '<div class="flex items-center gap-3 pt-3 border-t border-gray-800 text-sm">' +
                         (googleUser ? '<button class="like-btn hover:scale-110 transition" data-row="' + p.row + '" data-title="' + escapeHtml(p.title) + '">' + (iLiked ? '❤️' : '🤍') + ' <span class="like-count">' + p.likes.length + '</span></button>' : '<span>❤️ ' + p.likes.length + '</span>') +
-                        (googleUser ? '<button class="collect-btn hover:scale-110 transition" data-row="' + p.row + '" data-title="' + escapeHtml(p.title) + '">' + (iCollected ? '<span style="color:#fbbf24;">🔖</span>' : '🔖') + '</button>' : '') +
+                        (googleUser ? '<button class="collect-btn hover:scale-110 transition" data-row="' + p.row + '" data-title="' + escapeHtml(p.title) + '">' + (iCollected ? '📖' : '📘') + '</button>' : '') +
                         (tabMode === 'personal' && personalTab === 'mine' && isOwner ? '<span class="flex gap-2 ml-auto"><button class="text-blue-400 hover:text-blue-300 text-xs" onclick="editPost(\'' + escapeHtml(p.title) + '\')">✏️ 編輯</button><button class="text-red-400 hover:text-red-300 text-xs" onclick="deletePost(\'' + escapeHtml(p.title) + '\')">🗑️ 刪除</button></span>' : '') +
                     '</div>';
                 grid.appendChild(card);
