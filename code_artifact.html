@@ -357,8 +357,8 @@
             <button onclick="closeModal('forum-edit-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="text-2xl font-bold text-primary mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-pen-to-square mr-2"></i> 編輯議題</h2>
             <input type="hidden" id="edit-post-row">
-            <label class="text-sm text-gray-400 mb-1">作者</label>
-            <input type="text" id="edit-post-author" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white mb-4 shadow-inner" readonly>
+            <label class="text-sm text-gray-400 mb-1">作者名稱 <span class="text-[10px] text-gray-500">（自動帶入，不可修改）</span></label>
+            <input type="text" id="edit-post-author" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-gray-400 mb-4 shadow-inner cursor-not-allowed" readonly>
             <label class="text-sm text-gray-400 mb-1">分類標籤</label>
             <select id="edit-post-tag" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner">
                 <option value="歷史思辨">歷史思辨</option>
@@ -1727,7 +1727,7 @@
             var p = forumPosts.find(function(x) { return x.title === title; });
             if (!p) return;
             document.getElementById('edit-post-row').value = p.row;
-            document.getElementById('edit-post-author').value = p.author;
+            document.getElementById('edit-post-author').value = googleUser.name;
             document.getElementById('edit-post-title').value = p.title;
             document.getElementById('edit-post-tag').value = p.tag;
             document.getElementById('edit-post-content').value = p.content;
@@ -1740,7 +1740,7 @@
             var title = document.getElementById('edit-post-title').value.trim();
             var content = document.getElementById('edit-post-content').value.trim();
             if (!title || !content) { showToast('⚠️ 不能留白'); return; }
-            await writeToGAS({ action:'editPost', row:row, userEmail:googleUser.email, tag:tag, title:title, content:content });
+            await writeToGAS({ action:'editPost', row:row, userEmail:googleUser.email, author:googleUser.name, tag:tag, title:title, content:content });
             closeModal('forum-edit-modal');
             showToast('✅ 已更新');
             syncForumFromGAS();

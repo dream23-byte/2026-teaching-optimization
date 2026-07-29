@@ -42,7 +42,7 @@ function doPost(e) {
       msg = "✅ 回覆成功";
     } else if (p.action === "editPost") {
       const r = parseInt(p.row); const sh = ss.getSheetByName(S.POSTS);
-      sh.getRange(r,4).setValue(p.tag); sh.getRange(r,5).setValue(p.title); sh.getRange(r,6).setValue(p.content);
+      sh.getRange(r,3).setValue(p.author); sh.getRange(r,4).setValue(p.tag); sh.getRange(r,5).setValue(p.title); sh.getRange(r,6).setValue(p.content);
       msg = "✅ 已更新";
     } else if (p.action === "deletePost") {
       ss.getSheetByName(S.POSTS).deleteRow(parseInt(p.row));
