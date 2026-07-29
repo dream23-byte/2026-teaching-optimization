@@ -294,8 +294,8 @@
         <div class="bg-panel border border-gray-700 rounded-xl max-w-xl w-full shadow-2xl relative flex flex-col p-6" style="max-height:90vh;overflow-y:auto;">
             <button onclick="closeModal('forum-write-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="text-2xl font-bold text-primary mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-pen-to-square mr-2"></i> 發起新議題</h2>
-            <label class="text-sm text-gray-400 mb-1">作者名稱</label>
-            <input type="text" id="new-post-author" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner" readonly>
+            <label class="text-sm text-gray-400 mb-1">作者名稱 <span class="text-[10px] text-gray-500">（自動帶入，不可修改）</span></label>
+            <input type="text" id="new-post-author" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-gray-400 mb-4 shadow-inner cursor-not-allowed" readonly>
             <label class="text-sm text-gray-400 mb-1">議題標題</label>
             <input type="text" id="new-post-title" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner" placeholder="請輸入討論標題...">
             <label class="text-sm text-gray-400 mb-1">分類標籤</label>
@@ -1278,7 +1278,7 @@
         //  歷史沙龍 — 完整論壇（公共/個人、按讚、收藏、表情）
         // ===================================================================
         let forumPosts = [], currentOpenPostId = null, googleUser = null, sortMode = 'new', tabMode = 'public';
-        const EMOJIS = ['😍','🙂‍↕️','🙂‍↔️','🤔','🫣','😱','😵','😬','😂'];
+        const EMOJIS = ['👍','👎'];
 
         // ─── Google 登入 ──────────────────────────
         function startGoogleSignIn() {
@@ -1288,14 +1288,27 @@
 
         function handleGoogleCredential(response) {
             try {
-                const b64 = response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-                const payload = JSON.parse(atob(b64));
-                googleUser = { email: payload.email, name: payload.name };
+                var b64 = response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+                var payload = JSON.parse(atob(b64));
+                var savedName = localStorage.getItem('hlab_displayname_' + payload.email);
+                googleUser = { email: payload.email, name: savedName || payload.name };
                 localStorage.setItem('hlab_google', JSON.stringify(googleUser));
                 updateLoginUI(); renderForum();
                 if (window.location.hash) history.replaceState(null,'',window.location.pathname);
                 showToast('✅ 登入成功：' + googleUser.email);
             } catch(e) { showToast('⚠️ 登入解析失敗：' + e.message); }
+        }
+
+        function changeDisplayName() {
+            if (!googleUser) return;
+            var newName = prompt('修改顯示名稱：', googleUser.name);
+            if (newName && newName.trim()) {
+                googleUser.name = newName.trim();
+                localStorage.setItem('hlab_displayname_' + googleUser.email, googleUser.name);
+                localStorage.setItem('hlab_google', JSON.stringify(googleUser));
+                updateLoginUI();
+                showToast('✅ 名稱已修改為：' + googleUser.name);
+            }
         }
 
         function logoutGoogle() {
@@ -1306,12 +1319,13 @@
         }
 
         function updateLoginUI() {
-            const btn = document.getElementById('btn-google-signin'), st = document.getElementById('user-status');
+            var btn = document.getElementById('btn-google-signin'), st = document.getElementById('user-status');
             if (googleUser && btn && st) {
                 btn.style.display = 'none'; st.style.display = 'flex';
-                st.innerHTML = `<div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-dark text-xs font-bold">${googleUser.name.charAt(0).toUpperCase()}</div>
-                    <span class="text-sm text-gray-200 max-w-[100px] truncate">${googleUser.name}</span>
-                    <button onclick="logoutGoogle()" class="text-xs text-gray-400 hover:text-red-400 ml-1">登出</button>`;
+                st.innerHTML = '<div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-dark text-xs font-bold">' + googleUser.name.charAt(0).toUpperCase() + '</div>' +
+                    '<span class="text-sm text-gray-200 max-w-[100px] truncate">' + escapeHtml(googleUser.name) + '</span>' +
+                    '<button onclick="changeDisplayName()" class="text-[10px] text-gray-400 hover:text-primary ml-0.5" title="修改名稱">✏️</button>' +
+                    '<button onclick="logoutGoogle()" class="text-xs text-gray-400 hover:text-red-400 ml-1">登出</button>';
             } else if (btn && st) {
                 btn.style.display = 'inline-flex'; st.style.display = 'none';
             }
@@ -1415,7 +1429,7 @@
                     '<div class="flex items-center gap-3 pt-3 border-t border-gray-800 text-sm">' +
                         (googleUser ? '<button class="like-btn hover:scale-110 transition" data-row="' + p.row + '" data-title="' + escapeHtml(p.title) + '">' + (iLiked ? '❤️' : '🤍') + ' <span class="like-count">' + p.likes.length + '</span></button>' : '<span>❤️ ' + p.likes.length + '</span>') +
                         (googleUser ? '<button class="collect-btn hover:scale-110 transition" data-row="' + p.row + '" data-title="' + escapeHtml(p.title) + '">' + (iCollected ? '🔖' : '🔖') + '</button>' : '') +
-                        (isOwner ? '<span class="flex gap-2 ml-auto"><button class="text-blue-400 hover:text-blue-300 text-xs" onclick="editPost(\'' + escapeHtml(p.title) + '\')">✏️ 編輯</button><button class="text-red-400 hover:text-red-300 text-xs" onclick="deletePost(\'' + escapeHtml(p.title) + '\')">🗑️ 刪除</button></span>' : '') +
+                        (tabMode === 'personal' && isOwner ? '<span class="flex gap-2 ml-auto"><button class="text-blue-400 hover:text-blue-300 text-xs" onclick="editPost(\'' + escapeHtml(p.title) + '\')">✏️ 編輯</button><button class="text-red-400 hover:text-red-300 text-xs" onclick="deletePost(\'' + escapeHtml(p.title) + '\')">🗑️ 刪除</button></span>' : '') +
                     '</div>';
                 grid.appendChild(card);
             });
@@ -1541,6 +1555,7 @@
         function openNewPostModal() {
             if (!googleUser) { showToast('⚠️ 請先登入'); return; }
             document.getElementById('new-post-author').value = googleUser.name;
+            document.getElementById('new-post-author').readOnly = true;
             document.getElementById('new-post-title').value = '';
             document.getElementById('new-post-content').value = '';
             document.getElementById('forum-write-modal').classList.remove('hidden');
