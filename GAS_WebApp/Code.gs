@@ -1,151 +1,106 @@
-/**
- * 歷史沙龍 — Google Apps Script Web App
- * 工作表一「Posts」：Timestamp | UserEmail | Author | Tag | Title | Content
- * 工作表二「Replies」：Timestamp | UserEmail | Author | PostTitle | ReplyContent
- */
+const S = {
+  POSTS: "Posts", REPLIES: "Replies",
+  LIKES: "PostLikes", COLLECTS: "PostCollects", REACTIONS: "ReplyReactions"
+};
 
-const SHEET_NAME_POSTS = "Posts";
-const SHEET_NAME_REPLIES = "Replies";
-
-function onOpen() {
-  ensureSheetsExist();
-}
-
-function ensureSheetsExist() {
+function onOpen() { ensureSheets(); }
+function ensureSheets() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (!ss.getSheetByName(SHEET_NAME_POSTS)) {
-    ss.insertSheet(SHEET_NAME_POSTS);
-    ss.getSheetByName(SHEET_NAME_POSTS).appendRow(["Timestamp", "UserEmail", "Author", "Tag", "Title", "Content"]);
-  }
-  if (!ss.getSheetByName(SHEET_NAME_REPLIES)) {
-    ss.insertSheet(SHEET_NAME_REPLIES);
-    ss.getSheetByName(SHEET_NAME_REPLIES).appendRow(["Timestamp", "UserEmail", "Author", "PostTitle", "ReplyContent"]);
-  }
+  const h = (n, hd) => { if (!ss.getSheetByName(n)) { const s = ss.insertSheet(n); s.appendRow(hd); } };
+  h(S.POSTS, ["Timestamp","UserEmail","Author","Tag","Title","Content"]);
+  h(S.REPLIES, ["Timestamp","UserEmail","Author","PostTitle","ReplyContent"]);
+  h(S.LIKES, ["PostRow","UserEmail"]);
+  h(S.COLLECTS, ["PostRow","UserEmail"]);
+  h(S.REACTIONS, ["ReplyRow","UserEmail","Emoji"]);
 }
 
 function doGet(e) {
-  try { ensureSheetsExist(); } catch (ex) {}
-
+  try { ensureSheets(); } catch(ex) {}
   if (e && e.parameter && e.parameter.callback) {
-    const data = buildForumData();
-    const payload = JSON.stringify(data);
-    return ContentService
-      .createTextOutput(e.parameter.callback + "(" + payload + ")")
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    const data = buildData();
+    return ContentService.createTextOutput(e.parameter.callback + "(" + JSON.stringify(data) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
-
   const email = Session.getActiveUser().getEmail();
-  if (!email) {
-    return HtmlService.createHtmlOutput(
-      '<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
-      '<style>body{font-family:sans-serif;background:#1a1a2e;color:#eee;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;padding:20px;text-align:center;}' +
-      'h1{color:#d4af37;}p{max-width:400px;line-height:1.8;}' +
-      '</style></head><body>' +
-      '<div><h1>🔐 需要 Google 登入</h1><p>請使用您的 Google 帳號登入才能使用歷史沙龍。</p></div></body></html>'
-    ).setTitle("歷史沙龍 — 請登入");
-  }
-
-  const template = HtmlService.createTemplateFromFile("Index");
-  template.userEmail = email;
-  template.appUrl = ScriptApp.getService().getUrl();
-
-  return template
-    .evaluate()
-    .setTitle("歷史沙龍 — 互動式歷史討論區")
-    .addMetaTag("viewport", "width=device-width, initial-scale=1.0");
+  if (!email) return HtmlService.createHtmlOutput('<html><body style="font-family:sans-serif;background:#1a1a2e;color:#eee;display:flex;justify-content:center;align-items:center;height:100vh;"><div style="text-align:center;"><h1 style="color:#d4af37;">🔐 需要 Google 登入</h1></div></body></html>').setTitle("歷史沙龍");
+  const t = HtmlService.createTemplateFromFile("Index");
+  t.userEmail = email; t.appUrl = ScriptApp.getService().getUrl();
+  return t.evaluate().setTitle("歷史沙龍").addMetaTag("viewport","width=device-width,initial-scale=1.0");
 }
 
 function doPost(e) {
-  ensureSheetsExist();
+  ensureSheets();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const params = e.parameter;
-  const userEmail = params.userEmail || Session.getActiveUser().getEmail() || "";
+  const p = e.parameter;
+  const u = p.userEmail || Session.getActiveUser().getEmail() || "";
   let msg = "";
-
   try {
-    if (params.action === "addPost") {
-      const sheet = ss.getSheetByName(SHEET_NAME_POSTS);
-      sheet.appendRow([new Date(), userEmail, params.author, params.tag, params.title, params.content]);
-      msg = "✅ 議題發布成功！";
-    } else if (params.action === "addReply") {
-      const sheet = ss.getSheetByName(SHEET_NAME_REPLIES);
-      sheet.appendRow([new Date(), userEmail, params.author, params.postTitle, params.replyContent]);
-      msg = "✅ 回覆發布成功！";
-    } else if (params.action === "editPost") {
-      const sheet = ss.getSheetByName(SHEET_NAME_POSTS);
-      const row = parseInt(params.row);
-      sheet.getRange(row, 4).setValue(params.tag);
-      sheet.getRange(row, 5).setValue(params.title);
-      sheet.getRange(row, 6).setValue(params.content);
-      msg = "✅ 議題已更新！";
-    } else if (params.action === "deletePost") {
-      const sheet = ss.getSheetByName(SHEET_NAME_POSTS);
-      sheet.deleteRow(parseInt(params.row));
-      msg = "✅ 議題已刪除！";
-    } else if (params.action === "editReply") {
-      const sheet = ss.getSheetByName(SHEET_NAME_REPLIES);
-      const row = parseInt(params.row);
-      sheet.getRange(row, 5).setValue(params.replyContent);
-      msg = "✅ 回覆已更新！";
-    } else if (params.action === "deleteReply") {
-      const sheet = ss.getSheetByName(SHEET_NAME_REPLIES);
-      sheet.deleteRow(parseInt(params.row));
-      msg = "✅ 回覆已刪除！";
-    } else {
-      msg = "⚠️ 未知操作";
-    }
-  } catch (err) {
-    msg = "❌ 操作失敗：" + err.message;
-  }
-
-  return HtmlService.createHtmlOutput(
-    '<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
-    '<style>body{font-family:sans-serif;background:#1a1a2e;color:#eee;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;padding:20px;text-align:center;}' +
-    'h2{color:#d4af37;margin-bottom:20px;}' +
-    '</style></head><body><div><h2>' + msg + '</h2></div></body></html>'
-  );
+    if (p.action === "addPost") {
+      ss.getSheetByName(S.POSTS).appendRow([new Date(), u, p.author, p.tag, p.title, p.content]);
+      msg = "✅ 發布成功";
+    } else if (p.action === "addReply") {
+      ss.getSheetByName(S.REPLIES).appendRow([new Date(), u, p.author, p.postTitle, p.replyContent]);
+      msg = "✅ 回覆成功";
+    } else if (p.action === "editPost") {
+      const r = parseInt(p.row); const sh = ss.getSheetByName(S.POSTS);
+      sh.getRange(r,4).setValue(p.tag); sh.getRange(r,5).setValue(p.title); sh.getRange(r,6).setValue(p.content);
+      msg = "✅ 已更新";
+    } else if (p.action === "deletePost") {
+      ss.getSheetByName(S.POSTS).deleteRow(parseInt(p.row));
+      msg = "✅ 已刪除";
+    } else if (p.action === "editReply") {
+      ss.getSheetByName(S.REPLIES).getRange(parseInt(p.row),5).setValue(p.replyContent);
+      msg = "✅ 已更新";
+    } else if (p.action === "deleteReply") {
+      ss.getSheetByName(S.REPLIES).deleteRow(parseInt(p.row));
+      msg = "✅ 已刪除";
+    } else if (p.action === "likePost") {
+      ss.getSheetByName(S.LIKES).appendRow([parseInt(p.row), u]);
+      msg = "✅ 已按讚";
+    } else if (p.action === "unlikePost") {
+      const sh = ss.getSheetByName(S.LIKES);
+      const rows = sh.getDataRange().getValues();
+      for (let i = rows.length - 1; i >= 0; i--) {
+        if (Number(rows[i][0]) === Number(p.row) && String(rows[i][1]) === u) { sh.deleteRow(i + 1); break; }
+      }
+      msg = "✅ 已取消讚";
+    } else if (p.action === "collectPost") {
+      ss.getSheetByName(S.COLLECTS).appendRow([parseInt(p.row), u]);
+      msg = "✅ 已收藏";
+    } else if (p.action === "uncollectPost") {
+      const sh = ss.getSheetByName(S.COLLECTS);
+      const rows = sh.getDataRange().getValues();
+      for (let i = rows.length - 1; i >= 0; i--) {
+        if (Number(rows[i][0]) === Number(p.row) && String(rows[i][1]) === u) { sh.deleteRow(i + 1); break; }
+      }
+      msg = "✅ 已取消收藏";
+    } else if (p.action === "addReaction") {
+      ss.getSheetByName(S.REACTIONS).appendRow([parseInt(p.replyRow), u, p.emoji]);
+      msg = "✅ 已反應";
+    } else if (p.action === "removeReaction") {
+      const sh = ss.getSheetByName(S.REACTIONS);
+      const rows = sh.getDataRange().getValues();
+      for (let i = rows.length - 1; i >= 0; i--) {
+        if (Number(rows[i][0]) === Number(p.replyRow) && String(rows[i][1]) === u && String(rows[i][2]) === p.emoji) { sh.deleteRow(i + 1); break; }
+      }
+      msg = "✅ 已移除反應";
+    } else { msg = "⚠️ 未知操作"; }
+  } catch(err) { msg = "❌ " + err.message; }
+  return HtmlService.createHtmlOutput('<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>body{font-family:sans-serif;background:#1a1a2e;color:#eee;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;padding:20px;text-align:center;}h2{color:#d4af37;}</style></head><body><div><h2>' + msg + '</h2></div></body></html>');
 }
 
-function buildForumData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const utc = Utilities.formatDate(new Date(), "GMT", "yyyy-MM-dd HH:mm:ss");
-
-  const posts = [];
-  const postsSheet = ss.getSheetByName(SHEET_NAME_POSTS);
-  if (postsSheet && postsSheet.getLastRow() > 1) {
-    const rows = postsSheet.getRange(2, 1, postsSheet.getLastRow() - 1, 6).getValues();
-    rows.forEach((r, i) => {
-      posts.push({
-        row: i + 2,
-        timestamp: String(r[0]),
-        userEmail: String(r[1]),
-        author: String(r[2]),
-        tag: String(r[3]),
-        title: String(r[4]),
-        content: String(r[5])
-      });
-    });
-  }
-
-  const replies = [];
-  const repliesSheet = ss.getSheetByName(SHEET_NAME_REPLIES);
-  if (repliesSheet && repliesSheet.getLastRow() > 1) {
-    const rows = repliesSheet.getRange(2, 1, repliesSheet.getLastRow() - 1, 5).getValues();
-    rows.forEach((r, i) => {
-      replies.push({
-        row: i + 2,
-        timestamp: String(r[0]),
-        userEmail: String(r[1]),
-        author: String(r[2]),
-        postTitle: String(r[3]),
-        replyContent: String(r[4])
-      });
-    });
-  }
-
-  return { posts, replies, serverTime: utc };
+function readSheet(name, cols) {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+  if (!sh || sh.getLastRow() <= 1) return [];
+  return sh.getRange(2, 1, sh.getLastRow() - 1, cols).getValues();
 }
 
-function getForumData() {
-  return buildForumData();
+function buildData() {
+  const posts = readSheet(S.POSTS, 6).map((r,i) => ({ row: i+2, timestamp: String(r[0]), userEmail: String(r[1]), author: String(r[2]), tag: String(r[3]), title: String(r[4]), content: String(r[5]) }));
+  const replies = readSheet(S.REPLIES, 5).map((r,i) => ({ row: i+2, timestamp: String(r[0]), userEmail: String(r[1]), author: String(r[2]), postTitle: String(r[3]), replyContent: String(r[4]) }));
+  const likes = readSheet(S.LIKES, 2).map(r => ({ postRow: Number(r[0]), userEmail: String(r[1]) }));
+  const collects = readSheet(S.COLLECTS, 2).map(r => ({ postRow: Number(r[0]), userEmail: String(r[1]) }));
+  const reactions = readSheet(S.REACTIONS, 3).map(r => ({ replyRow: Number(r[0]), userEmail: String(r[1]), emoji: String(r[2]) }));
+  return { posts, replies, likes, collects, reactions };
 }
+
+function getForumData() { return buildData(); }

@@ -245,32 +245,44 @@
         </section>
 
         <!-- MODULE 4: Social Forum -->
-        <section id="social-view" class="view-section h-full hidden fade-in bg-dark p-6 overflow-y-auto">
-            <div class="max-w-5xl mx-auto">
-                <div class="flex flex-col md:flex-row justify-between md:items-end mb-8 border-b border-gray-700 pb-4 gap-4">
+        <section id="social-view" class="view-section h-full hidden flex-col bg-dark overflow-y-auto">
+            <div class="max-w-5xl mx-auto w-full p-6">
+                <!-- Top Bar -->
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
                     <div>
-                        <div class="flex items-center gap-3 mb-2">
+                        <div class="flex items-center gap-3 mb-1">
                             <h2 class="text-3xl font-bold text-primary">啟蒙歷史沙龍 <i class="fa-solid fa-mug-hot"></i></h2>
-                            <!-- ✨ 新增：雲端連線狀態指示器 -->
                             <span id="cloud-status" class="text-[10px] bg-gray-700 text-gray-400 px-2 py-1 rounded shadow-inner">本機模式</span>
                         </div>
-                        <p class="text-gray-400">理性思辨的公共領域，針對古今各項歷史爭議議題進行思辨交流。</p>
+                        <p class="text-gray-400 text-sm">理性思辨的公共領域</p>
                     </div>
-            <div class="flex items-center gap-3 shrink-0 flex-wrap">
-                                <button id="btn-google-signin" onclick="startGoogleSignIn()" class="bg-white hover:bg-gray-200 text-gray-800 font-bold px-4 py-2 rounded-lg shadow transition whitespace-nowrap flex items-center gap-2 text-sm">
-                                    <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                                    Google 登入
-                                </button>
-                                <div id="user-status" class="hidden items-center gap-2 bg-panel border border-gray-700 rounded-full px-3 py-1.5 shadow"></div>
-                                <button id="btn-new-post" onclick="openNewPostModal()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-4 py-2 rounded shadow-lg transition whitespace-nowrap">
-                                    <i class="fa-solid fa-pen-fancy mr-1"></i> 發起新議題
-                                </button>
-                            </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button id="btn-google-signin" onclick="startGoogleSignIn()" class="bg-white hover:bg-gray-200 text-gray-800 font-bold px-3 py-2 rounded-lg shadow transition whitespace-nowrap flex items-center gap-2 text-sm">
+                            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                            Google 登入
+                        </button>
+                        <div id="user-status" class="hidden items-center gap-2 bg-panel border border-gray-700 rounded-full px-3 py-1.5 shadow text-sm"></div>
+                        <button onclick="openNewPostModal()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-3 py-2 rounded-lg shadow transition whitespace-nowrap text-sm">
+                            <i class="fa-solid fa-pen-fancy mr-1"></i> 發起新議題
+                        </button>
+                    </div>
                 </div>
 
-                <div id="forum-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10">
-                    <!-- 由 JS 依資料（含 localStorage）動態產生 -->
+                <!-- Tabs + Sort -->
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+                    <div class="flex gap-1 bg-panel rounded-lg p-1 border border-gray-800">
+                        <button id="tab-public" class="tab-btn px-4 py-2 rounded-md text-sm font-bold bg-primary text-dark">🌐 公共區域</button>
+                        <button id="tab-personal" class="tab-btn px-4 py-2 rounded-md text-sm font-bold text-gray-400 hover:text-white">👤 個人區域</button>
+                    </div>
+                    <div id="sort-bar" class="flex gap-2 items-center">
+                        <span class="text-xs text-gray-500">排序：</span>
+                        <button id="sort-new" class="sort-btn px-3 py-1.5 rounded text-xs font-bold bg-primary text-dark">最新</button>
+                        <button id="sort-hot" class="sort-btn px-3 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white bg-panel border border-gray-800">🔥 熱門</button>
+                    </div>
                 </div>
+
+                <!-- Forum Grid -->
+                <div id="forum-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10"></div>
             </div>
         </section>
 
@@ -336,7 +348,6 @@
         <div class="bg-panel border border-gray-700 rounded-xl max-w-xl w-full shadow-2xl relative flex flex-col p-6" style="max-height:90vh;overflow-y:auto;">
             <button onclick="closeModal('forum-edit-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="text-2xl font-bold text-primary mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-pen-to-square mr-2"></i> 編輯議題</h2>
-            <input type="hidden" id="edit-post-id">
             <input type="hidden" id="edit-post-row">
             <label class="text-sm text-gray-400 mb-1">作者</label>
             <input type="text" id="edit-post-author" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white mb-4 shadow-inner" readonly>
@@ -364,7 +375,7 @@
         <div class="bg-panel border border-gray-700 rounded-xl max-w-xl w-full shadow-2xl relative flex flex-col p-6">
             <button onclick="closeModal('forum-edit-reply-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="text-2xl font-bold text-primary mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-pen-to-square mr-2"></i> 編輯回覆</h2>
-            <input type="hidden" id="edit-reply-post-id">
+            <input type="hidden" id="edit-reply-post-title">
             <input type="hidden" id="edit-reply-row">
             <textarea id="edit-reply-content" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-6 shadow-inner"></textarea>
             <div class="flex justify-end gap-4">
@@ -1264,209 +1275,263 @@
         }
 
         // ===================================================================
-        //  歷史沙龍 — Google 登入 + GAS 試算表儲存
+        //  歷史沙龍 — 完整論壇（公共/個人、按讚、收藏、表情）
         // ===================================================================
-        let forumPosts = [];
-        let currentOpenPostId = null;
-        let googleUser = null;
+        let forumPosts = [], currentOpenPostId = null, googleUser = null, sortMode = 'new', tabMode = 'public';
+        const EMOJIS = ['😍','🙂‍↕️','🙂‍↔️','🤔','🫣','😱','😵','😬','😂'];
 
         // ─── Google 登入 ──────────────────────────
         function startGoogleSignIn() {
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.prompt();
-            } else {
-                showToast('⚠️ Google 登入尚未載入，請稍後再試');
-            }
+            if (typeof google !== 'undefined' && google.accounts) google.accounts.id.prompt();
+            else showToast('⚠️ Google 登入尚未載入');
         }
 
         function handleGoogleCredential(response) {
             try {
-                const base64 = response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-                const payload = JSON.parse(atob(base64));
-                googleUser = { email: payload.email, name: payload.name, picture: payload.picture };
-                updateLoginUI();
-                showToast('✅ Google 登入成功：' + googleUser.email);
-                if (window.location.hash) history.replaceState(null, '', window.location.pathname + window.location.search);
-            } catch (e) {
-                showToast('⚠️ Google 登入解析失敗：' + e.message);
-            }
-        }
-
-        function updateLoginUI() {
-            const statusEl = document.getElementById('user-status');
-            const btn = document.getElementById('btn-google-signin');
-            const hint = document.getElementById('reply-login-hint');
-            if (googleUser) {
-                if (btn) btn.style.display = 'none';
-                if (statusEl) {
-                    statusEl.style.display = 'flex';
-                    statusEl.innerHTML = `
-                        <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-dark text-xs font-bold">${googleUser.name.charAt(0).toUpperCase()}</div>
-                        <span class="text-sm text-gray-200 max-w-[120px] truncate">${googleUser.name}</span>
-                        <button onclick="logoutGoogle()" class="text-xs text-gray-400 hover:text-red-400 ml-1">登出</button>`;
-                }
-                if (hint) hint.style.display = 'none';
-            } else {
-                if (btn) btn.style.display = 'inline-block';
-                if (statusEl) statusEl.style.display = 'none';
-                if (hint) hint.style.display = 'block';
-            }
+                const b64 = response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+                const payload = JSON.parse(atob(b64));
+                googleUser = { email: payload.email, name: payload.name };
+                localStorage.setItem('hlab_google', JSON.stringify(googleUser));
+                updateLoginUI(); renderForum();
+                if (window.location.hash) history.replaceState(null,'',window.location.pathname);
+                showToast('✅ 登入成功：' + googleUser.email);
+            } catch(e) { showToast('⚠️ 登入解析失敗：' + e.message); }
         }
 
         function logoutGoogle() {
             googleUser = null;
-            updateLoginUI();
+            localStorage.removeItem('hlab_google');
+            updateLoginUI(); renderForum();
             showToast('已登出');
         }
 
-        // ─── 載入貼文（JSONP）─────────────────────
+        function updateLoginUI() {
+            const btn = document.getElementById('btn-google-signin'), st = document.getElementById('user-status');
+            if (googleUser && btn && st) {
+                btn.style.display = 'none'; st.style.display = 'flex';
+                st.innerHTML = `<div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-dark text-xs font-bold">${googleUser.name.charAt(0).toUpperCase()}</div>
+                    <span class="text-sm text-gray-200 max-w-[100px] truncate">${googleUser.name}</span>
+                    <button onclick="logoutGoogle()" class="text-xs text-gray-400 hover:text-red-400 ml-1">登出</button>`;
+            } else if (btn && st) {
+                btn.style.display = 'inline-flex'; st.style.display = 'none';
+            }
+        }
+
+        // ─── 資料載入（JSONP）─────────────────────
         function loadForumJSONP() {
             return new Promise((resolve, reject) => {
                 const cb = 'gasCB_' + Date.now();
-                window[cb] = function(data) {
-                    delete window[cb];
-                    const s = document.getElementById('gas-jsonp-script');
-                    if (s) s.remove();
-                    resolve(data);
-                };
-                const script = document.createElement('script');
-                script.id = 'gas-jsonp-script';
-                script.src = GAS_WEBAPP + '?callback=' + cb;
-                script.onerror = function() {
-                    delete window[cb];
-                    if (script.parentNode) script.parentNode.removeChild(script);
-                    reject(new Error('JSONP 載入失敗'));
-                };
-                document.body.appendChild(script);
+                window[cb] = function(d) { delete window[cb]; var s = document.getElementById('gjs'); if(s) s.remove(); resolve(d); };
+                var s = document.createElement('script'); s.id = 'gjs'; s.src = GAS_WEBAPP + '?callback=' + cb;
+                s.onerror = function() { delete window[cb]; if(s.parentNode) s.parentNode.removeChild(s); reject(); };
+                document.body.appendChild(s);
             });
         }
 
         async function syncForumFromGAS() {
-            const statusEl = document.getElementById('cloud-status');
+            var st = document.getElementById('cloud-status');
             if (!GAS_WEBAPP) { renderForum(); return; }
             try {
-                statusEl.innerText = "同步中...";
-                statusEl.className = "text-[10px] bg-yellow-900 text-yellow-300 px-2 py-1 rounded shadow-inner animate-pulse";
-                const data = await loadForumJSONP();
-                if (data && data.posts) {
-                    forumPosts = data.posts.reverse().map(p => ({
-                        id: 'post_' + p.title.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '_'),
-                        row: p.row, userEmail: p.userEmail,
-                        title: p.title, content: p.content, author: p.author,
-                        tag: p.tag || '歷史思辨', tagBg: 'bg-gray-700', tagText: 'text-gray-200',
-                        timeText: p.timestamp ? p.timestamp.slice(0, 10) : '',
-                        comments: (data.replies || [])
-                            .filter(r => r.postTitle === p.title)
-                            .map(r => ({ row: r.row, userEmail: r.userEmail, author: r.author, text: r.replyContent, timeText: r.timestamp ? r.timestamp.slice(0, 10) : '' }))
-                    }));
+                st.innerText = '同步中...'; st.className = 'text-[10px] bg-yellow-900 text-yellow-300 px-2 py-1 rounded shadow-inner animate-pulse';
+                var d = await loadForumJSONP();
+                if (d && d.posts) {
+                    forumPosts = d.posts.reverse().map(p => {
+                        var likeUsers = (d.likes||[]).filter(l => l.postRow === p.row).map(l => l.userEmail);
+                        var collectUsers = (d.collects||[]).filter(c => c.postRow === p.row).map(c => c.userEmail);
+                        var postReplies = (d.replies||[]).filter(r => r.postTitle === p.title);
+                        return {
+                            row: p.row, userEmail: p.userEmail, author: p.author, tag: p.tag || '歷史思辨',
+                            title: p.title, content: p.content,
+                            timeText: p.timestamp ? p.timestamp.slice(0,10) : '',
+                            likes: likeUsers, collects: collectUsers,
+                            comments: postReplies.map(r => ({
+                                row: r.row, userEmail: r.userEmail, author: r.author, text: r.replyContent,
+                                timeText: r.timestamp ? r.timestamp.slice(0,10) : '',
+                                reactions: (d.reactions||[]).filter(x => x.replyRow === r.row).map(x => ({ userEmail: x.userEmail, emoji: x.emoji }))
+                            }))
+                        };
+                    });
                 }
-                statusEl.innerText = "已連線歷史沙龍";
-                statusEl.className = "text-[10px] bg-green-900 text-green-300 px-2 py-1 rounded shadow-inner";
+                st.innerText = '已連線'; st.className = 'text-[10px] bg-green-900 text-green-300 px-2 py-1 rounded shadow-inner';
                 renderForum();
-            } catch (e) {
-                console.error("Forum Load Error", e);
-                statusEl.innerText = "離線模式";
-                statusEl.className = "text-[10px] bg-red-900 text-red-300 px-2 py-1 rounded shadow-inner";
+            } catch(e) {
+                st.innerText = '離線'; st.className = 'text-[10px] bg-red-900 text-red-300 px-2 py-1 rounded shadow-inner';
                 renderForum();
             }
         }
 
-        // ─── 寫入 GAS（form POST + 隱藏 iframe）──
-        function writeToGAS(action, data) {
-            return new Promise((resolve) => {
-                const iframe = document.getElementById('gas-write-frame') || (function() {
-                    const f = document.createElement('iframe');
-                    f.id = 'gas-write-frame';
-                    f.name = 'gas-write-frame';
-                    f.style.display = 'none';
-                    document.body.appendChild(f);
-                    return f;
-                })();
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = GAS_WEBAPP;
-                form.target = 'gas-write-frame';
-                form.style.display = 'none';
-                Object.keys(data).forEach(k => {
-                    const inp = document.createElement('input');
-                    inp.name = k;
-                    inp.value = data[k];
-                    form.appendChild(inp);
-                });
-                iframe.onload = function() { setTimeout(resolve, 500); };
-                document.body.appendChild(form);
-                form.submit();
-                document.body.removeChild(form);
+        // ─── 寫入 GAS ────────────────────────────
+        function writeToGAS(data) {
+            return new Promise(function(resolve) {
+                var f = document.getElementById('gas-wf') || (function(){ var x = document.createElement('iframe'); x.id='gas-wf'; x.name='gas-wf'; x.style.display='none'; document.body.appendChild(x); return x; })();
+                var form = document.createElement('form'); form.method='POST'; form.action=GAS_WEBAPP; form.target='gas-wf'; form.style.display='none';
+                for (var k in data) { var inp = document.createElement('input'); inp.name=k; inp.value=data[k]; form.appendChild(inp); }
+                f.onload = function(){ setTimeout(resolve, 400); };
+                document.body.appendChild(form); form.submit(); document.body.removeChild(form);
             });
         }
 
-        // ─── 渲染 & UI ────────────────────────────
+        // ─── 渲染論壇 ────────────────────────────
         function renderForum() {
-            const grid = document.getElementById('forum-grid');
-            grid.innerHTML = '';
-            if (forumPosts.length === 0) {
-                grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-12"><i class="fa-regular fa-message text-4xl mb-4 block"></i><p>尚無議題，按下「發起新議題」開始討論吧！</p></div>';
+            var grid = document.getElementById('forum-grid');
+            if (!grid) return;
+
+            var list = [];
+            if (tabMode === 'public') {
+                list = forumPosts.slice();
+                if (sortMode === 'hot') list.sort(function(a,b) { return b.likes.length - a.likes.length; });
+                else list.sort(function(a,b) { return b.row - a.row; });
+            } else {
+                if (!googleUser) { grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-12"><p>請先登入 Google 查看個人區域</p></div>'; return; }
+                var myEmail = googleUser.email;
+                list = forumPosts.filter(function(p) { return p.userEmail === myEmail; });
+                list.sort(function(a,b) { return b.row - a.row; });
+            }
+
+            if (list.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-12"><i class="fa-regular fa-message text-4xl mb-4 block"></i><p>尚無議題</p></div>';
                 return;
             }
-            forumPosts.forEach(p => {
-                const isOwner = googleUser && p.userEmail === googleUser.email;
-                const card = document.createElement('div');
-                card.className = 'bg-panel p-5 rounded-xl border border-gray-800 hover:border-gray-500 transition cursor-pointer shadow-lg fade-in';
-                card.onclick = () => openForumPost(p.id);
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="${p.tagBg} ${p.tagText} text-xs px-2 py-1 rounded">${escapeHtml(p.tag)}</span>
-                        <span class="text-gray-500 text-xs">${escapeHtml(p.timeText)}</span>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-200 mb-2">${escapeHtml(p.title)}</h3>
-                    <p class="text-gray-400 text-sm mb-4 line-clamp-3">${escapeHtml(p.content)}</p>
-                    <div class="flex items-center justify-between text-gray-500 text-sm">
-                        <span>✍️ ${escapeHtml(p.author)}</span>
-                        <span>💬 ${p.comments.length} 則回覆</span>
-                    </div>
-                    ${isOwner ? `
-                    <div class="flex gap-2 mt-3 pt-3 border-t border-gray-800">
-                        <button onclick="event.stopPropagation();editPost('${p.id}')" class="text-xs text-blue-400 hover:text-blue-300">✏️ 編輯</button>
-                        <button onclick="event.stopPropagation();deletePost('${p.id}')" class="text-xs text-red-400 hover:text-red-300">🗑️ 刪除</button>
-                    </div>` : ''}`;
+
+            grid.innerHTML = '';
+            list.forEach(function(p) {
+                var isOwner = googleUser && p.userEmail === googleUser.email;
+                var iLiked = googleUser && p.likes.indexOf(googleUser.email) >= 0;
+                var iCollected = googleUser && p.collects.indexOf(googleUser.email) >= 0;
+
+                var card = document.createElement('div');
+                card.className = 'bg-panel p-5 rounded-xl border border-gray-800 hover:border-gray-500 transition shadow-lg';
+                card.innerHTML =
+                    '<div class="flex justify-between items-start mb-3">' +
+                        '<span class="bg-gray-700 text-gray-200 text-xs px-2 py-1 rounded">' + escHtml(p.tag) + '</span>' +
+                        '<span class="text-gray-500 text-xs">' + escHtml(p.timeText) + '</span>' +
+                    '</div>' +
+                    '<h3 class="text-lg font-bold text-gray-200 mb-2 cursor-pointer" onclick="openForumPost(\'' + escHtml(p.title) + '\')">' + escHtml(p.title) + '</h3>' +
+                    '<p class="text-gray-400 text-sm mb-3 line-clamp-2">' + escHtml(p.content) + '</p>' +
+                    '<div class="flex items-center justify-between text-gray-500 text-sm mb-3">' +
+                        '<span>✍️ ' + escHtml(p.author) + '</span>' +
+                        '<span>💬 ' + p.comments.length + '</span>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-3 pt-3 border-t border-gray-800 text-sm">' +
+                        (googleUser ? '<button class="like-btn hover:scale-110 transition" data-row="' + p.row + '" data-title="' + escHtml(p.title) + '">' + (iLiked ? '❤️' : '🤍') + ' <span class="like-count">' + p.likes.length + '</span></button>' : '<span>❤️ ' + p.likes.length + '</span>') +
+                        (googleUser ? '<button class="collect-btn hover:scale-110 transition" data-row="' + p.row + '" data-title="' + escHtml(p.title) + '">' + (iCollected ? '🔖' : '🔖') + '</button>' : '') +
+                        (isOwner ? '<span class="flex gap-2 ml-auto"><button class="text-blue-400 hover:text-blue-300 text-xs" onclick="editPost(\'' + escHtml(p.title) + '\')">✏️ 編輯</button><button class="text-red-400 hover:text-red-300 text-xs" onclick="deletePost(\'' + escHtml(p.title) + '\')">🗑️ 刪除</button></span>' : '') +
+                    '</div>';
                 grid.appendChild(card);
+            });
+
+            // Bind like/collect events after rendering
+            Array.from(document.querySelectorAll('.like-btn')).forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (!googleUser) { showToast('⚠️ 請先登入'); return; }
+                    var row = btn.getAttribute('data-row');
+                    var title = btn.getAttribute('data-title');
+                    var p = forumPosts.find(function(x) { return x.row === Number(row); });
+                    if (!p) return;
+                    var idx = p.likes.indexOf(googleUser.email);
+                    if (idx >= 0) {
+                        p.likes.splice(idx, 1);
+                        writeToGAS({ action:'unlikePost', row:row, userEmail:googleUser.email });
+                    } else {
+                        p.likes.push(googleUser.email);
+                        writeToGAS({ action:'likePost', row:row, userEmail:googleUser.email });
+                    }
+                    renderForum();
+                });
+            });
+            Array.from(document.querySelectorAll('.collect-btn')).forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (!googleUser) { showToast('⚠️ 請先登入'); return; }
+                    var row = btn.getAttribute('data-row');
+                    var p = forumPosts.find(function(x) { return x.row === Number(row); });
+                    if (!p) return;
+                    var idx = p.collects.indexOf(googleUser.email);
+                    if (idx >= 0) {
+                        p.collects.splice(idx, 1);
+                        writeToGAS({ action:'uncollectPost', row:row, userEmail:googleUser.email });
+                        showToast('已取消收藏');
+                    } else {
+                        p.collects.push(googleUser.email);
+                        writeToGAS({ action:'collectPost', row:row, userEmail:googleUser.email });
+                        showToast('✅ 已收藏');
+                    }
+                    renderForum();
+                });
             });
         }
 
-        function openForumPost(postId) {
-            const p = forumPosts.find(x => x.id === postId);
+        // ─── 閱讀議題 ────────────────────────────
+        function openForumPost(title) {
+            var p = forumPosts.find(function(x) { return x.title === title; });
             if (!p) return;
-            currentOpenPostId = postId;
+            currentOpenPostId = p.title;
             document.getElementById('read-post-title').innerText = p.title;
             document.getElementById('read-post-content').innerText = p.content;
             document.getElementById('read-post-author').innerText = p.author;
             document.getElementById('read-post-time').innerText = p.timeText;
-            const tagEl = document.getElementById('read-post-tag');
-            tagEl.innerText = p.tag;
-            tagEl.className = `text-xs px-2 py-1 rounded mb-3 inline-block ${p.tagBg} ${p.tagText}`;
+            document.getElementById('read-post-tag').innerText = p.tag;
             document.getElementById('forum-reply-input').value = '';
 
-            const c = document.getElementById('mock-comments');
+            var c = document.getElementById('mock-comments');
             if (!p.comments.length) {
                 c.innerHTML = '<div class="text-sm text-gray-500 italic text-center py-4">尚無回覆</div>';
             } else {
-                c.innerHTML = p.comments.map(cm => {
-                    const isOwner = googleUser && cm.userEmail === googleUser.email;
-                    return `
-                    <div class="bg-panel p-4 rounded-lg border border-gray-800 shadow-sm">
-                        <div class="flex justify-between items-center mb-2">
-                            <div class="text-xs font-bold text-primary">${escapeHtml(cm.author)}</div>
-                            <div class="text-xs text-gray-500 flex items-center gap-2">
-                                ${escapeHtml(cm.timeText)}
-                                ${isOwner ? `<span class="flex gap-1">
-                                    <button onclick="event.stopPropagation();editReply('${p.id}', ${cm.row})" class="text-blue-400 hover:text-blue-300 text-[10px]">✏️</button>
-                                    <button onclick="event.stopPropagation();deleteReply('${p.id}', ${cm.row})" class="text-red-400 hover:text-red-300 text-[10px]">🗑️</button>
-                                </span>` : ''}
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-200 leading-relaxed">${escapeHtml(cm.text).replace(/\n/g, '<br>')}</p>
-                    </div>`;}).join('');
+                c.innerHTML = p.comments.map(function(cm) {
+                    var isOwner = googleUser && cm.userEmail === googleUser.email;
+                    var reactionsHtml = '';
+                    if (googleUser) {
+                        var myReactions = cm.reactions.filter(function(r) { return r.userEmail === googleUser.email; }).map(function(r) { return r.emoji; });
+                        reactionsHtml = '<div class="flex gap-1 mt-2 flex-wrap">' +
+                            EMOJIS.map(function(e) {
+                                var count = cm.reactions.filter(function(r) { return r.emoji === e; }).length;
+                                var active = myReactions.indexOf(e) >= 0;
+                                return '<button class="emoji-btn text-sm px-1.5 py-0.5 rounded border ' + (active ? 'border-primary bg-primary/20' : 'border-gray-700 hover:border-gray-500') + '" data-row="' + cm.row + '" data-emoji="' + e + '">' + e + ' ' + count + '</button>';
+                            }).join('') +
+                        '</div>';
+                    } else {
+                        var emojiCounts = {};
+                        cm.reactions.forEach(function(r) { emojiCounts[r.emoji] = (emojiCounts[r.emoji]||0) + 1; });
+                        reactionsHtml = '<div class="flex gap-1 mt-2 flex-wrap">' + Object.keys(emojiCounts).map(function(e) { return '<span class="text-sm px-1.5 py-0.5 rounded border border-gray-700 bg-gray-900">' + e + ' ' + emojiCounts[e] + '</span>'; }).join('') + '</div>';
+                    }
+                    return '<div class="bg-panel p-4 rounded-lg border border-gray-800 shadow-sm mb-2">' +
+                        '<div class="flex justify-between items-center mb-1">' +
+                            '<div class="text-xs font-bold text-primary">' + escHtml(cm.author) + '</div>' +
+                            '<div class="text-xs text-gray-500 flex items-center gap-2">' + escHtml(cm.timeText) +
+                                (isOwner ? '<span class="flex gap-1"><button class="text-blue-400 hover:text-blue-300 text-[10px]" onclick="editReply(\'' + escHtml(p.title) + '\',' + cm.row + ')">✏️</button><button class="text-red-400 hover:text-red-300 text-[10px]" onclick="deleteReply(\'' + escHtml(p.title) + '\',' + cm.row + ')">🗑️</button></span>' : '') +
+                            '</div>' +
+                        '</div>' +
+                        '<p class="text-sm text-gray-200 leading-relaxed">' + escHtml(cm.text).replace(/\n/g,'<br>') + '</p>' +
+                        reactionsHtml +
+                    '</div>';
+                }).join('');
             }
+
+            // Bind emoji button events
+            setTimeout(function() {
+                Array.from(document.querySelectorAll('.emoji-btn')).forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (!googleUser) { showToast('⚠️ 請先登入'); return; }
+                        var row = Number(btn.getAttribute('data-row'));
+                        var emoji = btn.getAttribute('data-emoji');
+                        var p = forumPosts.find(function(x) { return x.title === currentOpenPostId; });
+                        if (!p) return;
+                        var cm = p.comments.find(function(c) { return c.row === row; });
+                        if (!cm) return;
+                        var existing = cm.reactions.find(function(r) { return r.userEmail === googleUser.email && r.emoji === emoji; });
+                        if (existing) {
+                            cm.reactions = cm.reactions.filter(function(r) { return !(r.userEmail === googleUser.email && r.emoji === emoji); });
+                            writeToGAS({ action:'removeReaction', replyRow:row, emoji:emoji, userEmail:googleUser.email });
+                        } else {
+                            cm.reactions.push({ userEmail: googleUser.email, emoji: emoji });
+                            writeToGAS({ action:'addReaction', replyRow:row, emoji:emoji, userEmail:googleUser.email });
+                        }
+                        openForumPost(p.title);
+                    });
+                });
+            }, 50);
 
             document.getElementById('forum-read-modal').classList.remove('hidden');
             document.getElementById('forum-read-modal').classList.add('flex');
@@ -1474,8 +1539,8 @@
 
         // ─── 發文 & 回覆 ──────────────────────────
         function openNewPostModal() {
-            if (!googleUser) { showToast('⚠️ 請先點擊 Google 登入'); return; }
-            document.getElementById('new-post-author').value = googleUser.name + ' (' + googleUser.email + ')';
+            if (!googleUser) { showToast('⚠️ 請先登入'); return; }
+            document.getElementById('new-post-author').value = googleUser.name;
             document.getElementById('new-post-title').value = '';
             document.getElementById('new-post-content').value = '';
             document.getElementById('forum-write-modal').classList.remove('hidden');
@@ -1483,120 +1548,93 @@
         }
 
         async function submitNewPost() {
-            const title = document.getElementById('new-post-title').value.trim();
-            const content = document.getElementById('new-post-content').value.trim();
-            const tag = document.getElementById('new-post-tag').value;
+            var title = document.getElementById('new-post-title').value.trim();
+            var content = document.getElementById('new-post-content').value.trim();
+            var tag = document.getElementById('new-post-tag').value;
             if (!title || !content) { showToast('⚠️ 標題與內容不能留白'); return; }
-            if (!googleUser) { showToast('⚠️ 請先 Google 登入'); return; }
-            await writeToGAS('addPost', {
-                action: 'addPost', userEmail: googleUser.email, author: googleUser.name,
-                tag: tag, title: title, content: content
-            });
+            if (!googleUser) { showToast('⚠️ 請先登入'); return; }
+            await writeToGAS({ action:'addPost', userEmail:googleUser.email, author:googleUser.name, tag:tag, title:title, content:content });
             closeModal('forum-write-modal');
-            showToast('✅ 議題發布成功！');
+            showToast('✅ 發布成功！');
             syncForumFromGAS();
         }
 
         async function submitForumReply() {
-            const inputEl = document.getElementById('forum-reply-input');
-            const text = inputEl.value.trim();
-            if (!text) { showToast('⚠️ 請輸入回覆內容'); return; }
-            if (!googleUser) { showToast('⚠️ 請先 Google 登入'); return; }
-            const p = forumPosts.find(x => x.id === currentOpenPostId);
+            var text = document.getElementById('forum-reply-input').value.trim();
+            if (!text) { showToast('⚠️ 請輸入內容'); return; }
+            if (!googleUser) { showToast('⚠️ 請先登入'); return; }
+            var p = forumPosts.find(function(x) { return x.title === currentOpenPostId; });
             if (!p) return;
-            await writeToGAS('addReply', {
-                action: 'addReply', userEmail: googleUser.email, author: googleUser.name,
-                postTitle: p.title, replyContent: text
-            });
-            inputEl.value = '';
+            await writeToGAS({ action:'addReply', userEmail:googleUser.email, author:googleUser.name, postTitle:p.title, replyContent:text });
+            document.getElementById('forum-reply-input').value = '';
             showToast('✅ 回覆成功！');
             syncForumFromGAS();
         }
 
         // ─── 編輯 / 刪除 ──────────────────────────
-        function editPost(postId) {
-            const p = forumPosts.find(x => x.id === postId);
+        function editPost(title) {
+            var p = forumPosts.find(function(x) { return x.title === title; });
             if (!p) return;
-            document.getElementById('edit-post-id').value = postId;
             document.getElementById('edit-post-row').value = p.row;
             document.getElementById('edit-post-author').value = p.author;
             document.getElementById('edit-post-title').value = p.title;
             document.getElementById('edit-post-tag').value = p.tag;
             document.getElementById('edit-post-content').value = p.content;
-            openModal('forum-edit-modal');
+            document.getElementById('forum-edit-modal').classList.remove('hidden');
+            document.getElementById('forum-edit-modal').classList.add('flex');
         }
-
         async function saveEditPost() {
-            const postId = document.getElementById('edit-post-id').value;
-            const row = document.getElementById('edit-post-row').value;
-            const tag = document.getElementById('edit-post-tag').value;
-            const title = document.getElementById('edit-post-title').value.trim();
-            const content = document.getElementById('edit-post-content').value.trim();
-            if (!title || !content) { showToast('⚠️ 標題與內容不能留白'); return; }
-            await writeToGAS('editPost', {
-                action: 'editPost', row: row, userEmail: googleUser.email,
-                tag: tag, title: title, content: content
-            });
+            var row = document.getElementById('edit-post-row').value;
+            var tag = document.getElementById('edit-post-tag').value;
+            var title = document.getElementById('edit-post-title').value.trim();
+            var content = document.getElementById('edit-post-content').value.trim();
+            if (!title || !content) { showToast('⚠️ 不能留白'); return; }
+            await writeToGAS({ action:'editPost', row:row, userEmail:googleUser.email, tag:tag, title:title, content:content });
             closeModal('forum-edit-modal');
-            showToast('✅ 議題已更新！');
+            showToast('✅ 已更新');
             syncForumFromGAS();
         }
-
-        async function deletePost(postId) {
-            const p = forumPosts.find(x => x.id === postId);
-            if (!p || !confirm('確定要刪除這個議題嗎？\n此操作無法還原。')) return;
-            await writeToGAS('deletePost', {
-                action: 'deletePost', row: p.row, userEmail: googleUser.email
-            });
-            showToast('✅ 議題已刪除！');
+        async function deletePost(title) {
+            var p = forumPosts.find(function(x) { return x.title === title; });
+            if (!p || !confirm('確定刪除這個議題？')) return;
+            await writeToGAS({ action:'deletePost', row:p.row, userEmail:googleUser.email });
+            showToast('✅ 已刪除');
             syncForumFromGAS();
         }
-
-        async function editReply(postId, replyRow) {
-            const p = forumPosts.find(x => x.id === postId);
+        function editReply(postTitle, replyRow) {
+            var p = forumPosts.find(function(x) { return x.title === postTitle; });
             if (!p) return;
-            const reply = p.comments.find(c => c.row === replyRow);
+            var reply = p.comments.find(function(c) { return c.row === replyRow; });
             if (!reply) return;
-            document.getElementById('edit-reply-post-id').value = postId;
+            document.getElementById('edit-reply-post-title').value = postTitle;
             document.getElementById('edit-reply-row').value = replyRow;
             document.getElementById('edit-reply-content').value = reply.text;
-            openModal('forum-edit-reply-modal');
+            document.getElementById('forum-edit-reply-modal').classList.remove('hidden');
+            document.getElementById('forum-edit-reply-modal').classList.add('flex');
         }
-
         async function saveEditReply() {
-            const postId = document.getElementById('edit-reply-post-id').value;
-            const row = document.getElementById('edit-reply-row').value;
-            const content = document.getElementById('edit-reply-content').value.trim();
-            if (!content) { showToast('⚠️ 回覆內容不能留白'); return; }
-            const p = forumPosts.find(x => x.id === postId);
-            if (!p) return;
-            await writeToGAS('editReply', {
-                action: 'editReply', row: row, userEmail: googleUser.email,
-                replyContent: content
-            });
+            var postTitle = document.getElementById('edit-reply-post-title').value;
+            var row = document.getElementById('edit-reply-row').value;
+            var content = document.getElementById('edit-reply-content').value.trim();
+            if (!content) { showToast('⚠️ 不能留白'); return; }
+            await writeToGAS({ action:'editReply', row:row, userEmail:googleUser.email, replyContent:content });
             closeModal('forum-edit-reply-modal');
-            showToast('✅ 回覆已更新！');
+            showToast('✅ 已更新');
             syncForumFromGAS();
         }
-
-        async function deleteReply(postId, replyRow) {
-            if (!confirm('確定要刪除這個回覆嗎？')) return;
-            await writeToGAS('deleteReply', {
-                action: 'deleteReply', row: replyRow, userEmail: googleUser.email
-            });
-            showToast('✅ 回覆已刪除！');
+        async function deleteReply(postTitle, replyRow) {
+            if (!confirm('確定刪除這個回覆？')) return;
+            await writeToGAS({ action:'deleteReply', row:replyRow, userEmail:googleUser.email });
+            showToast('✅ 已刪除');
             syncForumFromGAS();
         }
-
-        function openModal(id) { var el = document.getElementById(id); if (el) { el.classList.remove('hidden'); el.classList.add('flex'); } }
 
         function discussSelectedEvent() {
-            if (!selectedEvent) return;
-            if (!googleUser) { showToast('⚠️ 請先 Google 登入'); return; }
-            const yearStr = selectedEvent.year < 0 ? `西元前 ${Math.abs(selectedEvent.year)}` : `西元 ${selectedEvent.year}`;
-            document.getElementById('new-post-author').value = googleUser.name + ' (' + googleUser.email + ')';
-            document.getElementById('new-post-title').value = `【${yearStr}】${selectedEvent.title}`;
-            document.getElementById('new-post-content').value = `事件背景：${selectedEvent.desc}`;
+            if (!selectedEvent || !googleUser) { showToast('⚠️ 請先登入'); return; }
+            var yearStr = selectedEvent.year < 0 ? '西元前 ' + Math.abs(selectedEvent.year) : '西元 ' + selectedEvent.year;
+            document.getElementById('new-post-author').value = googleUser.name;
+            document.getElementById('new-post-title').value = '【' + yearStr + '】' + selectedEvent.title;
+            document.getElementById('new-post-content').value = '事件背景：' + selectedEvent.desc;
             document.getElementById('forum-write-modal').classList.remove('hidden');
             document.getElementById('forum-write-modal').classList.add('flex');
             closeEventPanel();
@@ -1610,14 +1648,24 @@
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIMessage(); }
         });
 
-        window.onload = () => {
+        // Tab / Sort 切換
+        document.getElementById('tab-public').addEventListener('click', function() { tabMode='public'; document.getElementById('tab-public').className='tab-btn px-4 py-2 rounded-md text-sm font-bold bg-primary text-dark'; document.getElementById('tab-personal').className='tab-btn px-4 py-2 rounded-md text-sm font-bold text-gray-400 hover:text-white'; renderForum(); });
+        document.getElementById('tab-personal').addEventListener('click', function() { tabMode='personal'; document.getElementById('tab-personal').className='tab-btn px-4 py-2 rounded-md text-sm font-bold bg-primary text-dark'; document.getElementById('tab-public').className='tab-btn px-4 py-2 rounded-md text-sm font-bold text-gray-400 hover:text-white'; renderForum(); });
+        document.getElementById('sort-new').addEventListener('click', function() { sortMode='new'; document.getElementById('sort-new').className='sort-btn px-3 py-1.5 rounded text-xs font-bold bg-primary text-dark'; document.getElementById('sort-hot').className='sort-btn px-3 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white bg-panel border border-gray-800'; renderForum(); });
+        document.getElementById('sort-hot').addEventListener('click', function() { sortMode='hot'; document.getElementById('sort-hot').className='sort-btn px-3 py-1.5 rounded text-xs font-bold bg-primary text-dark'; document.getElementById('sort-new').className='sort-btn px-3 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white bg-panel border border-gray-800'; renderForum(); });
+
+        window.onload = function() {
             renderForum();
             updateTrackFilterUI();
             initMap();
             setAIPersona('socratic', true);
-            setTimeout(() => { map.invalidateSize(); }, 500);
+            setTimeout(function() { map.invalidateSize(); }, 500);
 
-            // ✨ 初始化 Google 登入
+            // 恢復登入狀態
+            var saved = localStorage.getItem('hlab_google');
+            if (saved) { try { googleUser = JSON.parse(saved); updateLoginUI(); } catch(e) {} }
+
+            // GIS 初始化
             if (typeof google !== 'undefined' && google.accounts) {
                 google.accounts.id.initialize({
                     client_id: "520002624675-rsr1nkbnvartcab6ru0k81usjpuvqo92.apps.googleusercontent.com",
@@ -1625,13 +1673,10 @@
                     ux_mode: "redirect",
                     auto_prompt: false
                 });
-                // 如果 URL 有憑證 hash，自動處理
             }
-
-            // ✨ 背景載入歷史沙龍資料
             syncForumFromGAS();
         };
-        window.addEventListener('resize', () => { if (map) map.invalidateSize(); });
+        window.addEventListener('resize', function() { if (map) map.invalidateSize(); });
     </script>
 </body>
 </html>
