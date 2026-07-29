@@ -11,8 +11,13 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Google Identity Services (with auto-init) -->
+    <script>
+        window.gisReady = new Promise(function(resolve) {
+            window._gisInit = resolve;
+        });
+    </script>
+    <script src="https://accounts.google.com/gsi/client" onload="window._gisInit()" async defer></script>
     <script>
         tailwind.config = {
             theme: {
@@ -1324,9 +1329,24 @@
 
         // ─── Google 登入 ──────────────────────────
         function startGoogleSignIn() {
-            if (typeof google !== 'undefined' && google.accounts) google.accounts.id.prompt();
-            else showToast('⚠️ Google 登入尚未載入');
+            if (typeof google !== 'undefined' && google.accounts) {
+                google.accounts.id.disableAutoSelect();
+                google.accounts.id.prompt();
+            } else {
+                showToast('⚠️ Google 登入尚未載入，請稍後');
+            }
         }
+
+        function initGIS() {
+            if (typeof google === 'undefined' || !google.accounts) { setTimeout(initGIS, 500); return; }
+            google.accounts.id.initialize({
+                client_id: "520002624675-rsr1nkbnvartcab6ru0k81usjpuvqo92.apps.googleusercontent.com",
+                callback: handleGoogleCredential,
+                ux_mode: "redirect",
+                auto_prompt: false
+            });
+        }
+        window.gisReady.then(initGIS);
 
         function handleGoogleCredential(response) {
             try {
@@ -1356,8 +1376,14 @@
         function logoutGoogle() {
             googleUser = null;
             localStorage.removeItem('hlab_google');
+            if (typeof google !== 'undefined' && google.accounts) google.accounts.id.disableAutoSelect();
             updateLoginUI(); renderForum();
             showToast('已登出');
+        }
+
+        function switchGoogleAccount() {
+            logoutGoogle();
+            setTimeout(startGoogleSignIn, 300);
         }
 
         function updateLoginUI() {
@@ -1367,6 +1393,7 @@
                 st.innerHTML = '<div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-dark text-xs font-bold">' + googleUser.name.charAt(0).toUpperCase() + '</div>' +
                     '<span class="text-sm text-gray-200 max-w-[100px] truncate">' + escapeHtml(googleUser.name) + '</span>' +
                     '<button onclick="changeDisplayName()" class="text-[10px] text-gray-400 hover:text-primary ml-0.5" title="修改名稱">✏️</button>' +
+                    '<button onclick="switchGoogleAccount()" class="text-[10px] text-gray-400 hover:text-blue-400 ml-0.5" title="切換帳號">🔄</button>' +
                     '<button onclick="logoutGoogle()" class="text-xs text-gray-400 hover:text-red-400 ml-1">登出</button>';
             } else if (btn && st) {
                 btn.style.display = 'inline-flex'; st.style.display = 'none';
@@ -1747,15 +1774,6 @@
             var saved = localStorage.getItem('hlab_google');
             if (saved) { try { googleUser = JSON.parse(saved); updateLoginUI(); } catch(e) {} }
 
-            // GIS 初始化
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.initialize({
-                    client_id: "520002624675-rsr1nkbnvartcab6ru0k81usjpuvqo92.apps.googleusercontent.com",
-                    callback: handleGoogleCredential,
-                    ux_mode: "redirect",
-                    auto_prompt: false
-                });
-            }
             syncForumFromGAS();
         };
         window.addEventListener('resize', function() { if (map) map.invalidateSize(); });
