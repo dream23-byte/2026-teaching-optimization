@@ -69,6 +69,7 @@
         /* 目前年份「播放頭」— 讓時間軸與地圖狀態時時對齊 */
         #timeline-playhead { transition: left 0.25s ease-out; }
         #conv-toggle-icon { transition: transform 0.2s; }
+        .trade-tooltip { background: #1e1e1e !important; border: 1px solid #d4af37 !important; color: #fff !important; padding: 4px 8px !important; border-radius: 4px !important; font-size: 12px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.6) !important; }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden flex-col md:flex-row">
@@ -783,9 +784,19 @@
                 climateLayer = null;
                 showToast('已關閉氣候圖層');
             } else {
-                var bounds = [[-60, -180], [80, 180]];
-                climateLayer = L.rectangle(bounds, { color: '#4b5563', weight: 1, fillColor: '#1e3a5f', fillOpacity: 0.3, dashArray: '4, 8' }).addTo(map);
-                showToast('已開啟氣候巨變圖層（示意）');
+                climateLayer = L.layerGroup();
+                var zones = [
+                    { name: '冰河時期退縮區', lat: 65, lng: -20, r: 800, color: '#3b82f6' },
+                    { name: '撒哈拉沙漠擴張', lat: 23, lng: 13, r: 600, color: '#f59e0b' },
+                    { name: '季風氣候變遷', lat: 15, lng: 80, r: 500, color: '#06b6d4' },
+                    { name: '小冰河期影響區', lat: 55, lng: 10, r: 450, color: '#8b5cf6' }
+                ];
+                zones.forEach(function(z) {
+                    var circle = L.circle([z.lat, z.lng], { radius: z.r * 1000, color: z.color, weight: 2, fillColor: z.color, fillOpacity: 0.2, dashArray: '6, 8' }).addTo(climateLayer);
+                    circle.bindTooltip('<div class="text-xs font-bold">' + z.name + '</div>', { permanent: false, direction: 'center', className: 'trade-tooltip' });
+                });
+                climateLayer.addTo(map);
+                showToast('已開啟氣候巨變圖層');
             }
         }
 
@@ -796,17 +807,19 @@
                 tradeRoutesLayer = null;
                 showToast('已關閉貿易網絡');
             } else {
-                var routes = [
-                    [[39.9, 116.4], [30.0, 31.2], [20.6, 78.9], [15.3, 38.9]],
-                    [[41.0, 28.9], [35.0, 33.3], [31.2, 29.9], [21.4, 39.8]],
-                    [[51.5, -0.1], [40.7, -74.0], [10.7, -61.5], [-22.9, -43.2]]
-                ];
                 tradeRoutesLayer = L.layerGroup();
+                var routes = [
+                    { name: '陸上絲路', color: '#f59e0b', path: [[34.3,108.9],[40.1,94.8],[39.7,66.9],[37.3,67.3],[33.3,44.4],[41.0,28.9]] },
+                    { name: '海上絲路', color: '#06b6d4', path: [[23.1,113.2],[10.8,106.7],[2.2,102.2],[6.8,79.9],[11.3,75.7],[12.8,45.0],[31.2,29.9]] },
+                    { name: '大航海時代', color: '#22c55e', path: [[38.7,-9.1],[-8.9,13.2],[-34.4,18.5],[35.0,34.0],[15.5,73.8],[22.2,113.5]] },
+                    { name: '奴隸三角貿易', color: '#ef4444', path: [[51.5,-0.1],[5.0,-5.0],[-10.0,-35.0],[15.0,-60.0],[25.0,-80.0]] }
+                ];
                 routes.forEach(function(r) {
-                    L.polyline(r, { color: '#d4af37', weight: 2, opacity: 0.7, dashArray: '6, 6' }).addTo(tradeRoutesLayer);
+                    var line = L.polyline(r.path, { color: r.color, weight: 3, opacity: 0.8, dashArray: '5, 10' }).addTo(tradeRoutesLayer);
+                    line.bindTooltip('<div class="text-xs font-bold" style="color:' + r.color + '">' + r.name + '</div>', { sticky: true, className: 'trade-tooltip' });
                 });
                 tradeRoutesLayer.addTo(map);
-                showToast('已開啟全球貿易網絡（示意）');
+                showToast('已開啟全球貿易網絡');
             }
         }
 
