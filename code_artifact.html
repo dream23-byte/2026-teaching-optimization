@@ -225,11 +225,11 @@
 
                 <!-- 對話紀錄 -->
                 <div class="border-t border-gray-700 pt-3 mt-2">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-xs font-bold text-gray-400 tracking-wide">📋 對話紀錄</h3>
-                        <button onclick="startNewConversation()" class="text-[11px] text-primary hover:text-yellow-400 transition">+ 新對話</button>
+                    <div class="flex justify-between items-center mb-1 cursor-pointer" onclick="toggleConvList()">
+                        <h3 class="text-xs font-bold text-gray-400 tracking-wide"><span id="conv-toggle-icon">▶</span> 📋 對話紀錄</h3>
+                        <button onclick="event.stopPropagation(); startNewConversation();" class="text-[11px] text-primary hover:text-yellow-400 transition">+ 新對話</button>
                     </div>
-                    <div id="conversation-list" class="space-y-1 max-h-[220px] overflow-y-auto custom-scrollbar pr-1"></div>
+                    <div id="conversation-list" class="space-y-1 max-h-[180px] overflow-y-auto custom-scrollbar pr-1 hidden"></div>
                 </div>
 
                 <!-- Chat Area -->
@@ -1361,9 +1361,11 @@
 
         function saveConversationMsg(role, message, personaKey) {
             if (!googleUser || !GAS_WEBAPP) return;
-            var params = { action:'saveConversation', userEmail:googleUser.email, convId:currentConvId, role:role, message:message, personaKey:personaKey || 'socratic' };
+            var pk = personaKey || 'socratic';
+            var params = { action:'saveConversation', userEmail:googleUser.email, convId:currentConvId, role:role, message:message, personaKey:pk };
             var body = Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
-            console.log('saveConversation:', role, params.convId.slice(-8));
+            allConversations.push({ timestamp: new Date().toISOString(), userEmail: googleUser.email, convId: currentConvId, role: role, message: message, personaKey: pk });
+            updateConversationList(true);
             try { fetch(GAS_WEBAPP, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body }); } catch(e) {}
         }
 
@@ -1378,7 +1380,16 @@
             });
         }
 
-        function updateConversationList() {
+        var convListExpanded = false;
+        function toggleConvList() {
+            convListExpanded = !convListExpanded;
+            var list = document.getElementById('conversation-list');
+            var icon = document.getElementById('conv-toggle-icon');
+            if (list) list.classList.toggle('hidden', !convListExpanded);
+            if (icon) icon.textContent = convListExpanded ? '▼' : '▶';
+        }
+
+        function updateConversationList(autoExpand) {
             var list = document.getElementById('conversation-list');
             if (!list) return;
             var groups = {};
@@ -1389,6 +1400,7 @@
             var sorted = Object.keys(groups).map(function(k) { return groups[k]; }).sort(function(a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
             if (sorted.length === 0) {
                 list.innerHTML = '<div class="text-xs text-gray-600 text-center py-2">尚無對話紀錄</div>';
+                list.classList.remove('hidden');
                 return;
             }
             list.innerHTML = sorted.map(function(g) {
@@ -1401,6 +1413,7 @@
                 var dateLabel = g.timestamp ? g.timestamp.slice(0, 10) : '';
                 return '<div class="conv-item flex items-center gap-1 cursor-pointer hover:bg-gray-700 rounded px-2 py-1.5 text-xs ' + (isActive ? 'bg-gray-700 border-l-2 border-primary text-gray-200' : 'text-gray-400') + '" onclick="loadConversation(\'' + g.convId + '\')" title="' + escapeHtml(firstUserMsg || '') + '"><span class="truncate flex-1">' + escapeHtml(title) + '</span><span class="text-[10px] text-gray-600 shrink-0">' + dateLabel + '</span></div>';
             }).join('');
+            if (autoExpand && !convListExpanded) toggleConvList();
         }
 
         function loadConversation(convId) {
@@ -1424,7 +1437,7 @@
             if (!googleUser || !GAS_WEBAPP) return;
             try {
                 allConversations = await loadConversationsJSONP(googleUser.email);
-                updateConversationList();
+                updateConversationList(true);
             } catch(e) { console.error('Failed to load conversations:', e); }
         }
         let forumPosts = [], currentOpenPostId = null, googleUser = null, sortMode = 'new', tabMode = 'public', personalTab = 'mine';
