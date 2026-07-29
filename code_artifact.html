@@ -270,7 +270,7 @@
                             Google 登入
                         </button>
                         <button onclick="guestLogin()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-2 rounded-lg shadow transition whitespace-nowrap flex items-center gap-2 text-sm border border-gray-600">
-                            👤 訪客登入
+                            👤 其他帳號登入
                         </button>
                         <div id="user-status" class="hidden items-center gap-2 bg-panel border border-gray-700 rounded-full px-3 py-1.5 shadow text-sm"></div>
                         <button onclick="openNewPostModal()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-3 py-2 rounded-lg shadow transition whitespace-nowrap text-sm">
@@ -1332,11 +1332,16 @@
 
         // ─── Google 登入 ──────────────────────────
         function startGoogleSignIn() {
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.disableAutoSelect();
-                google.accounts.id.prompt();
-            } else
-                showToast('⚠️ Google 登入尚未載入，請稍後');
+            var clientId = '520002624675-rsr1nkbnvartcab6ru0k81usjpuvqo92.apps.googleusercontent.com';
+            var redirectUri = window.location.origin + window.location.pathname;
+            var nonce = Math.random().toString(36).substring(2);
+            localStorage.setItem('hlab_oauth_nonce', nonce);
+            var url = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=' + encodeURIComponent(clientId)
+                + '&redirect_uri=' + encodeURIComponent(redirectUri)
+                + '&response_type=id_token'
+                + '&scope=' + encodeURIComponent('openid email profile')
+                + '&nonce=' + encodeURIComponent(nonce);
+            window.location.href = url;
         }
 
         function guestLogin() {
@@ -1344,15 +1349,25 @@
             var savedEmail = localStorage.getItem('hlab_guest_email') || '';
             var name = prompt('請輸入顯示名稱：', savedName);
             if (!name || !name.trim()) return;
-            var email = prompt('請輸入信箱（便於辨識身分，不會驗證）：', savedEmail);
+            var email = prompt('請輸入信箱：', savedEmail);
             if (email === null) return;
             if (!email.trim()) email = name.trim().replace(/\s+/g,'.') + '@guest.local';
+            var savedPwd = localStorage.getItem('hlab_guest_pwd');
+            var pwd;
+            if (savedPwd) {
+                pwd = prompt('此信箱已存在，請輸入密碼：');
+                if (pwd !== savedPwd) { showToast('⚠️ 密碼錯誤'); return; }
+            } else {
+                pwd = prompt('請設定密碼（僅本機儲存）：');
+                if (pwd === null) return;
+            }
             localStorage.setItem('hlab_guest_name', name.trim());
             localStorage.setItem('hlab_guest_email', email.trim());
+            localStorage.setItem('hlab_guest_pwd', pwd);
             googleUser = { email: email.trim(), name: name.trim(), isGuest: true };
             localStorage.setItem('hlab_google', JSON.stringify(googleUser));
             updateLoginUI(); renderForum();
-            showToast('✅ 訪客登入成功：' + googleUser.name);
+            showToast('✅ 登入成功：' + googleUser.name);
         }
 
         function initGIS() {
@@ -1366,10 +1381,35 @@
         }
         window.gisReady.then(initGIS);
 
+        function parseJwtIdToken(idToken) {
+            var b64 = idToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+            return JSON.parse(atob(b64));
+        }
+
+        function checkOAuthHash() {
+            if (!window.location.hash) return;
+            var params = new URLSearchParams(window.location.hash.substring(1));
+            var idToken = params.get('id_token');
+            if (!idToken) return;
+            try {
+                var payload = parseJwtIdToken(idToken);
+                var nonce = localStorage.getItem('hlab_oauth_nonce');
+                if (nonce && payload.nonce !== nonce) {
+                    showToast('⚠️ 安全驗證失敗（nonce 不符）'); return;
+                }
+                localStorage.removeItem('hlab_oauth_nonce');
+                var savedName = localStorage.getItem('hlab_displayname_' + payload.email);
+                googleUser = { email: payload.email, name: savedName || payload.name, picture: payload.picture };
+                localStorage.setItem('hlab_google', JSON.stringify(googleUser));
+                if (window.location.hash) history.replaceState(null, '', window.location.pathname + window.location.search);
+                updateLoginUI(); renderForum();
+                showToast('✅ Google 登入成功：' + googleUser.email);
+            } catch(e) { showToast('⚠️ 登入解析失敗：' + e.message); }
+        }
+
         function handleGoogleCredential(response) {
             try {
-                var b64 = response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-                var payload = JSON.parse(atob(b64));
+                var payload = parseJwtIdToken(response.credential);
                 var savedName = localStorage.getItem('hlab_displayname_' + payload.email);
                 googleUser = { email: payload.email, name: savedName || payload.name };
                 localStorage.setItem('hlab_google', JSON.stringify(googleUser));
@@ -1782,15 +1822,20 @@
         document.getElementById('sort-hot').addEventListener('click', function() { sortMode='hot'; document.getElementById('sort-hot').className='sort-btn px-3 py-1.5 rounded text-xs font-bold bg-primary text-dark'; document.getElementById('sort-new').className='sort-btn px-3 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white bg-panel border border-gray-800'; renderForum(); });
 
         window.onload = function() {
+            // 先檢查從 Google OAuth 回傳的 hash token
+            checkOAuthHash();
+
             renderForum();
             updateTrackFilterUI();
             initMap();
             setAIPersona('socratic', true);
             setTimeout(function() { map.invalidateSize(); }, 500);
 
-            // 恢復登入狀態
-            var saved = localStorage.getItem('hlab_google');
-            if (saved) { try { googleUser = JSON.parse(saved); updateLoginUI(); } catch(e) {} }
+            // 若 checkOAuthHash 未登入，再恢復 localStorage 登入狀態
+            if (!googleUser) {
+                var saved = localStorage.getItem('hlab_google');
+                if (saved) { try { googleUser = JSON.parse(saved); updateLoginUI(); } catch(e) {} }
+            }
 
             syncForumFromGAS();
         };
