@@ -68,6 +68,7 @@
         }
         /* 目前年份「播放頭」— 讓時間軸與地圖狀態時時對齊 */
         #timeline-playhead { transition: left 0.25s ease-out; }
+        #conv-toggle-icon { transition: transform 0.2s; }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden flex-col md:flex-row">
@@ -225,8 +226,11 @@
 
                 <!-- 對話紀錄 -->
                 <div class="border-t border-gray-700 pt-3 mt-2">
-                    <div class="flex justify-between items-center mb-1 cursor-pointer" onclick="toggleConvList()">
-                        <h3 class="text-xs font-bold text-gray-400 tracking-wide"><span id="conv-toggle-icon">▶</span> 📋 對話紀錄</h3>
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="flex items-center gap-1 cursor-pointer" onclick="toggleConvList()">
+                            <span id="conv-toggle-icon" class="text-gray-500 hover:text-gray-200 text-[10px] w-4 text-center transition">▶</span>
+                            <h3 class="text-xs font-bold text-gray-400 tracking-wide select-none">📋 對話紀錄</h3>
+                        </div>
                         <button onclick="event.stopPropagation(); startNewConversation();" class="text-[11px] text-primary hover:text-yellow-400 transition">+ 新對話</button>
                     </div>
                     <div id="conversation-list" class="space-y-1 max-h-[180px] overflow-y-auto custom-scrollbar pr-1 hidden"></div>
@@ -1411,7 +1415,7 @@
                 var title = firstUserMsg ? firstUserMsg.slice(0, 40) : '對話 ' + g.convId.slice(-6);
                 var isActive = g.convId === currentConvId;
                 var dateLabel = g.timestamp ? g.timestamp.slice(0, 10) : '';
-                return '<div class="conv-item flex items-center gap-1 cursor-pointer hover:bg-gray-700 rounded px-2 py-1.5 text-xs ' + (isActive ? 'bg-gray-700 border-l-2 border-primary text-gray-200' : 'text-gray-400') + '" onclick="loadConversation(\'' + g.convId + '\')" title="' + escapeHtml(firstUserMsg || '') + '"><span class="truncate flex-1">' + escapeHtml(title) + '</span><span class="text-[10px] text-gray-600 shrink-0">' + dateLabel + '</span></div>';
+                return '<div class="conv-item flex items-center gap-1 cursor-pointer hover:bg-gray-700 rounded px-2 py-1.5 text-xs ' + (isActive ? 'bg-gray-700 border-l-2 border-primary text-gray-200' : 'text-gray-400') + '" data-convid="' + g.convId + '" onclick="loadConversation(\'' + g.convId + '\')" title="' + escapeHtml(firstUserMsg || '') + '"><span class="truncate flex-1">' + escapeHtml(title) + '</span><span class="text-[10px] text-gray-600 shrink-0">' + dateLabel + '</span></div>';
             }).join('');
             if (autoExpand && !convListExpanded) toggleConvList();
         }
@@ -1430,7 +1434,13 @@
                 if (c.role === 'user') { appendMessage('User', c.message); aiChatHistory.push('User: ' + c.message); }
                 else if (c.role === 'ai') { appendMessage('AI', c.message); aiChatHistory.push('AI: ' + c.message); }
             });
-            updateConversationList();
+            document.querySelectorAll('#conversation-list .conv-item').forEach(function(el) {
+                el.classList.toggle('bg-gray-700', el.getAttribute('data-convid') === convId);
+                el.classList.toggle('border-l-2', el.getAttribute('data-convid') === convId);
+                el.classList.toggle('border-primary', el.getAttribute('data-convid') === convId);
+                el.classList.toggle('text-gray-200', el.getAttribute('data-convid') === convId);
+                el.classList.toggle('text-gray-400', el.getAttribute('data-convid') !== convId);
+            });
         }
 
         async function syncConversationsFromGAS() {
