@@ -422,6 +422,7 @@
         let aiChatHistory = [];
         let currentConvId = 'conv_' + Date.now();
         let allConversations = [];
+        var gasCBId = 0;
 
         // 統一狀態 —— 全域「目前年份」與「選中事件」為單一真相來源
         let currentYear = 1945;
@@ -1362,17 +1363,18 @@
             if (!googleUser || !GAS_WEBAPP) return;
             var params = { action:'saveConversation', userEmail:googleUser.email, convId:currentConvId, role:role, message:message, personaKey:personaKey || 'socratic' };
             var body = Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+            console.log('saveConversation:', role, params.convId.slice(-8));
             try { fetch(GAS_WEBAPP, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body }); } catch(e) {}
         }
 
         function loadConversationsJSONP(email) {
             return new Promise(function(resolve, reject) {
-                var cb = 'gasCB_' + Date.now();
-                window[cb] = function(d) { delete window[cb]; var s = document.getElementById('gjs'); if(s) s.remove(); resolve(d); };
-                var s = document.createElement('script'); s.id = 'gjs';
-                s.src = GAS_WEBAPP + '?callback=' + cb + '&mode=conversations&email=' + encodeURIComponent(email);
-                s.onerror = function() { delete window[cb]; if(s.parentNode) s.removeChild(s); reject(); };
-                document.body.appendChild(s);
+                var cb = 'gasCB_' + (++gasCBId);
+                window[cb] = function(d) { delete window[cb]; if (scr) scr.remove(); resolve(d); };
+                var scr = document.createElement('script');
+                scr.src = GAS_WEBAPP + '?callback=' + cb + '&mode=conversations&email=' + encodeURIComponent(email);
+                scr.onerror = function() { delete window[cb]; if(scr) scr.remove(); reject(); };
+                document.body.appendChild(scr);
             });
         }
 
@@ -1545,12 +1547,13 @@
 
         // ─── 資料載入（JSONP）─────────────────────
         function loadForumJSONP() {
-            return new Promise((resolve, reject) => {
-                const cb = 'gasCB_' + Date.now();
-                window[cb] = function(d) { delete window[cb]; var s = document.getElementById('gjs'); if(s) s.remove(); resolve(d); };
-                var s = document.createElement('script'); s.id = 'gjs'; s.src = GAS_WEBAPP + '?callback=' + cb;
-                s.onerror = function() { delete window[cb]; if(s.parentNode) s.parentNode.removeChild(s); reject(); };
-                document.body.appendChild(s);
+            return new Promise(function(resolve, reject) {
+                var cb = 'gasCB_' + (++gasCBId);
+                window[cb] = function(d) { delete window[cb]; if (scr) scr.remove(); resolve(d); };
+                var scr = document.createElement('script');
+                scr.src = GAS_WEBAPP + '?callback=' + cb;
+                scr.onerror = function() { delete window[cb]; if(scr) scr.remove(); reject(); };
+                document.body.appendChild(scr);
             });
         }
 
