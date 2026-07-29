@@ -1360,7 +1360,9 @@
 
         function saveConversationMsg(role, message, personaKey) {
             if (!googleUser || !GAS_WEBAPP) return;
-            writeToGAS({ action:'saveConversation', userEmail:googleUser.email, convId:currentConvId, role:role, message:message, personaKey:personaKey || 'socratic' });
+            var params = { action:'saveConversation', userEmail:googleUser.email, convId:currentConvId, role:role, message:message, personaKey:personaKey || 'socratic' };
+            var body = Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+            try { fetch(GAS_WEBAPP, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body }); } catch(e) {}
         }
 
         function loadConversationsJSONP(email) {
