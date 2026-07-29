@@ -223,6 +223,15 @@
                     </button>
                 </div>
 
+                <!-- 對話紀錄 -->
+                <div class="border-t border-gray-700 pt-3 mt-2">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xs font-bold text-gray-400 tracking-wide">📋 對話紀錄</h3>
+                        <button onclick="startNewConversation()" class="text-[11px] text-primary hover:text-yellow-400 transition">+ 新對話</button>
+                    </div>
+                    <div id="conversation-list" class="space-y-1 max-h-[220px] overflow-y-auto custom-scrollbar pr-1"></div>
+                </div>
+
                 <!-- Chat Area -->
                 <div class="flex-1 flex flex-col bg-darker">
                     <div class="p-4 border-b border-gray-800 bg-panel shadow-sm">
@@ -411,6 +420,8 @@
 
         let currentPersona = null;
         let aiChatHistory = [];
+        let currentConvId = 'conv_' + Date.now();
+        let allConversations = [];
 
         // 統一狀態 —— 全域「目前年份」與「選中事件」為單一真相來源
         let currentYear = 1945;
@@ -1283,6 +1294,7 @@
             appendMessage('User', text);
             inputEl.value = '';
             aiChatHistory.push(`User: ${text}`);
+            saveConversationMsg('user', text, currentPersona ? (Object.keys(personas).find(k => personas[k] === currentPersona) || 'socratic') : 'socratic');
 
             if (!apiKey) {
                 appendMessage('AI', '⚠️ 尚未設定 API 金鑰。請點擊左側 ⚙️ 輸入你的 Groq API Key（gsk_...）。');
@@ -1297,6 +1309,7 @@
                 document.getElementById('ai-loading').classList.add('hidden');
                 appendMessage('AI', aiResponse);
                 aiChatHistory.push(`AI: ${aiResponse}`);
+                saveConversationMsg('ai', aiResponse, currentPersona ? (Object.keys(personas).find(k => personas[k] === currentPersona) || 'socratic') : 'socratic');
             } catch (error) {
                 document.getElementById('ai-loading').classList.add('hidden');
                 var errMsg = error.message || String(error);
@@ -1335,9 +1348,81 @@
             }
         }
 
-        // ===================================================================
-        //  歷史沙龍 — 完整論壇（公共/個人、按讚、收藏、表情）
-        // ===================================================================
+        // ─── 對話紀錄 ──────────────────────────────
+        function startNewConversation() {
+            currentConvId = 'conv_' + Date.now();
+            aiChatHistory = [];
+            document.getElementById('chat-box').innerHTML = '';
+            appendMessage('AI', '🔄 已開啟新對話，請選擇事件或輸入你想探討的議題。');
+            document.getElementById('ai-input').value = '';
+            updateConversationList();
+        }
+
+        function saveConversationMsg(role, message, personaKey) {
+            if (!googleUser || !GAS_WEBAPP) return;
+            writeToGAS({ action:'saveConversation', userEmail:googleUser.email, convId:currentConvId, role:role, message:message, personaKey:personaKey || 'socratic' });
+        }
+
+        function loadConversationsJSONP(email) {
+            return new Promise(function(resolve, reject) {
+                var cb = 'gasCB_' + Date.now();
+                window[cb] = function(d) { delete window[cb]; var s = document.getElementById('gjs'); if(s) s.remove(); resolve(d); };
+                var s = document.createElement('script'); s.id = 'gjs';
+                s.src = GAS_WEBAPP + '?callback=' + cb + '&mode=conversations&email=' + encodeURIComponent(email);
+                s.onerror = function() { delete window[cb]; if(s.parentNode) s.removeChild(s); reject(); };
+                document.body.appendChild(s);
+            });
+        }
+
+        function updateConversationList() {
+            var list = document.getElementById('conversation-list');
+            if (!list) return;
+            var groups = {};
+            allConversations.forEach(function(c) {
+                if (!groups[c.convId]) groups[c.convId] = { convId: c.convId, timestamp: c.timestamp, personaKey: c.personaKey, messages: [] };
+                groups[c.convId].messages.push(c);
+            });
+            var sorted = Object.keys(groups).map(function(k) { return groups[k]; }).sort(function(a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
+            if (sorted.length === 0) {
+                list.innerHTML = '<div class="text-xs text-gray-600 text-center py-2">尚無對話紀錄</div>';
+                return;
+            }
+            list.innerHTML = sorted.map(function(g) {
+                var firstUserMsg = '';
+                for (var i = 0; i < g.messages.length; i++) {
+                    if (g.messages[i].role === 'user') { firstUserMsg = g.messages[i].message; break; }
+                }
+                var title = firstUserMsg ? firstUserMsg.slice(0, 40) : '對話 ' + g.convId.slice(-6);
+                var isActive = g.convId === currentConvId;
+                var dateLabel = g.timestamp ? g.timestamp.slice(0, 10) : '';
+                return '<div class="conv-item flex items-center gap-1 cursor-pointer hover:bg-gray-700 rounded px-2 py-1.5 text-xs ' + (isActive ? 'bg-gray-700 border-l-2 border-primary text-gray-200' : 'text-gray-400') + '" onclick="loadConversation(\'' + g.convId + '\')" title="' + escapeHtml(firstUserMsg || '') + '"><span class="truncate flex-1">' + escapeHtml(title) + '</span><span class="text-[10px] text-gray-600 shrink-0">' + dateLabel + '</span></div>';
+            }).join('');
+        }
+
+        function loadConversation(convId) {
+            if (!allConversations || allConversations.length === 0) return;
+            currentConvId = convId;
+            aiChatHistory = [];
+            document.getElementById('chat-box').innerHTML = '';
+            var convMessages = allConversations.filter(function(c) { return c.convId === convId; });
+            if (convMessages.length > 0) {
+                var pk = convMessages[0].personaKey || 'socratic';
+                setAIPersona(pk, true);
+            }
+            convMessages.forEach(function(c) {
+                if (c.role === 'user') { appendMessage('User', c.message); aiChatHistory.push('User: ' + c.message); }
+                else if (c.role === 'ai') { appendMessage('AI', c.message); aiChatHistory.push('AI: ' + c.message); }
+            });
+            updateConversationList();
+        }
+
+        async function syncConversationsFromGAS() {
+            if (!googleUser || !GAS_WEBAPP) return;
+            try {
+                allConversations = await loadConversationsJSONP(googleUser.email);
+                updateConversationList();
+            } catch(e) { console.error('Failed to load conversations:', e); }
+        }
         let forumPosts = [], currentOpenPostId = null, googleUser = null, sortMode = 'new', tabMode = 'public', personalTab = 'mine';
         const EMOJIS = ['👍','👎'];
 
@@ -1392,7 +1477,7 @@
                 googleUser = { email: payload.email, name: savedName || defaultName, picture: payload.picture };
                 localStorage.setItem('hlab_google', JSON.stringify(googleUser));
                 if (window.location.hash) history.replaceState(null, '', window.location.pathname + window.location.search);
-                updateLoginUI(); renderForum();
+                updateLoginUI(); renderForum(); syncConversationsFromGAS();
                 showToast('✅ Google 登入成功：' + googleUser.email);
             } catch(e) { showToast('⚠️ 登入解析失敗：' + e.message); }
         }
@@ -1404,7 +1489,7 @@
                 var defaultName = payload.email.split('@')[0];
                 googleUser = { email: payload.email, name: savedName || defaultName };
                 localStorage.setItem('hlab_google', JSON.stringify(googleUser));
-                updateLoginUI(); renderForum();
+                updateLoginUI(); renderForum(); syncConversationsFromGAS();
                 if (window.location.hash) history.replaceState(null,'',window.location.pathname);
                 showToast('✅ 登入成功：' + googleUser.email);
             } catch(e) { showToast('⚠️ 登入解析失敗：' + e.message); }
@@ -1836,6 +1921,7 @@
             }
 
             syncForumFromGAS();
+            syncConversationsFromGAS();
         };
         window.addEventListener('resize', function() { if (map) map.invalidateSize(); });
     </script>
