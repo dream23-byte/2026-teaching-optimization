@@ -1210,18 +1210,20 @@
         }
 
         function exploreInAI(mode) {
-            if(!selectedEvent) return;
-            const topic = selectedEvent.title;
-            const yearStr = selectedEvent.year < 0 ? `西元前 ${Math.abs(selectedEvent.year)}` : `西元 ${selectedEvent.year}`;
-            closeEventPanel();
-            switchTab('ai-view');
-            setAIPersona(mode);
-            let initialPrompt = "";
-            if (mode === 'socratic') initialPrompt = `我想探討 ${yearStr} 年的「${topic}」。請用蘇格拉底提問法引導我思考這個事件的歷史脈絡與深遠影響。`;
-            else if (mode === 'roleplay') initialPrompt = `我想回到 ${yearStr} 年探討「${topic}」。請完全扮演當時的關鍵歷史人物與我展開對話，並拋出你需要我做出的決策難題。`;
-            else if (mode === 'debate') initialPrompt = `我想針對 ${yearStr} 年的「${topic}」進行歷史辯證。請扮演反方或法官，針對此事件的爭議點向我提出嚴厲的質詢。`;
-            document.getElementById('ai-input').value = initialPrompt;
-            sendAIMessage();
+            if(!selectedEvent) { showToast('⚠️ 請先點選地圖事件'); return; }
+            try {
+                const topic = selectedEvent.title;
+                const yearStr = selectedEvent.year < 0 ? `西元前 ${Math.abs(selectedEvent.year)}` : `西元 ${selectedEvent.year}`;
+                closeEventPanel();
+                switchTab('ai-view');
+                setAIPersona(mode);
+                let initialPrompt = "";
+                if (mode === 'socratic') initialPrompt = `我想探討 ${yearStr} 年的「${topic}」。請用蘇格拉底提問法引導我思考這個事件的歷史脈絡與深遠影響。`;
+                else if (mode === 'roleplay') initialPrompt = `我想回到 ${yearStr} 年探討「${topic}」。請完全扮演當時的關鍵歷史人物與我展開對話，並拋出你需要我做出的決策難題。`;
+                else if (mode === 'debate') initialPrompt = `我想針對 ${yearStr} 年的「${topic}」進行歷史辯證。請扮演反方或法官，針對此事件的爭議點向我提出嚴厲的質詢。`;
+                document.getElementById('ai-input').value = initialPrompt;
+                sendAIMessage();
+            } catch(e) { showToast('⚠️ AI 模式切換失敗：' + e.message); console.error(e); }
         }
 
         function appendMessage(sender, text) {
@@ -1246,7 +1248,7 @@
                     var url, body;
                     if (provider === 'groq') {
                         url = 'https://api.groq.com/openai/v1/chat/completions';
-                        body = JSON.stringify({ model: 'llama-3.1-70b-versatile', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
+                        body = JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
                     } else if (provider === 'gemini') {
                         url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
                         body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] } });
@@ -1297,27 +1299,39 @@
                 aiChatHistory.push(`AI: ${aiResponse}`);
             } catch (error) {
                 document.getElementById('ai-loading').classList.add('hidden');
-                appendMessage('AI', '⚠️ 連線發生錯誤，請稍後再試。');
+                var errMsg = error.message || String(error);
+                if (errMsg.includes('401') || errMsg.includes('403')) errMsg = 'API Key 無效或已過期，請重新設定 ⚙️';
+                else if (errMsg.includes('429')) errMsg = 'API 速率限制，請稍後再試';
+                else if (errMsg.includes('fetch') || errMsg.includes('network') || errMsg.includes('CORS')) errMsg = '網路連線失敗，請檢查網路或 API 網址';
+                appendMessage('AI', '⚠️ ' + errMsg);
+                console.error('AI Error:', error);
             }
         }
 
         function showApiKeyInput() {
             var currentProvider = localStorage.getItem('hlab_ai_provider') || 'groq';
             var currentKey = localStorage.getItem('hlab_ai_key') || '';
-            var msg = '選擇 AI 服務並輸入 API Key：\n\n1 = Groq (gsk_...)\n2 = Gemini (AIza...)\n3 = OpenAI (sk-...)\n4 = 自訂網址\n\n格式：服務代碼|你的Key\n目前：' + currentProvider + '|' + currentKey.slice(0,8) + '...\n\n範例：groq|gsk_xxx 或 gemini|AIza_xxx 或 openai|sk-xxx 或 https://自訂網址|sk-xxx';
+            var msg = '選擇 AI 服務並輸入 API Key：\n\n1 = Groq (gsk_...)\n2 = Gemini (AIza...)\n3 = OpenAI (sk-...)\n4 = 自訂網址\n\n格式：服務代碼|你的Key（或直接貼上 Key，系統會自動偵測）\n目前：' + currentProvider + '|' + currentKey.slice(0,8) + '...\n\n範例：groq|gsk_xxx 或 gemini|AIza_xxx 或 openai|sk-xxx 或 https://自訂網址|sk-xxx';
             var input = prompt(msg, currentProvider + '|' + currentKey);
-            if (input !== null && input.indexOf('|') > 0) {
+            if (input === null) return;
+            var provider, key;
+            if (input.indexOf('|') > 0) {
                 var parts = input.split('|');
-                var provider = parts[0].trim().toLowerCase();
-                var key = parts.slice(1).join('|').trim();
-                if (key) {
-                    localStorage.setItem('hlab_ai_provider', provider);
-                    localStorage.setItem('hlab_ai_key', key);
-                    apiKey = key;
-                    showToast('✅ 已設定：' + provider);
-                }
-            } else if (input !== null) {
-                showToast('⚠️ 格式錯誤，請用：服務代碼|你的Key');
+                provider = parts[0].trim().toLowerCase();
+                key = parts.slice(1).join('|').trim();
+            } else {
+                key = input.trim();
+                if (key.startsWith('gsk_')) provider = 'groq';
+                else if (key.startsWith('AIza')) provider = 'gemini';
+                else if (key.startsWith('sk-')) provider = 'openai';
+                else if (key.startsWith('http')) provider = key; // custom URL
+                else provider = 'groq';
+            }
+            if (key) {
+                localStorage.setItem('hlab_ai_provider', provider);
+                localStorage.setItem('hlab_ai_key', key);
+                apiKey = key;
+                showToast('✅ 已設定：' + provider);
             }
         }
 
