@@ -1334,6 +1334,7 @@
         var GOOGLE_CLIENT_ID = '520002624675-rsr1nkbnvartcab6ru0k81usjpuvqo92.apps.googleusercontent.com';
 
         function startGoogleSignIn() {
+            showToast('🚀 正在導向 Google 選擇帳號...');
             var redirectUri = window.location.origin + window.location.pathname;
             var nonce = Math.random().toString(36).substring(2);
             localStorage.setItem('hlab_oauth_nonce', nonce);
@@ -1344,7 +1345,7 @@
                 + '&scope=' + encodeURIComponent('openid email profile')
                 + '&nonce=' + encodeURIComponent(nonce)
                 + '&prompt=select_account';
-            window.location = url;
+            setTimeout(function() { window.location = url; }, 150);
         }
 
         function guestLogin() {
