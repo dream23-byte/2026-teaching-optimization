@@ -1331,17 +1331,21 @@
         const EMOJIS = ['👍','👎'];
 
         // ─── Google 登入 ──────────────────────────
+        var GOOGLE_CLIENT_ID = '520002624675-rsr1nkbnvartcab6ru0k81usjpuvqo92.apps.googleusercontent.com';
+        var GOOGLE_REDIRECT_BASE = 'https://dream23-byte.github.io/2026-teaching-optimization/';
+
         function startGoogleSignIn() {
-            var clientId = '520002624675-rsr1nkbnvartcab6ru0k81usjpuvqo92.apps.googleusercontent.com';
-            var redirectUri = window.location.origin + window.location.pathname;
+            if (!confirm('將前往 Google 選擇帳號進行登入，確定？')) return;
             var nonce = Math.random().toString(36).substring(2);
             localStorage.setItem('hlab_oauth_nonce', nonce);
-            var url = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=' + encodeURIComponent(clientId)
-                + '&redirect_uri=' + encodeURIComponent(redirectUri)
+            var url = 'https://accounts.google.com/o/oauth2/v2/auth'
+                + '?client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID)
+                + '&redirect_uri=' + encodeURIComponent(GOOGLE_REDIRECT_BASE)
                 + '&response_type=id_token'
                 + '&scope=' + encodeURIComponent('openid email profile')
-                + '&nonce=' + encodeURIComponent(nonce);
-            window.location.href = url;
+                + '&nonce=' + encodeURIComponent(nonce)
+                + '&prompt=select_account';
+            window.location.assign(url);
         }
 
         function guestLogin() {
