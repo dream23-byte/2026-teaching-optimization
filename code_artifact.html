@@ -241,7 +241,7 @@
                             </button>
                         </div>
                         <div id="ai-loading" class="hidden text-xs text-primary mt-2 animate-pulse">AI 正在深度思考中...</div>
-                        <div id="ai-key-note" class="hidden text-[11px] text-amber-400/80 mt-2"><i class="fa-solid fa-circle-info mr-1"></i>點擊左側 ⚙️ 可設定 Groq API 金鑰（gsk_...）</div>
+                        <div id="ai-key-note" class="hidden text-[11px] text-amber-400/80 mt-2"><i class="fa-solid fa-circle-info mr-1"></i>點擊 ⚙️ 設定 API Key（支援 Groq / Gemini / OpenAI / 自訂）</div>
                     </div>
                 </div>
             </div>
@@ -396,8 +396,9 @@
     <script>
         // 註：在 Gemini Canvas / Google AI Studio 環境會自動注入金鑰。獨立開啟時請填入自己的 Gemini API Key。
         // 也可在 AI 探究引擎頁面點擊 ⚙️ 按鈕輸入金鑰（會儲存在瀏覽器中）
-        var savedKey = localStorage.getItem('hlab_gemini_key'); // 共用同一個儲存鍵
-        var apiKey = savedKey || "";
+        var savedKey = localStorage.getItem('hlab_ai_key') || '';
+        var savedProvider = localStorage.getItem('hlab_ai_provider') || 'groq';
+        var apiKey = savedKey;
         
         // ✨ 【設定區】GAS 網頁應用（歷史沙龍後端）
         // 負責 Google 登入、貼文/回覆儲存、資料查詢
@@ -1233,24 +1234,31 @@
         }
 
         async function fetchGeminiWithRetry(prompt, systemInstruction, retries = 5) {
-            const delays = [1000, 2000, 4000, 8000, 16000];
-            for (let i = 0; i < retries; i++) {
+            var delays = [1000, 2000, 4000, 8000, 16000];
+            var provider = localStorage.getItem('hlab_ai_provider') || 'groq';
+            for (var i = 0; i < retries; i++) {
                 try {
-                    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-                        body: JSON.stringify({
-                            model: 'llama-3.1-70b-versatile',
-                            messages: [
-                                { role: 'system', content: systemInstruction },
-                                { role: 'user', content: prompt }
-                            ],
-                            temperature: 0.9,
-                            max_tokens: 2048
-                        })
-                    });
+                    var url, body;
+                    if (provider === 'groq') {
+                        url = 'https://api.groq.com/openai/v1/chat/completions';
+                        body = JSON.stringify({ model: 'llama-3.1-70b-versatile', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
+                    } else if (provider === 'gemini') {
+                        url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
+                        body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] } });
+                    } else {
+                        // OpenAI-compatible (OpenAI, DeepSeek, etc.)
+                        var baseUrl = provider === 'openai' ? 'https://api.openai.com/v1' : provider;
+                        url = baseUrl + '/chat/completions';
+                        body = JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
+                    }
+                    var headers = { 'Content-Type': 'application/json' };
+                    if (provider !== 'gemini') headers['Authorization'] = 'Bearer ' + apiKey;
+
+                    var response = await fetch(url, { method: 'POST', headers: headers, body: body });
                     if (!response.ok) throw new Error('HTTP ' + response.status);
                     var data = await response.json();
+
+                    if (provider === 'gemini') return data.candidates?.[0]?.content?.parts?.[0]?.text || '抱歉，我無法產出回應。';
                     return data.choices?.[0]?.message?.content || '抱歉，我無法產出回應。';
                 } catch (error) {
                     if (i === retries - 1) throw error;
@@ -1289,15 +1297,22 @@
         }
 
         function showApiKeyInput() {
-            var key = prompt('請輸入你的 Groq API 金鑰\n（gsk_... \n可在 https://console.groq.com/keys 取得）', localStorage.getItem('hlab_gemini_key') || '');
-            if (key !== null && key.trim()) {
-                localStorage.setItem('hlab_gemini_key', key.trim());
-                apiKey = key.trim();
-                showToast('✅ API 金鑰已設定');
-            } else if (key !== null && !key.trim()) {
-                localStorage.removeItem('hlab_gemini_key');
-                apiKey = "";
-                showToast('已清除 API 金鑰');
+            var currentProvider = localStorage.getItem('hlab_ai_provider') || 'groq';
+            var currentKey = localStorage.getItem('hlab_ai_key') || '';
+            var msg = '選擇 AI 服務並輸入 API Key：\n\n1 = Groq (gsk_...)\n2 = Gemini (AIza...)\n3 = OpenAI (sk-...)\n4 = 自訂網址\n\n格式：服務代碼|你的Key\n目前：' + currentProvider + '|' + currentKey.slice(0,8) + '...\n\n範例：groq|gsk_xxx 或 gemini|AIza_xxx 或 openai|sk-xxx 或 https://自訂網址|sk-xxx';
+            var input = prompt(msg, currentProvider + '|' + currentKey);
+            if (input !== null && input.indexOf('|') > 0) {
+                var parts = input.split('|');
+                var provider = parts[0].trim().toLowerCase();
+                var key = parts.slice(1).join('|').trim();
+                if (key) {
+                    localStorage.setItem('hlab_ai_provider', provider);
+                    localStorage.setItem('hlab_ai_key', key);
+                    apiKey = key;
+                    showToast('✅ 已設定：' + provider);
+                }
+            } else if (input !== null) {
+                showToast('⚠️ 格式錯誤，請用：服務代碼|你的Key');
             }
         }
 
