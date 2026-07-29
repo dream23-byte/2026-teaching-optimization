@@ -331,6 +331,49 @@
         </div>
     </div>
 
+    <!-- 編輯議題 Modal -->
+    <div id="forum-edit-modal" class="fixed inset-0 modal-bg hidden items-center justify-center z-[9990] px-4">
+        <div class="bg-panel border border-gray-700 rounded-xl max-w-xl w-full shadow-2xl relative flex flex-col p-6" style="max-height:90vh;overflow-y:auto;">
+            <button onclick="closeModal('forum-edit-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-primary mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-pen-to-square mr-2"></i> 編輯議題</h2>
+            <input type="hidden" id="edit-post-id">
+            <input type="hidden" id="edit-post-row">
+            <label class="text-sm text-gray-400 mb-1">作者</label>
+            <input type="text" id="edit-post-author" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white mb-4 shadow-inner" readonly>
+            <label class="text-sm text-gray-400 mb-1">分類標籤</label>
+            <select id="edit-post-tag" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner">
+                <option value="歷史思辨">歷史思辨</option>
+                <option value="文明起源">文明起源</option>
+                <option value="帝國擴張">帝國擴張</option>
+                <option value="轉型正義">轉型正義</option>
+                <option value="現代局勢">現代局勢</option>
+            </select>
+            <label class="text-sm text-gray-400 mb-1">議題標題</label>
+            <input type="text" id="edit-post-title" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner">
+            <label class="text-sm text-gray-400 mb-1">內容</label>
+            <textarea id="edit-post-content" rows="5" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary resize-none mb-6 shadow-inner"></textarea>
+            <div class="flex justify-end gap-4">
+                <button onclick="closeModal('forum-edit-modal')" class="text-gray-400 hover:text-white px-4 py-2 font-medium">取消</button>
+                <button onclick="saveEditPost()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-6 py-2 rounded-lg transition shadow-lg">儲存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編輯回覆 Modal -->
+    <div id="forum-edit-reply-modal" class="fixed inset-0 modal-bg hidden items-center justify-center z-[9990] px-4">
+        <div class="bg-panel border border-gray-700 rounded-xl max-w-xl w-full shadow-2xl relative flex flex-col p-6">
+            <button onclick="closeModal('forum-edit-reply-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-primary mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-pen-to-square mr-2"></i> 編輯回覆</h2>
+            <input type="hidden" id="edit-reply-post-id">
+            <input type="hidden" id="edit-reply-row">
+            <textarea id="edit-reply-content" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-6 shadow-inner"></textarea>
+            <div class="flex justify-end gap-4">
+                <button onclick="closeModal('forum-edit-reply-modal')" class="text-gray-400 hover:text-white px-4 py-2 font-medium">取消</button>
+                <button onclick="saveEditReply()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-6 py-2 rounded-lg transition shadow-lg">儲存修改</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-6 right-6 bg-gray-900 border-l-4 border-primary text-white px-6 py-4 rounded shadow-[0_5px_15px_rgba(0,0,0,0.5)] transform translate-y-20 opacity-0 transition-all duration-300 z-[10000] flex items-center">
         <i class="fa-solid fa-circle-info text-primary mr-3 text-lg"></i>
         <span id="toast-msg">Message</span>
@@ -1308,12 +1351,13 @@
                 if (data && data.posts) {
                     forumPosts = data.posts.reverse().map(p => ({
                         id: 'post_' + p.title.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '_'),
+                        row: p.row, userEmail: p.userEmail,
                         title: p.title, content: p.content, author: p.author,
                         tag: p.tag || '歷史思辨', tagBg: 'bg-gray-700', tagText: 'text-gray-200',
                         timeText: p.timestamp ? p.timestamp.slice(0, 10) : '',
                         comments: (data.replies || [])
                             .filter(r => r.postTitle === p.title)
-                            .map(r => ({ author: r.author, text: r.replyContent, timeText: r.timestamp ? r.timestamp.slice(0, 10) : '' }))
+                            .map(r => ({ row: r.row, userEmail: r.userEmail, author: r.author, text: r.replyContent, timeText: r.timestamp ? r.timestamp.slice(0, 10) : '' }))
                     }));
                 }
                 statusEl.innerText = "已連線歷史沙龍";
@@ -1365,6 +1409,7 @@
                 return;
             }
             forumPosts.forEach(p => {
+                const isOwner = googleUser && p.userEmail === googleUser.email;
                 const card = document.createElement('div');
                 card.className = 'bg-panel p-5 rounded-xl border border-gray-800 hover:border-gray-500 transition cursor-pointer shadow-lg fade-in';
                 card.onclick = () => openForumPost(p.id);
@@ -1378,7 +1423,12 @@
                     <div class="flex items-center justify-between text-gray-500 text-sm">
                         <span>✍️ ${escapeHtml(p.author)}</span>
                         <span>💬 ${p.comments.length} 則回覆</span>
-                    </div>`;
+                    </div>
+                    ${isOwner ? `
+                    <div class="flex gap-2 mt-3 pt-3 border-t border-gray-800">
+                        <button onclick="event.stopPropagation();editPost('${p.id}')" class="text-xs text-blue-400 hover:text-blue-300">✏️ 編輯</button>
+                        <button onclick="event.stopPropagation();deletePost('${p.id}')" class="text-xs text-red-400 hover:text-red-300">🗑️ 刪除</button>
+                    </div>` : ''}`;
                 grid.appendChild(card);
             });
         }
@@ -1400,14 +1450,22 @@
             if (!p.comments.length) {
                 c.innerHTML = '<div class="text-sm text-gray-500 italic text-center py-4">尚無回覆</div>';
             } else {
-                c.innerHTML = p.comments.map(cm => `
+                c.innerHTML = p.comments.map(cm => {
+                    const isOwner = googleUser && cm.userEmail === googleUser.email;
+                    return `
                     <div class="bg-panel p-4 rounded-lg border border-gray-800 shadow-sm">
                         <div class="flex justify-between items-center mb-2">
                             <div class="text-xs font-bold text-primary">${escapeHtml(cm.author)}</div>
-                            <div class="text-xs text-gray-500">${escapeHtml(cm.timeText)}</div>
+                            <div class="text-xs text-gray-500 flex items-center gap-2">
+                                ${escapeHtml(cm.timeText)}
+                                ${isOwner ? `<span class="flex gap-1">
+                                    <button onclick="event.stopPropagation();editReply('${p.id}', ${cm.row})" class="text-blue-400 hover:text-blue-300 text-[10px]">✏️</button>
+                                    <button onclick="event.stopPropagation();deleteReply('${p.id}', ${cm.row})" class="text-red-400 hover:text-red-300 text-[10px]">🗑️</button>
+                                </span>` : ''}
+                            </div>
                         </div>
                         <p class="text-sm text-gray-200 leading-relaxed">${escapeHtml(cm.text).replace(/\n/g, '<br>')}</p>
-                    </div>`).join('');
+                    </div>`;}).join('');
             }
 
             document.getElementById('forum-read-modal').classList.remove('hidden');
@@ -1431,7 +1489,7 @@
             if (!title || !content) { showToast('⚠️ 標題與內容不能留白'); return; }
             if (!googleUser) { showToast('⚠️ 請先 Google 登入'); return; }
             await writeToGAS('addPost', {
-                action: 'addPost', author: googleUser.name,
+                action: 'addPost', userEmail: googleUser.email, author: googleUser.name,
                 tag: tag, title: title, content: content
             });
             closeModal('forum-write-modal');
@@ -1447,13 +1505,90 @@
             const p = forumPosts.find(x => x.id === currentOpenPostId);
             if (!p) return;
             await writeToGAS('addReply', {
-                action: 'addReply', author: googleUser.name,
+                action: 'addReply', userEmail: googleUser.email, author: googleUser.name,
                 postTitle: p.title, replyContent: text
             });
             inputEl.value = '';
             showToast('✅ 回覆成功！');
             syncForumFromGAS();
         }
+
+        // ─── 編輯 / 刪除 ──────────────────────────
+        function editPost(postId) {
+            const p = forumPosts.find(x => x.id === postId);
+            if (!p) return;
+            document.getElementById('edit-post-id').value = postId;
+            document.getElementById('edit-post-row').value = p.row;
+            document.getElementById('edit-post-author').value = p.author;
+            document.getElementById('edit-post-title').value = p.title;
+            document.getElementById('edit-post-tag').value = p.tag;
+            document.getElementById('edit-post-content').value = p.content;
+            openModal('forum-edit-modal');
+        }
+
+        async function saveEditPost() {
+            const postId = document.getElementById('edit-post-id').value;
+            const row = document.getElementById('edit-post-row').value;
+            const tag = document.getElementById('edit-post-tag').value;
+            const title = document.getElementById('edit-post-title').value.trim();
+            const content = document.getElementById('edit-post-content').value.trim();
+            if (!title || !content) { showToast('⚠️ 標題與內容不能留白'); return; }
+            await writeToGAS('editPost', {
+                action: 'editPost', row: row, userEmail: googleUser.email,
+                tag: tag, title: title, content: content
+            });
+            closeModal('forum-edit-modal');
+            showToast('✅ 議題已更新！');
+            syncForumFromGAS();
+        }
+
+        async function deletePost(postId) {
+            const p = forumPosts.find(x => x.id === postId);
+            if (!p || !confirm('確定要刪除這個議題嗎？\n此操作無法還原。')) return;
+            await writeToGAS('deletePost', {
+                action: 'deletePost', row: p.row, userEmail: googleUser.email
+            });
+            showToast('✅ 議題已刪除！');
+            syncForumFromGAS();
+        }
+
+        async function editReply(postId, replyRow) {
+            const p = forumPosts.find(x => x.id === postId);
+            if (!p) return;
+            const reply = p.comments.find(c => c.row === replyRow);
+            if (!reply) return;
+            document.getElementById('edit-reply-post-id').value = postId;
+            document.getElementById('edit-reply-row').value = replyRow;
+            document.getElementById('edit-reply-content').value = reply.text;
+            openModal('forum-edit-reply-modal');
+        }
+
+        async function saveEditReply() {
+            const postId = document.getElementById('edit-reply-post-id').value;
+            const row = document.getElementById('edit-reply-row').value;
+            const content = document.getElementById('edit-reply-content').value.trim();
+            if (!content) { showToast('⚠️ 回覆內容不能留白'); return; }
+            const p = forumPosts.find(x => x.id === postId);
+            if (!p) return;
+            await writeToGAS('editReply', {
+                action: 'editReply', row: row, userEmail: googleUser.email,
+                replyContent: content
+            });
+            closeModal('forum-edit-reply-modal');
+            showToast('✅ 回覆已更新！');
+            syncForumFromGAS();
+        }
+
+        async function deleteReply(postId, replyRow) {
+            if (!confirm('確定要刪除這個回覆嗎？')) return;
+            await writeToGAS('deleteReply', {
+                action: 'deleteReply', row: replyRow, userEmail: googleUser.email
+            });
+            showToast('✅ 回覆已刪除！');
+            syncForumFromGAS();
+        }
+
+        function openModal(id) { var el = document.getElementById(id); if (el) { el.classList.remove('hidden'); el.classList.add('flex'); } }
 
         function discussSelectedEvent() {
             if (!selectedEvent) return;
