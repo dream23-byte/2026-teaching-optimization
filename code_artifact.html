@@ -1277,7 +1277,7 @@
         // ===================================================================
         //  歷史沙龍 — 完整論壇（公共/個人、按讚、收藏、表情）
         // ===================================================================
-        let forumPosts = [], currentOpenPostId = null, googleUser = null, sortMode = 'new', tabMode = 'public';
+        let forumPosts = [], currentOpenPostId = null, googleUser = null, sortMode = 'new', tabMode = 'public', personalTab = 'mine';
         const EMOJIS = ['👍','👎'];
 
         // ─── Google 登入 ──────────────────────────
@@ -1392,14 +1392,32 @@
 
             var list = [];
             if (tabMode === 'public') {
+                var subBar = document.getElementById('personal-subtabs');
+                if (subBar) subBar.remove();
                 list = forumPosts.slice();
                 if (sortMode === 'hot') list.sort(function(a,b) { return b.likes.length - a.likes.length; });
                 else list.sort(function(a,b) { return b.row - a.row; });
             } else {
                 if (!googleUser) { grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-12"><p>請先登入 Google 查看個人區域</p></div>'; return; }
                 var myEmail = googleUser.email;
-                list = forumPosts.filter(function(p) { return p.userEmail === myEmail; });
+                if (personalTab === 'mine') {
+                    list = forumPosts.filter(function(p) { return p.userEmail === myEmail; });
+                } else if (personalTab === 'collected') {
+                    list = forumPosts.filter(function(p) { return p.collects.indexOf(myEmail) >= 0; });
+                } else if (personalTab === 'liked') {
+                    list = forumPosts.filter(function(p) { return p.likes.indexOf(myEmail) >= 0; });
+                }
                 list.sort(function(a,b) { return b.row - a.row; });
+                // 個人區子頁籤（放 grid 上方固定區域）
+                var subBar = document.getElementById('personal-subtabs') || (function(){
+                    var d = document.createElement('div'); d.id = 'personal-subtabs'; d.className = 'col-span-full flex gap-1 bg-panel rounded-lg p-1 border border-gray-800 mb-4';
+                    grid.parentNode.insertBefore(d, grid);
+                    return d;
+                })();
+                var subs = [['mine','📝 我的議題'],['collected','🔖 收藏'],['liked','❤️ 按讚']];
+                subBar.innerHTML = subs.map(function(s) {
+                    return '<button class="personal-tab-btn px-3 py-1.5 rounded-md text-xs font-bold ' + (personalTab === s[0] ? 'bg-primary text-dark' : 'text-gray-400 hover:text-white') + '" data-tab="' + s[0] + '">' + s[1] + '</button>';
+                }).join('');
             }
 
             if (list.length === 0) {
@@ -1428,8 +1446,8 @@
                     '</div>' +
                     '<div class="flex items-center gap-3 pt-3 border-t border-gray-800 text-sm">' +
                         (googleUser ? '<button class="like-btn hover:scale-110 transition" data-row="' + p.row + '" data-title="' + escapeHtml(p.title) + '">' + (iLiked ? '❤️' : '🤍') + ' <span class="like-count">' + p.likes.length + '</span></button>' : '<span>❤️ ' + p.likes.length + '</span>') +
-                        (googleUser ? '<button class="collect-btn hover:scale-110 transition" data-row="' + p.row + '" data-title="' + escapeHtml(p.title) + '">' + (iCollected ? '🔖' : '🔖') + '</button>' : '') +
-                        (tabMode === 'personal' && isOwner ? '<span class="flex gap-2 ml-auto"><button class="text-blue-400 hover:text-blue-300 text-xs" onclick="editPost(\'' + escapeHtml(p.title) + '\')">✏️ 編輯</button><button class="text-red-400 hover:text-red-300 text-xs" onclick="deletePost(\'' + escapeHtml(p.title) + '\')">🗑️ 刪除</button></span>' : '') +
+                        (googleUser ? '<button class="collect-btn hover:scale-110 transition" data-row="' + p.row + '" data-title="' + escapeHtml(p.title) + '">' + (iCollected ? '<span style="color:#fbbf24;">🔖</span>' : '🔖') + '</button>' : '') +
+                        (tabMode === 'personal' && personalTab === 'mine' && isOwner ? '<span class="flex gap-2 ml-auto"><button class="text-blue-400 hover:text-blue-300 text-xs" onclick="editPost(\'' + escapeHtml(p.title) + '\')">✏️ 編輯</button><button class="text-red-400 hover:text-red-300 text-xs" onclick="deletePost(\'' + escapeHtml(p.title) + '\')">🗑️ 刪除</button></span>' : '') +
                     '</div>';
                 grid.appendChild(card);
             });
@@ -1471,6 +1489,13 @@
                         writeToGAS({ action:'collectPost', row:row, userEmail:googleUser.email });
                         showToast('✅ 已收藏');
                     }
+                    renderForum();
+                });
+            });
+            // 個人區子頁籤切換
+            Array.from(document.querySelectorAll('.personal-tab-btn')).forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    personalTab = btn.getAttribute('data-tab');
                     renderForum();
                 });
             });
