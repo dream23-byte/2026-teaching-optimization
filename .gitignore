@@ -2,3 +2,8 @@ __MACOSX/
 cliopatria.zip
 cliopatria_polities_only.geojson
 cliopatria_data.js
+
+# Temp SQL batch files
+import_s*.sql
+periods_batch*.sql
+import_batch*.sql
