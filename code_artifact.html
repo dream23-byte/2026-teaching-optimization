@@ -763,10 +763,8 @@
         // Cliopatria (Seshat) historical territory renderer
         // Uses year-indexed lookup for fast filtering
         // Chinese dynasties excluded — hardcoded data is more detailed
-        const CLIOPATRIA_SKIP_CN = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu/i;
-        let cliopatriaBBox = null;
+        const CLIOPATRIA_SKIP_CN = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu|western xia|great jin|kara khitai|uyghur|buyeo/i;
         function drawCliopatria(year, layer) {
-            cliopatriaBBox = null;
             if (typeof CLIOPATRIA_INDEX === 'undefined' || typeof CLIOPATRIA_FEATURES === 'undefined') return;
             const yr = Math.round(year);
             const idx = CLIOPATRIA_INDEX;
@@ -779,31 +777,17 @@
             if (found === -1) return;
             const featureIndices = idx[found][1];
             const feats = CLIOPATRIA_FEATURES;
-            let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
             for (let i = 0; i < featureIndices.length; i++) {
                 const f = feats[featureIndices[i]];
                 if (CLIOPATRIA_SKIP_CN.test(f.n)) continue;
-                const processCoords = (coords) => {
-                    for (const c of coords) {
-                        if (c[1] < minLat) minLat = c[1];
-                        if (c[1] > maxLat) maxLat = c[1];
-                        if (c[0] < minLng) minLng = c[0];
-                        if (c[0] > maxLng) maxLng = c[0];
-                    }
-                };
                 const opts = { color: f.c || '#6b7280', weight: 1.5, fillOpacity: 0.25 };
                 if (f.g) {
                     L.polygon(f.g, opts).addTo(layer).bindTooltip('<b>' + f.n + '</b> (' + f.fy + '–' + f.ty + ')', {sticky: true});
-                    processCoords(f.g);
                 } else if (f.gm) {
                     f.gm.forEach(poly => {
                         L.polygon(poly, opts).addTo(layer).bindTooltip('<b>' + f.n + '</b> (' + f.fy + '–' + f.ty + ')', {sticky: true});
-                        processCoords(poly);
                     });
                 }
-            }
-            if (minLat < maxLat && minLng < maxLng) {
-                cliopatriaBBox = [[minLat, minLng], [maxLat, maxLng]];
             }
         }
 
@@ -923,12 +907,6 @@
         }
 
         function flyToYearContext(year) {
-            // First try: zoom to fit Cliopatria territory bounding box
-            if (cliopatriaBBox) {
-                try { map.fitBounds(cliopatriaBBox, { padding: [40, 40], maxZoom: 5 }); } catch(e) {}
-                return;
-            }
-            // Fallback: zoom to nearest event
             const valid = historyData.filter(ev => ev && Number.isFinite(ev.lat) && Number.isFinite(ev.lng) && activeTracks.includes(ev.track));
             if (!valid.length) return;
             let nearest = valid[0];
@@ -1203,11 +1181,6 @@
             if (empireLayer) { map.removeLayer(empireLayer); empireLayer = null; }
             empireLayer = L.layerGroup().addTo(map);
 
-            // Cliopatria (Seshat) — render global polities from dataset
-            if (typeof CLIOPATRIA_FEATURES !== 'undefined' && typeof CLIOPATRIA_INDEX !== 'undefined') {
-                drawCliopatria(year, empireLayer);
-            }
-
             if (year >= -509 && year < -264) {
                 L.polygon(romanItaly, { color: '#9333ea', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>羅馬共和國 (早期)</b>", {sticky: true});
             } else if (year >= -264 && year < -146) {
@@ -1346,6 +1319,11 @@
             }
             if (year >= 1922 && year <= 1991) {
                 L.polygon(ussrCoords, { color: '#dc2626', weight: 2, fillOpacity: 0.25 }).addTo(empireLayer).bindTooltip("<b>蘇維埃社會主義共和國聯盟 (蘇聯)</b>", {sticky: true});
+            }
+
+            // Cliopatria (Seshat) — render AFTER hardcoded to override old data with year-specific borders
+            if (typeof CLIOPATRIA_FEATURES !== 'undefined' && typeof CLIOPATRIA_INDEX !== 'undefined') {
+                drawCliopatria(year, empireLayer);
             }
 
             // 事件星標（±150 年內）—— 選中的事件用不同外觀突顯
