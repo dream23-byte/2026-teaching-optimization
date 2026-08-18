@@ -514,7 +514,7 @@
                         lat: ev.latitude,
                         lng: ev.longitude,
                         desc: ev.description,
-                        effects: ev.ripple_effect || [],
+                        effects: ev.ripple_effect ? (typeof ev.ripple_effect === 'string' ? ev.ripple_effect.replace(/^\{(.*)\}$/, '$1').split(',').map(s => s.trim()).filter(Boolean) : Array.isArray(ev.ripple_effect) ? ev.ripple_effect : [ev.ripple_effect]) : [],
                         specialAction: ev.special_action || null
                     }));
                     console.log('[Supabase] Loaded ' + historyDataFromDB.length + ' events');
@@ -862,9 +862,23 @@
             if (found === -1) return;
             const featureIndices = idx[found][1];
             const feats = CLIOPATRIA_FEATURES;
+            // SEA bounding box: skip Cliopatria features that fall in SEA region
+            // (already handled by DB periods: Philippines, Myanmar, Thailand, Vietnam, etc.)
+            function isInSEA(poly) {
+                if (!poly || poly.length < 3) return false;
+                var sumLat = 0, sumLng = 0;
+                for (var k = 0; k < poly.length; k++) { sumLat += poly[k][0]; sumLng += poly[k][1]; }
+                var cLat = sumLat / poly.length, cLng = sumLng / poly.length;
+                return cLat >= 5 && cLat <= 25 && cLng >= 90 && cLng <= 145;
+            }
             for (let i = 0; i < featureIndices.length; i++) {
                 const f = feats[featureIndices[i]];
                 if (CLIOPATRIA_SKIP_CN.test(f.n)) continue;
+                // Skip features whose polygons fall entirely in the SEA region
+                var skipSEA = false;
+                if (f.g) { skipSEA = isInSEA(f.g); }
+                else if (f.gm) { skipSEA = f.gm.some(function(p) { return isInSEA(p); }); }
+                if (skipSEA) continue;
                 const col = f.c || '#6b7280';
                 const opts = { color: col, weight: 1.5, fillOpacity: 0.25 };
                 const tipHtml = '<div style="background:' + col + ';color:#fff;padding:3px 8px;border-radius:4px;font-weight:bold;font-size:12px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.4)">' + f.n + ' (' + f.fy + '–' + f.ty + ')</div>';
