@@ -771,7 +771,7 @@
         // Cliopatria (Seshat) historical territory renderer
         // Uses year-indexed lookup for fast filtering
         // Chinese dynasties excluded — hardcoded data is more detailed
-        const CLIOPATRIA_SKIP_CN = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu|western xia|great jin|kara khitai|uyghur|buyeo|美利堅合眾國|美利堅聯盟國|菲律賓|緬甸|暹羅|泰國|越南|高棉|柬埔寨|馬來|呂宋|西班牙王國/i;
+        const CLIOPATRIA_SKIP_CN = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu|western xia|great jin|kara khitai|uyghur|buyeo|美利堅合眾國|美利堅聯盟國|菲律賓|緬甸|暹羅|泰國|越南|高棉|柬埔寨|馬來|呂宋|西班牙王國|西班牙帝國|西班牙第一共和國|西班牙第二共和國|西班牙國民軍|法朗哥西班牙|西班牙內戰|西班牙民主/i;
         function drawCliopatria(year, layer) {
             if (typeof CLIOPATRIA_INDEX === 'undefined' || typeof CLIOPATRIA_FEATURES === 'undefined') return;
             const yr = Math.round(year);
@@ -879,7 +879,7 @@
         }
 
         function goToYear(year, focusEvent = null, opts = {}) {
-            const { fly = true, debounce = false } = opts;
+            const { fly = true, debounce = false, skipScroll = false } = opts;
             if (!Number.isFinite(year)) year = currentYear;
             year = Math.round(year);
             if (year < TIMELINE_MIN_YEAR) year = TIMELINE_MIN_YEAR;
@@ -902,8 +902,10 @@
 
             updateMapMarkers(year);
             updateTimelinePlayhead(year);
-            const behavior = (fly && !debounce) ? 'smooth' : 'auto';
-            scrollTimelineToYear(year, behavior);
+            if (!skipScroll) {
+                const behavior = (fly && !debounce) ? 'smooth' : 'auto';
+                scrollTimelineToYear(year, behavior);
+            }
 
             clearTimeout(mapPanTimeout);
             if (!fly) return;
@@ -963,7 +965,7 @@
                 const rect = _phSc.getBoundingClientRect();
                 const x = e.clientX - rect.left + _phSc.scrollLeft - TRACK_LABEL_WIDTH;
                 const pct = Math.max(0, Math.min(1, x / TIMELINE_WIDTH));
-                goToYear(percentToYear(pct * 100), null, { fly: false });
+                goToYear(percentToYear(pct * 100), null, { fly: false, skipScroll: true });
             });
             document.addEventListener('mouseup', function() {
                 if (!_phDragging) return;
