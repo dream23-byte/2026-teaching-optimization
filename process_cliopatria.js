@@ -993,6 +993,8 @@ const COLOR_OVERRIDE = {
   "United States of America": "#ef4444",
   "Russian Empire": "#dc2626", "Russian Federation": "#dc2626",
   "(Russian Federation)": "#dc2626",
+  "Union of Soviet Socialist Republics": "#dc2626",
+  "Republics of the Soviet Union": "#dc2626",
   "Ottoman Empire": "#f59e0b",
   "Holy Roman Empire": "#8b5cf6", "(Holy Roman Empire)": "#8b5cf6",
   "French Fifth Republic": "#3b82f6", "(French Fifth Republic)": "#3b82f6",
@@ -1019,7 +1021,7 @@ function assignColor(name) {
   // Check color override first
   if (COLOR_OVERRIDE[name]) return COLOR_OVERRIDE[name];
 
-  // Region-based fallback
+  // Region-based fallback with multiple color options per region
   const lower = name.toLowerCase();
   const REGION = {
     europe: ["roman","byzantin","frank","holy roman","spain","portugal","france","england",
@@ -1045,15 +1047,27 @@ function assignColor(name) {
       "turkmen","kyrgyz","tajik","bukhara","samarkand"],
     steppe: ["hunnic","xiongnu","scythian","mongol","tatar","kipchak","golden horde","chagatai"],
   };
+
+  const REGION_COLORS = {
+    europe: ["#3b82f6","#6366f1","#8b5cf6","#a78bfa","#818cf8"],
+    middle_east: ["#f59e0b","#d97706","#b45309","#fbbf24","#f97316"],
+    east_asia: ["#ef4444","#dc2626","#b91c1c","#f87171"],
+    south_asia: ["#22c55e","#16a34a","#15803d","#4ade80"],
+    southeast_asia: ["#06b6d4","#0891b2","#0e7490","#22d3ee"],
+    africa: ["#a855f7","#9333ea","#7c3aed","#c084fc"],
+    americas: ["#f97316","#ea580c","#c2410c","#fb923c","#06b6d4","#0891b2"],
+    central_asia: ["#84cc16","#65a30d","#4d7c0f","#a3e635"],
+    steppe: ["#78716c","#57534e","#44403c","#a8a29e"],
+  };
+
   for (const [region, keywords] of Object.entries(REGION)) {
     for (const kw of keywords) {
       if (lower.includes(kw)) {
-        const REGION_COLORS = {
-          europe: "#3b82f6", middle_east: "#f59e0b", east_asia: "#ef4444",
-          south_asia: "#22c55e", southeast_asia: "#06b6d4", africa: "#a855f7",
-          americas: "#ec4899", central_asia: "#f97316", steppe: "#78716c",
-        };
-        return REGION_COLORS[region] || "#6b7280";
+        const colors = REGION_COLORS[region] || ["#6b7280"];
+        // Use name hash to pick a consistent but varied color from the region palette
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+        return colors[Math.abs(hash) % colors.length];
       }
     }
   }
@@ -1092,12 +1106,28 @@ function process() {
     if (CN_SHORT.test(name) || CN_REGEX.test(name)) continue;
     if (area < 300000) continue;
 
-    const existing = polityMap.get(name);
-    if (!existing || area > existing.area) {
-      polityMap.set(name, { name, area, fy: p.FromYear, ty: p.ToYear, geo: feat.geometry });
+    // Merge certain polities under a canonical name
+    const MERGE_MAP = {
+      "Republics of the Soviet Union": "Union of Soviet Socialist Republics",
+      "Northern Yuan": "Yuan Dynasty",
+    };
+    const mergedName = MERGE_MAP[name] || name;
+
+    // Skip colonial sub-entities that duplicate parent empires
+    const SKIP_MERGE = /^(british africa|british east africa|british south africa|british west africa|french africa|french west africa|french equatorial africa|french east africa|italian africa|italian east africa|italian libya|italian somaliland|italian eritrea|german africa|german east africa|german south west africa|portuguese africa|portuguese east africa|portuguese west africa|belgian congo|spanish africa|spanish west africa|british india|british burma|british malaya|british north borneo|dutch east indies|french indochina|french guiana|french polynesia|new netherland|greenland|taiwan under japanese rule|korea under japanese rule)$/i;
+    if (SKIP_MERGE.test(name)) continue;
+
+    const existing = polityMap.get(mergedName);
+    if (!existing) {
+      polityMap.set(mergedName, { name: mergedName, area, fy: p.FromYear, ty: p.ToYear, geo: feat.geometry });
     } else {
+      // Always merge time range; replace geometry only if larger
       existing.fy = Math.min(existing.fy, p.FromYear);
       existing.ty = Math.max(existing.ty, p.ToYear);
+      if (area > existing.area) {
+        existing.area = area;
+        existing.geo = feat.geometry;
+      }
     }
   }
 
