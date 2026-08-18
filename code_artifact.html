@@ -54,6 +54,14 @@
         .chat-bubble-ai { background-color: #2d3748; border-left: 4px solid #d4af37; }
         .chat-bubble-user { background-color: #4a5568; border-right: 4px solid #63b3ed; }
 
+        /* Colored tooltip - match polygon color */
+        .colored-tip { background: transparent !important; border: none !important; box-shadow: none !important; }
+        .colored-tip div { margin: 0; }
+        .leaflet-tooltip-top.colored-tip:before, .leaflet-tooltip-bottom.colored-tip:before,
+        .leaflet-tooltip-left.colored-tip:before, .leaflet-tooltip-right.colored-tip:before {
+            border: none !important;
+        }
+
         /* Modal */
         .modal-bg { background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); }
 
@@ -763,7 +771,7 @@
         // Cliopatria (Seshat) historical territory renderer
         // Uses year-indexed lookup for fast filtering
         // Chinese dynasties excluded — hardcoded data is more detailed
-        const CLIOPATRIA_SKIP_CN = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu|western xia|great jin|kara khitai|uyghur|buyeo|美利堅合眾國|美利堅聯盟國/i;
+        const CLIOPATRIA_SKIP_CN = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu|western xia|great jin|kara khitai|uyghur|buyeo|美利堅合眾國|美利堅聯盟國|菲律賓|緬甸|暹羅|泰國|越南|高棉|柬埔寨|馬來|呂宋/i;
         function drawCliopatria(year, layer) {
             if (typeof CLIOPATRIA_INDEX === 'undefined' || typeof CLIOPATRIA_FEATURES === 'undefined') return;
             const yr = Math.round(year);
@@ -780,12 +788,14 @@
             for (let i = 0; i < featureIndices.length; i++) {
                 const f = feats[featureIndices[i]];
                 if (CLIOPATRIA_SKIP_CN.test(f.n)) continue;
-                const opts = { color: f.c || '#6b7280', weight: 1.5, fillOpacity: 0.25 };
+                const col = f.c || '#6b7280';
+                const opts = { color: col, weight: 1.5, fillOpacity: 0.25 };
+                const tipHtml = '<div style="background:' + col + ';color:#fff;padding:3px 8px;border-radius:4px;font-weight:bold;font-size:12px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.4)">' + f.n + ' (' + f.fy + '–' + f.ty + ')</div>';
                 if (f.g) {
-                    L.polygon(f.g, opts).addTo(layer).bindTooltip('<b>' + f.n + '</b> (' + f.fy + '–' + f.ty + ')', {sticky: true});
+                    L.polygon(f.g, opts).addTo(layer).bindTooltip(tipHtml, {sticky: true, className: 'colored-tip'});
                 } else if (f.gm) {
                     f.gm.forEach(poly => {
-                        L.polygon(poly, opts).addTo(layer).bindTooltip('<b>' + f.n + '</b> (' + f.fy + '–' + f.ty + ')', {sticky: true});
+                        L.polygon(poly, opts).addTo(layer).bindTooltip(tipHtml, {sticky: true, className: 'colored-tip'});
                     });
                 }
             }
@@ -1183,8 +1193,13 @@
 
             // Non-Chinese polities now handled by Cliopatria (drawn below)
 
+            // Helper: colored tooltip matching polygon color
+            function tip(text, color) {
+                return '<div style="background:' + color + ';color:#fff;padding:3px 8px;border-radius:4px;font-weight:bold;font-size:12px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.4)">' + text + '</div>';
+            }
+
             if (year >= 1271 && year < 1368) {
-                L.polygon(yuanDynastyCoords, { color: '#eab308', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>大元 (元朝)</b>", {sticky: true});
+                L.polygon(yuanDynastyCoords, { color: '#eab308', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip(tip('大元 (元朝)', '#eab308'), {sticky: true, className: 'colored-tip'});
             } else if (year >= 1368 && year < 1644) {
                 if (year >= 1402 && year <= 1435) {
                     L.polygon(mingYongleCoords, { color: '#d97706', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>大明 (永樂盛世：含交阯與奴兒干都司)</b>", {sticky: true});
@@ -1316,6 +1331,47 @@
                 L.polygon(alaska, { color: '#3b82f6', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>阿拉斯加州</b>", {sticky: true});
                 const hawaii = [[22.0,-160.0],[22.0,-155.0],[20.0,-155.5],[19.5,-156.0],[20.0,-156.5],[21.0,-157.5],[22.0,-160.0]];
                 L.polygon(hawaii, { color: '#3b82f6', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>夏威夷州</b>", {sticky: true});
+            }
+
+            // 東南亞歷史領土變遷 (based on authoritative sources: Met Museum, Wikimedia)
+            // 菲律賓 Philippines
+            const phMain = [[18.5,120.5],[18.0,121.0],[17.5,121.5],[17.0,122.0],[16.0,122.5],[15.0,122.0],[14.0,121.5],[13.0,121.0],[12.0,122.0],[11.0,122.5],[10.5,123.0],[10.0,124.0],[9.5,124.5],[9.0,125.0],[8.5,125.5],[8.0,126.0],[7.5,126.5],[7.0,126.0],[6.5,125.5],[6.0,125.0],[7.0,124.0],[8.0,123.5],[9.0,123.0],[10.0,122.5],[11.0,122.0],[12.0,121.5],[13.0,121.0],[14.0,120.5],[15.0,120.0],[16.0,119.5],[17.0,120.0],[18.0,120.5]];
+            if (year >= 1565 && year < 1898) {
+                L.polygon(phMain, { color: '#eab308', weight: 1.5, fillOpacity: 0.3, dashArray: '5,5' }).addTo(empireLayer).bindTooltip(tip('菲律賓 (西班牙殖民地)', '#eab308'), {sticky: true, className: 'colored-tip'});
+            } else if (year >= 1898 && year < 1942) {
+                L.polygon(phMain, { color: '#3b82f6', weight: 1.5, fillOpacity: 0.3, dashArray: '5,5' }).addTo(empireLayer).bindTooltip(tip('菲律賓 (美國殖民地)', '#3b82f6'), {sticky: true, className: 'colored-tip'});
+            } else if (year >= 1942 && year < 1945) {
+                L.polygon(phMain, { color: '#ef4444', weight: 1.5, fillOpacity: 0.3, dashArray: '5,5' }).addTo(empireLayer).bindTooltip(tip('菲律賓 (日本佔領)', '#ef4444'), {sticky: true, className: 'colored-tip'});
+            } else if (year >= 1946 && year < 1972) {
+                L.polygon(phMain, { color: '#22c55e', weight: 1.5, fillOpacity: 0.3 }).addTo(empireLayer).bindTooltip(tip('菲律賓共和國', '#22c55e'), {sticky: true, className: 'colored-tip'});
+            }
+
+            // 緬甸 Myanmar/Burma
+            const burmaMain = [[28.0,98.0],[27.0,97.5],[26.0,97.0],[25.0,96.5],[24.0,96.0],[23.0,95.5],[22.0,95.0],[21.0,94.5],[20.0,94.0],[19.0,93.5],[18.0,93.0],[17.0,93.5],[16.0,94.0],[15.0,94.5],[14.0,95.0],[13.0,95.5],[12.0,96.0],[11.0,96.5],[10.0,97.0],[16.0,98.0],[18.0,97.5],[20.0,97.0],[22.0,96.5],[24.0,97.0],[26.0,97.5],[28.0,98.0]];
+            if (year >= 1752 && year < 1885) {
+                L.polygon(burmaMain, { color: '#06b6d4', weight: 1.5, fillOpacity: 0.3 }).addTo(empireLayer).bindTooltip(tip('貢榜王朝 (緬甸)', '#06b6d4'), {sticky: true, className: 'colored-tip'});
+            } else if (year >= 1885 && year < 1948) {
+                L.polygon(burmaMain, { color: '#ec4899', weight: 1.5, fillOpacity: 0.3, dashArray: '5,5' }).addTo(empireLayer).bindTooltip(tip('英屬緬甸', '#ec4899'), {sticky: true, className: 'colored-tip'});
+            }
+
+            // 泰國 Siam/Thailand
+            const siamMain = [[20.5,99.0],[20.0,100.0],[19.5,100.5],[19.0,101.0],[18.0,101.5],[17.0,102.0],[16.0,102.5],[15.0,103.0],[14.0,101.5],[13.0,100.5],[12.0,99.5],[11.0,99.0],[10.0,98.5],[9.0,98.5],[8.0,99.0],[7.0,100.0],[6.5,100.5],[7.0,101.0],[8.0,101.5],[9.0,102.0],[10.0,102.5],[11.0,103.0],[12.0,103.5],[13.0,103.0],[14.0,102.5],[15.0,103.0],[16.0,103.5],[17.0,104.0],[18.0,104.5],[19.0,104.0],[20.0,103.0],[20.5,101.0],[20.5,99.0]];
+            if (year >= 1351 && year < 1767) {
+                L.polygon(siamMain, { color: '#22c55e', weight: 1.5, fillOpacity: 0.3 }).addTo(empireLayer).bindTooltip(tip('阿瑜陀耶王國 (暹羅)', '#22c55e'), {sticky: true, className: 'colored-tip'});
+            } else if (year >= 1767 && year < 1782) {
+                L.polygon(siamMain, { color: '#22c55e', weight: 1.5, fillOpacity: 0.3 }).addTo(empireLayer).bindTooltip(tip('吞武里王國 (暹羅)', '#22c55e'), {sticky: true, className: 'colored-tip'});
+            } else if (year >= 1782 && year < 1932) {
+                L.polygon(siamMain, { color: '#22c55e', weight: 1.5, fillOpacity: 0.3 }).addTo(empireLayer).bindTooltip(tip('暹羅王國 (曼谷時期)', '#22c55e'), {sticky: true, className: 'colored-tip'});
+            } else if (year >= 1932) {
+                L.polygon(siamMain, { color: '#22c55e', weight: 1.5, fillOpacity: 0.3 }).addTo(empireLayer).bindTooltip(tip('泰國王國', '#22c55e'), {sticky: true, className: 'colored-tip'});
+            }
+
+            // 越南 Vietnam
+            const vietnamMain = [[23.0,106.0],[22.5,106.5],[22.0,107.0],[21.5,107.5],[21.0,108.0],[20.5,107.0],[20.0,106.0],[19.5,105.5],[19.0,105.0],[18.5,105.5],[18.0,106.0],[17.5,106.5],[17.0,107.0],[16.5,107.5],[16.0,108.0],[15.5,108.5],[15.0,109.0],[14.5,109.5],[14.0,109.0],[13.5,108.5],[13.0,108.0],[12.5,107.5],[12.0,107.0],[11.5,106.5],[11.0,106.0],[10.5,105.5],[10.0,105.0],[9.5,104.5],[9.0,105.0],[8.5,105.5],[8.0,106.0],[8.5,106.5],[9.0,107.0],[9.5,107.5],[10.0,108.0],[10.5,108.5],[11.0,109.0],[11.5,109.5],[12.0,110.0],[13.0,110.5],[14.0,110.0],[15.0,109.5],[16.0,109.0],[17.0,108.5],[18.0,108.0],[19.0,107.5],[20.0,107.0],[21.0,107.5],[22.0,108.0],[23.0,108.5],[23.5,107.5],[23.0,106.0]];
+            if (year >= 1802 && year < 1887) {
+                L.polygon(vietnamMain, { color: '#f97316', weight: 1.5, fillOpacity: 0.3 }).addTo(empireLayer).bindTooltip(tip('阮朝 (越南)', '#f97316'), {sticky: true, className: 'colored-tip'});
+            } else if (year >= 1887 && year < 1954) {
+                L.polygon(vietnamMain, { color: '#3b82f6', weight: 1.5, fillOpacity: 0.3, dashArray: '5,5' }).addTo(empireLayer).bindTooltip(tip('法屬印度支那 (越南)', '#3b82f6'), {sticky: true, className: 'colored-tip'});
             }
 
             // Non-Chinese empires (Spanish, British, Axis, USSR) now handled by Cliopatria
