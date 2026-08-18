@@ -1181,37 +1181,10 @@
             if (empireLayer) { map.removeLayer(empireLayer); empireLayer = null; }
             empireLayer = L.layerGroup().addTo(map);
 
-            if (year >= -509 && year < -264) {
-                L.polygon(romanItaly, { color: '#9333ea', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>羅馬共和國 (早期)</b>", {sticky: true});
-            } else if (year >= -264 && year < -146) {
-                L.polygon(romanPunic, { color: '#9333ea', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>羅馬共和國 (布匿戰爭)</b>", {sticky: true});
-            } else if (year >= -146 && year < -27) {
-                L.polygon(romanLateRep, { color: '#9333ea', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>羅馬共和國 (晚期)</b>", {sticky: true});
-            } else if (year >= -27 && year < 117) {
-                L.polygon(romanEarlyEmp, { color: '#dc2626', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>羅馬帝國 (早期)</b>", {sticky: true});
-            } else if (year >= 117 && year < 395) {
-                L.polygon(romanPeakEmp, { color: '#dc2626', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>大羅馬帝國 (極盛期)</b>", {sticky: true});
-            } else if (year >= 395 && year < 476) {
-                L.polygon(westernRomanCoords, { color: '#2563eb', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>西羅馬帝國</b>", {sticky: true});
-                L.polygon(easternRomanCoords, { color: '#d97706', weight: 2, fillOpacity: 0.4 }).addTo(empireLayer).bindTooltip("<b>東羅馬帝國</b>", {sticky: true});
-            } else if (year >= 476 && year < 534) {
-                L.polygon(easternRomanCoords, { color: '#d97706', weight: 2, fillOpacity: 0.4 }).addTo(empireLayer).bindTooltip("<b>東羅馬帝國</b>", {sticky: true});
-            } else if (year >= 534 && year < 650) {
-                L.polygon(justinianEmpireCoords, { color: '#d97706', weight: 2, fillOpacity: 0.4 }).addTo(empireLayer).bindTooltip("<b>東羅馬帝國 (查士丁尼時期)</b>", {sticky: true});
-            } else if (year >= 650 && year < 1071) {
-                L.polygon(byzantineShrunkCoords, { color: '#d97706', weight: 2, fillOpacity: 0.4 }).addTo(empireLayer).bindTooltip("<b>拜占庭帝國 (中世紀)</b>", {sticky: true});
-            } else if (year >= 1071 && year <= 1453) {
-                L.polygon(byzantineLateCoords, { color: '#d97706', weight: 2, fillOpacity: 0.4 }).addTo(empireLayer).bindTooltip("<b>拜占庭帝國 (晚期)</b>", {sticky: true});
-            }
+            // Non-Chinese polities now handled by Cliopatria (drawn below)
 
-            if (year >= 661 && year <= 1258) {
-                L.polygon(arabEmpireCoords, { color: '#16a34a', weight: 2, fillOpacity: 0.3 }).addTo(empireLayer).bindTooltip("<b>阿拉伯帝國</b>", {sticky: true});
-            }
-            if (year >= 1206 && year < 1271) {
-                L.polygon(mongolEmpireCoords, { color: '#1d4ed8', weight: 3, fillOpacity: 0.25, dashArray: '10, 10' }).addTo(empireLayer).bindTooltip("<b>大蒙古國</b>", {sticky: true});
-            } else if (year >= 1271 && year < 1368) {
+            if (year >= 1271 && year < 1368) {
                 L.polygon(yuanDynastyCoords, { color: '#eab308', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>大元 (元朝)</b>", {sticky: true});
-                L.polygon(mongolEmpireCoords, { color: '#1d4ed8', weight: 3, fillOpacity: 0.1, dashArray: '10, 10' }).addTo(empireLayer).bindTooltip("<b>四大汗國與泛蒙古勢力範圍</b>", {sticky: true});
             } else if (year >= 1368 && year < 1644) {
                 if (year >= 1402 && year <= 1435) {
                     L.polygon(mingYongleCoords, { color: '#d97706', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>大明 (永樂盛世：含交阯與奴兒干都司)</b>", {sticky: true});
@@ -1236,13 +1209,6 @@
                 }
             } else if (year >= 1949) {
                 L.polygon(prcCoords, { color: '#ef4444', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>中華人民共和國</b>", {sticky: true});
-            }
-
-            if (year >= -1550 && year <= -1070) {
-                L.polygon(egyptNewKingdomCoords, { color: '#eab308', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>古埃及新王國時期</b>", {sticky: true});
-            }
-            if (year >= -334 && year <= -300) {
-                L.polygon(alexanderEmpireCoords, { color: '#0ea5e9', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>亞歷山大帝國</b>", {sticky: true});
             }
 
             // 中國歷代疆域變遷
@@ -1308,18 +1274,7 @@
                 }
             }
 
-            if (year >= 1521 && year <= 1825) {
-                L.polygon(spanishEmpireCoords, { color: '#eab308', weight: 2, fillOpacity: 0.3 }).addTo(empireLayer).bindTooltip("<b>西班牙帝國 (海上霸權)</b>", {sticky: true});
-            }
-            if (year >= 1858 && year <= 1947) {
-                L.polygon(britishEmpireCoords, { color: '#ec4899', weight: 2, fillOpacity: 0.3 }).addTo(empireLayer).bindTooltip("<b>大英帝國 (日不落帝國)</b>", {sticky: true});
-            }
-            if (year >= 1939 && year <= 1945) {
-                L.polygon(axisCoords, { color: '#000000', weight: 2, fillOpacity: 0.5, dashArray: '5,5' }).addTo(empireLayer).bindTooltip("<b>軸心國勢力範圍 (二戰)</b>", {sticky: true});
-            }
-            if (year >= 1922 && year <= 1991) {
-                L.polygon(ussrCoords, { color: '#dc2626', weight: 2, fillOpacity: 0.25 }).addTo(empireLayer).bindTooltip("<b>蘇維埃社會主義共和國聯盟 (蘇聯)</b>", {sticky: true});
-            }
+            // Non-Chinese empires (Spanish, British, Axis, USSR) now handled by Cliopatria
 
             // Cliopatria (Seshat) — render AFTER hardcoded to override old data with year-specific borders
             if (typeof CLIOPATRIA_FEATURES !== 'undefined' && typeof CLIOPATRIA_INDEX !== 'undefined') {
