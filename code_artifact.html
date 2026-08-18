@@ -67,8 +67,10 @@
             background: rgba(212,175,55,0.18) !important;
         }
         /* 目前年份「播放頭」— 讓時間軸與地圖狀態時時對齊 */
-        #timeline-playhead { transition: left 0.25s ease-out; }
-        #conv-toggle-icon { transition: transform 0.2s; }
+        #timeline-playhead { transition: left 0.25s ease-out; pointer-events: auto; cursor: ew-resize; }
+        #timeline-playhead:hover, #timeline-playhead.dragging { transition: none; }
+        #timeline-scroll-container { cursor: grab; user-select: none; }
+        #timeline-scroll-container.dragging { cursor: grabbing; }
         .trade-tooltip { background: #1e1e1e !important; border: 1px solid #d4af37 !important; color: #fff !important; padding: 4px 8px !important; border-radius: 4px !important; font-size: 12px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.6) !important; }
     </style>
 </head>
@@ -204,8 +206,13 @@
             <div class="flex h-full">
                 <!-- AI Personas Sidebar -->
                 <div class="w-64 border-r border-gray-800 bg-panel p-4 flex flex-col gap-3 shrink-0 hidden md:flex">
-                    <div class="flex justify-between items-center border-b border-gray-700 pb-2 cursor-pointer select-none" onclick="togglePersonas()">
-                        <h2 class="font-bold text-lg text-primary"><span id="persona-toggle-icon" class="text-gray-500 hover:text-gray-200 text-sm mr-1 transition">▼</span>選擇探究模式</h2>
+                    <div class="flex justify-between items-center border-b border-gray-700 pb-2 select-none">
+                        <div class="flex items-center gap-2">
+                            <button onclick="togglePersonas()" class="text-gray-400 hover:text-white transition px-1">
+                                <i id="persona-toggle-icon" class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <h2 class="font-bold text-lg text-primary">選擇探究模式</h2>
+                        </div>
                         <button onclick="event.stopPropagation(); showApiKeyInput()" class="text-gray-400 hover:text-white text-sm" title="設定 API 金鑰">⚙️</button>
                     </div>
 
@@ -230,7 +237,9 @@
                 <div class="border-t border-gray-700 pt-3 mt-2">
                     <div class="flex justify-between items-center mb-1">
                         <div class="flex items-center gap-1 cursor-pointer" onclick="toggleConvList()">
-                            <span id="conv-toggle-icon" class="text-gray-500 hover:text-gray-200 text-[10px] w-4 text-center transition">▶</span>
+                            <button class="text-gray-400 hover:text-white transition px-1">
+                                <i id="conv-toggle-icon" class="fa-solid fa-chevron-right"></i>
+                            </button>
                             <h3 class="text-xs font-bold text-gray-400 tracking-wide select-none">📋 對話紀錄</h3>
                         </div>
                         <button onclick="event.stopPropagation(); startNewConversation();" class="text-[11px] text-primary hover:text-yellow-400 transition">+ 新對話</button>
@@ -413,6 +422,8 @@
         <span id="toast-msg">Message</span>
     </div>
 
+    <script src="cliopatria_features.js"></script>
+    <script src="cliopatria_index.js"></script>
     <script>
         // 註：在 Gemini Canvas / Google AI Studio 環境會自動注入金鑰。獨立開啟時請填入自己的 Gemini API Key。
         // 也可在 AI 探究引擎頁面點擊 ⚙️ 按鈕輸入金鑰（會儲存在瀏覽器中）
@@ -749,6 +760,37 @@
             }
         }
 
+        // Cliopatria (Seshat) historical territory renderer
+        // Uses year-indexed lookup for fast filtering
+        // Chinese dynasties excluded — hardcoded data is more detailed
+        const CLIOPATRIA_SKIP_CN = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu/i;
+        function drawCliopatria(year, layer) {
+            if (typeof CLIOPATRIA_INDEX === 'undefined' || typeof CLIOPATRIA_FEATURES === 'undefined') return;
+            const yr = Math.round(year);
+            const idx = CLIOPATRIA_INDEX;
+            let lo = 0, hi = idx.length - 1, found = -1;
+            while (lo <= hi) {
+                const mid = (lo + hi) >> 1;
+                if (idx[mid][0] === yr) { found = mid; break; }
+                if (idx[mid][0] < yr) lo = mid + 1; else hi = mid - 1;
+            }
+            if (found === -1) return;
+            const featureIndices = idx[found][1];
+            const feats = CLIOPATRIA_FEATURES;
+            for (let i = 0; i < featureIndices.length; i++) {
+                const f = feats[featureIndices[i]];
+                if (CLIOPATRIA_SKIP_CN.test(f.n)) continue;
+                const opts = { color: f.c || '#6b7280', weight: 1.5, fillOpacity: 0.25 };
+                if (f.g) {
+                    L.polygon(f.g, opts).addTo(layer).bindTooltip('<b>' + f.n + '</b> (' + f.fy + '–' + f.ty + ')', {sticky: true});
+                } else if (f.gm) {
+                    f.gm.forEach(poly => {
+                        L.polygon(poly, opts).addTo(layer).bindTooltip('<b>' + f.n + '</b> (' + f.fy + '–' + f.ty + ')', {sticky: true});
+                    });
+                }
+            }
+        }
+
         // ✨ 新增安全保護：防止 NaN 導致的崩潰
         function safeFlyTo(latlng, zoom) {
             if (!map || !map.getSize() || map.getSize().x === 0 || map.getSize().y === 0) return;
@@ -897,6 +939,67 @@
             slider.addEventListener('change', () => flyToYearContext(currentYear));
             yearInput.addEventListener('change', (e) => goToYear(parseInt(e.target.value), null, { fly: true }));
             yearInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { goToYear(parseInt(e.target.value), null, { fly: true }); e.target.blur(); } });
+            attachPlayheadDrag();
+            attachContainerDrag();
+        }
+
+        function attachPlayheadDrag() {
+            const ph = document.getElementById('timeline-playhead');
+            const sc = document.getElementById('timeline-scroll-container');
+            if (!ph || !sc) return;
+            let dragging = false;
+            ph.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                dragging = true;
+                ph.classList.add('dragging');
+                document.body.style.cursor = 'ew-resize';
+                document.body.style.userSelect = 'none';
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                const rect = sc.getBoundingClientRect();
+                const x = e.clientX - rect.left + sc.scrollLeft - TRACK_LABEL_WIDTH;
+                const pct = Math.max(0, Math.min(1, x / TIMELINE_WIDTH));
+                goToYear(percentToYear(pct * 100), null, { fly: false });
+            });
+            document.addEventListener('mouseup', function() {
+                if (!dragging) return;
+                dragging = false;
+                ph.classList.remove('dragging');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                flyToYearContext(currentYear);
+            });
+        }
+
+        function attachContainerDrag() {
+            const sc = document.getElementById('timeline-scroll-container');
+            if (!sc) return;
+            let dragging = false;
+            let startX, scrollLeft;
+            sc.addEventListener('mousedown', function(e) {
+                if (e.target.closest('#timeline-playhead')) return;
+                if (e.target.closest('.tl-dot') || e.target.closest('.tl-label')) return;
+                dragging = true;
+                startX = e.pageX - sc.offsetLeft;
+                scrollLeft = sc.scrollLeft;
+                sc.classList.add('dragging');
+            });
+            sc.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                const x = e.pageX - sc.offsetLeft;
+                const walk = (x - startX) * 1.5;
+                sc.scrollLeft = scrollLeft - walk;
+            });
+            sc.addEventListener('mouseup', function() {
+                dragging = false;
+                sc.classList.remove('dragging');
+            });
+            sc.addEventListener('mouseleave', function() {
+                dragging = false;
+                sc.classList.remove('dragging');
+            });
         }
 
         function toggleTrack(trackName) {
@@ -982,7 +1085,8 @@
 
             // ✨ 修正：確保播放頭的年份文字不會被截斷
             html += `
-                <div id="timeline-playhead" style="position:absolute; top:0; bottom:0; width:2px; background:#d4af37; z-index:60; pointer-events:none; box-shadow:0 0 10px rgba(212,175,55,0.9); left:${TRACK_LABEL_WIDTH}px;">
+                <div id="timeline-playhead" style="position:absolute; top:0; bottom:0; width:2px; margin-left:-6px; padding:0 6px; background:transparent; z-index:60; pointer-events:auto; cursor:ew-resize; left:${TRACK_LABEL_WIDTH}px;">
+                    <div style="position:absolute; top:0; bottom:0; left:6px; width:2px; background:#d4af37; box-shadow:0 0 10px rgba(212,175,55,0.9); pointer-events:none;"></div>
                     <div id="timeline-playhead-flag" style="position:sticky; top:4px; left:50%; transform:translateX(-50%); width:max-content; white-space:nowrap; display:inline-block;" class="bg-primary text-dark text-[11px] font-bold px-2 py-1 rounded shadow-lg">1945</div>
                 </div>
             `;
@@ -1076,6 +1180,11 @@
 
             if (empireLayer) { map.removeLayer(empireLayer); empireLayer = null; }
             empireLayer = L.layerGroup().addTo(map);
+
+            // Cliopatria (Seshat) — render global polities from dataset
+            if (typeof CLIOPATRIA_FEATURES !== 'undefined' && typeof CLIOPATRIA_INDEX !== 'undefined') {
+                drawCliopatria(year, empireLayer);
+            }
 
             if (year >= -509 && year < -264) {
                 L.polygon(romanItaly, { color: '#9333ea', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>羅馬共和國 (早期)</b>", {sticky: true});
@@ -1456,7 +1565,10 @@
             var list = document.getElementById('conversation-list');
             var icon = document.getElementById('conv-toggle-icon');
             if (list) list.classList.toggle('hidden', !convListExpanded);
-            if (icon) icon.textContent = convListExpanded ? '▼' : '▶';
+            if (icon) {
+                icon.classList.remove('fa-chevron-right', 'fa-chevron-down');
+                icon.classList.add(convListExpanded ? 'fa-chevron-down' : 'fa-chevron-right');
+            }
         }
 
         var personaExpanded = true;
@@ -1465,7 +1577,10 @@
             var buttons = document.getElementById('persona-buttons');
             var icon = document.getElementById('persona-toggle-icon');
             if (buttons) buttons.classList.toggle('hidden', !personaExpanded);
-            if (icon) icon.textContent = personaExpanded ? '▼' : '▶';
+            if (icon) {
+                icon.classList.remove('fa-chevron-right', 'fa-chevron-down');
+                icon.classList.add(personaExpanded ? 'fa-chevron-down' : 'fa-chevron-right');
+            }
         }
 
         function updateConversationList(autoExpand) {
