@@ -771,7 +771,7 @@
         // Cliopatria (Seshat) historical territory renderer
         // Uses year-indexed lookup for fast filtering
         // Chinese dynasties excluded — hardcoded data is more detailed
-        const CLIOPATRIA_SKIP_CN = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu|western xia|great jin|kara khitai|uyghur|buyeo|美利堅合眾國|美利堅聯盟國|菲律賓|緬甸|暹羅|泰國|越南|高棉|柬埔寨|馬來|呂宋/i;
+        const CLIOPATRIA_SKIP_CN = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu|western xia|great jin|kara khitai|uyghur|buyeo|美利堅合眾國|美利堅聯盟國|菲律賓|緬甸|暹羅|泰國|越南|高棉|柬埔寨|馬來|呂宋|西班牙王國/i;
         function drawCliopatria(year, layer) {
             if (typeof CLIOPATRIA_INDEX === 'undefined' || typeof CLIOPATRIA_FEATURES === 'undefined') return;
             const yr = Math.round(year);
@@ -950,35 +950,41 @@
             yearInput.addEventListener('change', (e) => goToYear(parseInt(e.target.value), null, { fly: true }));
             yearInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { goToYear(parseInt(e.target.value), null, { fly: true }); e.target.blur(); } });
             attachPlayheadDrag();
+            initPlayheadDragListeners();
             attachContainerDrag();
         }
 
-        function attachPlayheadDrag() {
-            const ph = document.getElementById('timeline-playhead');
-            const sc = document.getElementById('timeline-scroll-container');
-            if (!ph || !sc) return;
-            let dragging = false;
-            ph.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                dragging = true;
-                ph.classList.add('dragging');
-                document.body.style.cursor = 'ew-resize';
-                document.body.style.userSelect = 'none';
-            });
+        let _phDragging = false;
+        let _phEl = null;
+        let _phSc = null;
+        function initPlayheadDragListeners() {
             document.addEventListener('mousemove', function(e) {
-                if (!dragging) return;
-                const rect = sc.getBoundingClientRect();
-                const x = e.clientX - rect.left + sc.scrollLeft - TRACK_LABEL_WIDTH;
+                if (!_phDragging || !_phEl || !_phSc) return;
+                const rect = _phSc.getBoundingClientRect();
+                const x = e.clientX - rect.left + _phSc.scrollLeft - TRACK_LABEL_WIDTH;
                 const pct = Math.max(0, Math.min(1, x / TIMELINE_WIDTH));
                 goToYear(percentToYear(pct * 100), null, { fly: false });
             });
             document.addEventListener('mouseup', function() {
-                if (!dragging) return;
-                dragging = false;
-                ph.classList.remove('dragging');
+                if (!_phDragging) return;
+                _phDragging = false;
+                if (_phEl) _phEl.classList.remove('dragging');
                 document.body.style.cursor = '';
                 document.body.style.userSelect = '';
                 flyToYearContext(currentYear);
+            });
+        }
+        function attachPlayheadDrag() {
+            const ph = document.getElementById('timeline-playhead');
+            const sc = document.getElementById('timeline-scroll-container');
+            if (!ph || !sc) return;
+            _phEl = ph; _phSc = sc;
+            ph.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                _phDragging = true;
+                ph.classList.add('dragging');
+                document.body.style.cursor = 'ew-resize';
+                document.body.style.userSelect = 'none';
             });
         }
 
@@ -1102,6 +1108,7 @@
             `;
 
             container.innerHTML = html;
+            attachPlayheadDrag();
         }
 
         function selectEvent(eventId) {
