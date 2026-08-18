@@ -507,7 +507,7 @@
                 if (error) throw error;
                 if (data && data.length > 0) {
                     historyDataFromDB = data.map(ev => ({
-                        id: ev.id,
+                        id: String(ev.id),
                         year: ev.year,
                         track: ev.track === 'CN' ? '中國' : ev.track === 'TW' ? '臺灣' : ev.track === 'JP' ? '日本' : '世界',
                         title: ev.title,
@@ -1205,12 +1205,13 @@
         }
 
         function selectEvent(eventId) {
-            const event = historyData.find(e => e.id === eventId);
+            const id = String(eventId);
+            const event = historyData.find(e => String(e.id) === id);
             if (!event) return;
             selectedEvent = event;
-            selectedEventId = eventId;
+            selectedEventId = id;
             goToYear(event.year, event, { fly: true });
-            highlightSelectedTimelineDot(eventId);
+            highlightSelectedTimelineDot(id);
             if (event.specialAction) handleSpecialAction(event);
             openEventPanel(event);
         }
@@ -1525,7 +1526,7 @@
 
             activeEvents.forEach(event => {
                 const displayYearText = event.year < 0 ? `前 ${Math.abs(event.year)}` : `西元 ${event.year}`;
-                const isSel = event.id === selectedEventId;
+                const isSel = String(event.id) === String(selectedEventId);
                 const icon = L.divIcon({
                     className: 'custom-div-icon',
                     html: isSel
