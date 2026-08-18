@@ -11,6 +11,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Google Identity Services (with auto-init) -->
     <script>
         window.gisReady = new Promise(function(resolve) {
@@ -457,8 +459,77 @@
         // 狀態：目前啟用的時間軸軌道
         let activeTracks = ["世界", "中國", "日本", "臺灣"];
 
+        // --- Supabase 初始化 ---
+        const SUPABASE_URL = 'https://ushwjujxqvonyjumzgkp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaHdqdWp4cXZvbnlqdW16Z2twIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyMTQwNTMsImV4cCI6MjEwMDc5MDA1M30._pOtF2T9FQIT0z0nFNUZq6kyGH9-2hPvORZgmujBOWc';
+        let supabaseClient = null;
+        let periodsData = [];
+        let historyDataFromDB = null;
+
+        function initSupabase() {
+            try {
+                if (typeof supabase !== 'undefined' && supabase.createClient) {
+                    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('[Supabase] Client initialized');
+                }
+            } catch(e) { console.warn('[Supabase] Init failed:', e); }
+        }
+
+        async function loadPeriodsFromDB() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('periods')
+                    .select('*')
+                    .not('polygon_coords', 'is', null)
+                    .order('start_year', { nullsFirst: true });
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    periodsData = data;
+                    console.log('[Supabase] Loaded ' + data.length + ' periods with polygons');
+                }
+            } catch(e) { console.warn('[Supabase] periods load failed:', e); }
+        }
+
+        async function loadEventsFromDB() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('historical_events')
+                    .select('*')
+                    .order('year', { ascending: true });
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    historyDataFromDB = data.map(ev => ({
+                        id: ev.id,
+                        year: ev.year,
+                        track: ev.track === 'CN' ? '中國' : ev.track === 'TW' ? '臺灣' : ev.track === 'JP' ? '日本' : '世界',
+                        title: ev.title,
+                        lat: ev.latitude,
+                        lng: ev.longitude,
+                        desc: ev.description,
+                        effects: ev.ripple_effect || [],
+                        specialAction: ev.special_action || null
+                    }));
+                    console.log('[Supabase] Loaded ' + historyDataFromDB.length + ' events');
+                }
+            } catch(e) { console.warn('[Supabase] events load failed:', e); }
+        }
+
+        async function loadDataFromSupabase() {
+            initSupabase();
+            if (!supabaseClient) return;
+            await Promise.all([loadEventsFromDB(), loadPeriodsFromDB()]);
+            if (historyDataFromDB && historyDataFromDB.length > 0) {
+                // Replace hardcoded historyData with DB data
+                historyData.length = 0;
+                historyDataFromDB.forEach(ev => historyData.push(ev));
+                console.log('[Supabase] Replaced historyData with ' + historyData.length + ' DB events');
+            }
+        }
+
         // --- 1. 全球歷史大事記資料庫 ---
-        const historyData = [
+        let historyData = [
             // 史前與上古
             { id: "human_origin", year: -3900, track: "世界", title: "史前文明起源與採集", lat: 9.0, lng: 38.7, desc: "早期人類依賴舊石器打製石器，已知用火、馴化家犬，並逐步發展出農耕。", effects: ["開啟了對自然資源的最初步馴化。"] },
             { id: "uruk_city", year: -3500, track: "世界", title: "烏魯克城市文明與楔形文字", lat: 31.3, lng: 45.6, desc: "兩河流域進入烏魯克時期，創造世界上最早的文字——楔形文字。", effects: ["文字發明使人類能跨越時空積累知識。"] },
@@ -1170,13 +1241,42 @@
             setTimeout(() => { if (warAnimationLayer) { map.removeLayer(warAnimationLayer); warAnimationLayer = null; } }, 6000);
         }
 
+        // DB-driven period polygon renderer
+        function drawDBPeriods(year, layer, regions, tipFn) {
+            if (!periodsData || periodsData.length === 0) return false;
+            let drawn = 0;
+            periodsData.forEach(function(p) {
+                if (!regions.includes(p.region)) return;
+                if (p.start_year == null || p.end_year == null) return;
+                if (year < p.start_year || year > p.end_year) return;
+                if (!p.polygon_coords) return;
+                var style = { color: p.color || '#888', weight: 2, fillOpacity: 0.35 };
+                if (p.dash_array) style.dashArray = p.dash_array;
+                L.polygon(p.polygon_coords, style).addTo(layer)
+                    .bindTooltip(tipFn(p.name_zh, p.color || '#888'), {sticky: true, className: 'colored-tip'});
+                drawn++;
+            });
+            return drawn > 0;
+        }
+
         function updateMapMarkers(year) {
             markers.forEach(m => map.removeLayer(m));
             markers = [];
             year = parseInt(year);
 
             if (taiwanLayer) {
-                if (year >= 1624 && year < 1662) {
+                var twStyle = null;
+                if (periodsData.length > 0) {
+                    periodsData.forEach(function(p) {
+                        if (p.region === 'TW' && p.start_year != null && p.end_year != null && year >= p.start_year && year <= p.end_year) {
+                            twStyle = p;
+                        }
+                    });
+                }
+                if (twStyle) {
+                    taiwanLayer.setStyle({color: twStyle.color, fillColor: twStyle.color});
+                    taiwanLayer.bindTooltip("<b>" + twStyle.name_zh + "</b>");
+                } else if (year >= 1624 && year < 1662) {
                     taiwanLayer.setStyle({color: '#f97316', fillColor: '#f97316'});
                     taiwanLayer.bindTooltip("<b>臺灣 (荷蘭與西班牙統治時期)</b>");
                 } else if (year >= 1662 && year < 1683) {
@@ -1207,6 +1307,9 @@
                 return '<div style="background:' + color + ';color:#fff;padding:3px 8px;border-radius:4px;font-weight:bold;font-size:12px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.4)">' + text + '</div>';
             }
 
+            // 領土多邊形：優先從 DB 渲染 CN/SEA，備用硬編碼
+            var cnDrawn = drawDBPeriods(year, empireLayer, ['CN'], tip);
+            if (!cnDrawn) {
             if (year >= 1271 && year < 1368) {
                 L.polygon(yuanDynastyCoords, { color: '#eab308', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip(tip('大元 (元朝)', '#eab308'), {sticky: true, className: 'colored-tip'});
             } else if (year >= 1368 && year < 1644) {
@@ -1297,6 +1400,7 @@
                     L.polygon(westernXiaCoords, { color: '#8b5cf6', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>西夏 (党項)</b>", {sticky: true});
                 }
             }
+            } // end fallback CN
 
             // 美國歷史領土變遷 (based on 史料/美國歷史簡介.docx)
             if (year >= 1607 && year < 1776) {
@@ -1342,7 +1446,9 @@
                 L.polygon(hawaii, { color: '#3b82f6', weight: 2, fillOpacity: 0.35 }).addTo(empireLayer).bindTooltip("<b>夏威夷州</b>", {sticky: true});
             }
 
-            // 東南亞歷史領土變遷 (based on authoritative sources: Met Museum, Wikimedia)
+            // 東南亞歷史領土：DB 優先，備用硬編碼
+            var seaDrawn = drawDBPeriods(year, empireLayer, ['SEA'], tip);
+            if (!seaDrawn) {
             // 菲律賓 Philippines
             const phMain = [[18.5,120.5],[18.0,121.0],[17.5,121.5],[17.0,122.0],[16.0,122.5],[15.0,122.0],[14.0,121.5],[13.0,121.0],[12.0,122.0],[11.0,122.5],[10.5,123.0],[10.0,124.0],[9.5,124.5],[9.0,125.0],[8.5,125.5],[8.0,126.0],[7.5,126.5],[7.0,126.0],[6.5,125.5],[6.0,125.0],[7.0,124.0],[8.0,123.5],[9.0,123.0],[10.0,122.5],[11.0,122.0],[12.0,121.5],[13.0,121.0],[14.0,120.5],[15.0,120.0],[16.0,119.5],[17.0,120.0],[18.0,120.5]];
             if (year >= 1565 && year < 1898) {
@@ -1382,6 +1488,7 @@
             } else if (year >= 1887 && year < 1954) {
                 L.polygon(vietnamMain, { color: '#3b82f6', weight: 1.5, fillOpacity: 0.3, dashArray: '5,5' }).addTo(empireLayer).bindTooltip(tip('法屬印度支那 (越南)', '#3b82f6'), {sticky: true, className: 'colored-tip'});
             }
+            } // end fallback SEA
 
             // Non-Chinese empires (Spanish, British, Axis, USSR) now handled by Cliopatria
 
@@ -2186,9 +2293,15 @@
         document.getElementById('sort-new').addEventListener('click', function() { sortMode='new'; document.getElementById('sort-new').className='sort-btn px-3 py-1.5 rounded text-xs font-bold bg-primary text-dark'; document.getElementById('sort-hot').className='sort-btn px-3 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white bg-panel border border-gray-800'; renderForum(); });
         document.getElementById('sort-hot').addEventListener('click', function() { sortMode='hot'; document.getElementById('sort-hot').className='sort-btn px-3 py-1.5 rounded text-xs font-bold bg-primary text-dark'; document.getElementById('sort-new').className='sort-btn px-3 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white bg-panel border border-gray-800'; renderForum(); });
 
-        window.onload = function() {
+        window.onload = async function() {
             // 先檢查從 Google OAuth 回傳的 hash token
             checkOAuthHash();
+
+            // 從 Supabase 載入動態資料（非阻塞）
+            loadDataFromSupabase().then(() => {
+                renderTimeline();
+                updateMapMarkers(currentYear);
+            });
 
             renderForum();
             updateTrackFilterUI();
