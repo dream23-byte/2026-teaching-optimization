@@ -777,7 +777,8 @@ const CN_SHORT = /^(qin|song|teng|chen|cao|lu|zheng|cai|zhu|yan|wei|zhao|wu|qi|j
 const CN_REGEX = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu|spring and autumn|warring states|five dynasties|sixteen kingdoms|southern qi|northern qi|western jin|eastern jin|southern song|northern song|jiangnan|hou liang|hou tang|hou jin|hou han|hou zhou|ming xia|liang|wu zhang|western xia|great jin|kara khitai|uyghur|buyeo/i;
 
 function roundCoords(coords) {
-  return coords.map(c => [Math.round(c[0] * 10) / 10, Math.round(c[1] * 10) / 10]);
+  // GeoJSON is [lng, lat] but Leaflet L.polygon() expects [lat, lng] — swap here
+  return coords.map(c => [Math.round(c[1] * 10) / 10, Math.round(c[0] * 10) / 10]);
 }
 
 function simplify(coords, every) {
