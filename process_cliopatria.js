@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 /**
  * Process Cliopatria GeoJSON → browser-optimized data.
- * Two-stage strategy:
- *   1. Area >= 200K km²  → keep (major polities)
- *   2. Duration >= 50yr  → keep if Area >= 20K km² (long-lived entities)
- * Then simplify + round coords to compress.
+ * Strategy: deduplicate by name, keep largest-area snapshot per polity.
+ * This gives a clean "one polygon per empire" result.
  */
 const fs = require('fs');
 const INPUT = 'cliopatria_polities_only.geojson';
@@ -60,6 +58,10 @@ const REGION_KEYWORDS = {
     "alan","gothic","oyirad","oirat","torghut","khoid","choros","khoshut"],
 };
 
+// Short Chinese state names that need to be excluded
+const CN_SHORT = /^(qin|song|teng|chen|cao|lu|zheng|cai|zhu|yan|wei|zhao|wu|qi|jin|han|chu|xu|hu|liao|dai|yue|hu|tang|lü|dong|xi|nan|bei|zhong)$/i;
+const CN_REGEX = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu|spring and autumn|warring states|five dynasties|sixteen kingdoms|southern qi|northern qi|western jin|eastern jin|southern song|northern song|jiangnan|hou liang|hou tang|hou jin|hou han|hou zhou|ming xia|liang|tang|wu zhang|qi|zhaowei/i;
+
 function assignColor(name) {
   const lower = name.toLowerCase();
   for (const [region, keywords] of Object.entries(REGION_KEYWORDS)) {
@@ -88,33 +90,49 @@ function process() {
   const data = JSON.parse(fs.readFileSync(INPUT, 'utf-8'));
   console.log(`Total features: ${data.features.length}`);
 
-  const features = [];
-  let skipped = 0;
+  // Step 1: deduplicate by name, keep largest-area snapshot per polity
+  const polityMap = new Map();
   for (const feat of data.features) {
     const p = feat.properties || {};
-    const g = feat.geometry || {};
     if (p.Type === 'RELATION') continue;
-
+    const name = p.Name || '';
     const area = p.Area || 0;
-    const duration = (p.ToYear || 0) - (p.FromYear || 0);
-    // Keep if large OR long-lived
-    if (area < 200000 && duration < 50) { skipped++; continue; }
 
-    const color = assignColor(p.Name || '');
-    const entry = { n: p.Name, fy: p.FromYear, ty: p.ToYear, c: color };
+    // Skip Chinese dynasties (hardcoded data is more detailed)
+    if (CN_SHORT.test(name) || CN_REGEX.test(name)) continue;
+    // Skip very small polities (peak area < 300K km²)
+    if (area < 300000) continue;
 
-    const simplifyFactor = area < 500000 ? 40 : 25;
+    const existing = polityMap.get(name);
+    if (!existing || area > existing.area) {
+      polityMap.set(name, { name, area, fy: p.FromYear, ty: p.ToYear, geo: feat.geometry });
+    } else {
+      // Expand time range
+      existing.fy = Math.min(existing.fy, p.FromYear);
+      existing.ty = Math.max(existing.ty, p.ToYear);
+    }
+  }
+
+  console.log(`Deduplicated to ${polityMap.size} polities`);
+
+  // Step 2: build feature list from deduplicated polities
+  const features = [];
+  for (const polity of polityMap.values()) {
+    const g = polity.geo || {};
+    const entry = { n: polity.name, fy: polity.fy, ty: polity.ty, c: assignColor(polity.name) };
+
     if (g.type === 'Polygon') {
-      entry.g = (g.coordinates || []).map(r => roundCoords(simplify(r, simplifyFactor)));
+      entry.g = (g.coordinates || []).map(r => roundCoords(simplify(r, 20)));
     } else if (g.type === 'MultiPolygon') {
-      entry.gm = (g.coordinates || []).map(poly => poly.map(r => roundCoords(simplify(r, simplifyFactor))));
+      entry.gm = (g.coordinates || []).map(poly => poly.map(r => roundCoords(simplify(r, 20))));
     } else continue;
 
     features.push(entry);
   }
 
-  console.log(`Features kept: ${features.length} (skipped ${skipped})`);
+  console.log(`Features kept: ${features.length}`);
 
+  // Step 3: build year index
   const MIN_YEAR = -5000, MAX_YEAR = 2050;
   const yearIndex = new Array(MAX_YEAR - MIN_YEAR + 1).fill(null).map(() => []);
   for (let i = 0; i < features.length; i++) {
@@ -126,9 +144,11 @@ function process() {
     }
   }
 
+  // Write features
   fs.writeFileSync('cliopatria_features.js',
     '// Cliopatria (Seshat) — CC BY 4.0\nvar CLIOPATRIA_FEATURES=' + JSON.stringify(features) + ';\n', 'utf-8');
 
+  // Write index (only non-empty years)
   const indexData = [];
   for (let i = 0; i < yearIndex.length; i++) {
     if (yearIndex[i].length > 0) {

@@ -764,7 +764,9 @@
         // Uses year-indexed lookup for fast filtering
         // Chinese dynasties excluded — hardcoded data is more detailed
         const CLIOPATRIA_SKIP_CN = /china|chinese|han dynast|tang dynast|song dynast|yuan dynast|ming dynast|qing dynast|jin dynast|sui dynast|xia dynast|shang dynast|zhou dynast|qin dynast|tibet|nanzhao|dali|tufan|jurchen|khitan|tangut|manchu/i;
+        let cliopatriaBBox = null;
         function drawCliopatria(year, layer) {
+            cliopatriaBBox = null;
             if (typeof CLIOPATRIA_INDEX === 'undefined' || typeof CLIOPATRIA_FEATURES === 'undefined') return;
             const yr = Math.round(year);
             const idx = CLIOPATRIA_INDEX;
@@ -777,17 +779,31 @@
             if (found === -1) return;
             const featureIndices = idx[found][1];
             const feats = CLIOPATRIA_FEATURES;
+            let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
             for (let i = 0; i < featureIndices.length; i++) {
                 const f = feats[featureIndices[i]];
                 if (CLIOPATRIA_SKIP_CN.test(f.n)) continue;
+                const processCoords = (coords) => {
+                    for (const c of coords) {
+                        if (c[1] < minLat) minLat = c[1];
+                        if (c[1] > maxLat) maxLat = c[1];
+                        if (c[0] < minLng) minLng = c[0];
+                        if (c[0] > maxLng) maxLng = c[0];
+                    }
+                };
                 const opts = { color: f.c || '#6b7280', weight: 1.5, fillOpacity: 0.25 };
                 if (f.g) {
                     L.polygon(f.g, opts).addTo(layer).bindTooltip('<b>' + f.n + '</b> (' + f.fy + '–' + f.ty + ')', {sticky: true});
+                    processCoords(f.g);
                 } else if (f.gm) {
                     f.gm.forEach(poly => {
                         L.polygon(poly, opts).addTo(layer).bindTooltip('<b>' + f.n + '</b> (' + f.fy + '–' + f.ty + ')', {sticky: true});
+                        processCoords(poly);
                     });
                 }
+            }
+            if (minLat < maxLat && minLng < maxLng) {
+                cliopatriaBBox = [[minLat, minLng], [maxLat, maxLng]];
             }
         }
 
@@ -907,6 +923,12 @@
         }
 
         function flyToYearContext(year) {
+            // First try: zoom to fit Cliopatria territory bounding box
+            if (cliopatriaBBox) {
+                try { map.fitBounds(cliopatriaBBox, { padding: [40, 40], maxZoom: 5 }); } catch(e) {}
+                return;
+            }
+            // Fallback: zoom to nearest event
             const valid = historyData.filter(ev => ev && Number.isFinite(ev.lat) && Number.isFinite(ev.lng) && activeTracks.includes(ev.track));
             if (!valid.length) return;
             let nearest = valid[0];
