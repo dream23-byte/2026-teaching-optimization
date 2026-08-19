@@ -444,7 +444,7 @@
         // 註：在 Gemini Canvas / Google AI Studio 環境會自動注入金鑰。獨立開啟時請填入自己的 Gemini API Key。
         // 也可在 AI 探究引擎頁面點擊 ⚙️ 按鈕輸入金鑰（會儲存在瀏覽器中）
         var savedKey = localStorage.getItem('hlab_ai_key') || '';
-        var savedProvider = localStorage.getItem('hlab_ai_provider') || 'groq';
+        var savedProvider = localStorage.getItem('hlab_ai_provider') || 'gemini';
         var apiKey = savedKey;
         
         // ✨ 【設定區】GAS 網頁應用（歷史沙龍後端）
@@ -1670,7 +1670,7 @@
 
         async function fetchGeminiWithRetry(prompt, systemInstruction, retries = 5) {
             var delays = [1000, 2000, 4000, 8000, 16000];
-            var provider = localStorage.getItem('hlab_ai_provider') || 'groq';
+            var provider = localStorage.getItem('hlab_ai_provider') || 'gemini';
             for (var i = 0; i < retries; i++) {
                 try {
                     var url, body;
@@ -1714,7 +1714,7 @@
             saveConversationMsg('user', text, currentPersona ? (Object.keys(personas).find(k => personas[k] === currentPersona) || 'socratic') : 'socratic');
 
             if (!apiKey) {
-                appendMessage('AI', '⚠️ 尚未設定 API 金鑰。請點擊左側 ⚙️ 輸入你的 Groq API Key（gsk_...）。');
+                appendMessage('AI', '⚠️ 尚未設定 API 金鑰。請點擊左側 ⚙️ 輸入你的 Gemini API Key（AIza...）。');
                 return;
             }
 
@@ -1739,7 +1739,7 @@
         }
 
         function showApiKeyInput() {
-            var currentProvider = localStorage.getItem('hlab_ai_provider') || 'groq';
+            var currentProvider = localStorage.getItem('hlab_ai_provider') || 'gemini';
             var currentKey = localStorage.getItem('hlab_ai_key') || '';
             var msg = '選擇 AI 服務並輸入 API Key：\n\n1 = Groq (gsk_...)\n2 = Gemini (AIza...)\n3 = OpenAI (sk-...)\n4 = 自訂網址\n\n格式：服務代碼|你的Key（或直接貼上 Key，系統會自動偵測）\n目前：' + currentProvider + '|' + currentKey.slice(0,8) + '...\n\n範例：groq|gsk_xxx 或 gemini|AIza_xxx 或 openai|sk-xxx 或 https://自訂網址|sk-xxx';
             var input = prompt(msg, currentProvider + '|' + currentKey);
