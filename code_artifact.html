@@ -1678,7 +1678,7 @@
                         url = 'https://api.groq.com/openai/v1/chat/completions';
                         body = JSON.stringify({ model: 'openai/gpt-oss-20b', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
                     } else if (provider === 'gemini') {
-                        url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
+                        url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
                         body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] } });
                     } else {
                         // OpenAI-compatible (OpenAI, DeepSeek, etc.)
@@ -1687,7 +1687,8 @@
                         body = JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
                     }
                     var headers = { 'Content-Type': 'application/json' };
-                    if (provider !== 'gemini') headers['Authorization'] = 'Bearer ' + apiKey;
+                    if (provider === 'gemini') headers['x-goog-api-key'] = apiKey;
+                    else headers['Authorization'] = 'Bearer ' + apiKey;
 
                     var response = await fetch(url, { method: 'POST', headers: headers, body: body });
                     if (!response.ok) throw new Error('HTTP ' + response.status);
