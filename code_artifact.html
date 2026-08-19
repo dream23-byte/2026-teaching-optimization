@@ -1659,13 +1659,81 @@
             const msgDiv = document.createElement('div');
             if (sender === 'User') {
                 msgDiv.className = 'flex justify-end fade-in';
-                msgDiv.innerHTML = `<div class="max-w-[80%] chat-bubble-user p-4 rounded-xl rounded-tr-none text-gray-100 shadow-md text-[14px] leading-relaxed">${escapeHtml(text).replace(/\n/g, '<br>')}</div>`;
+                msgDiv.innerHTML = `<div class="max-w-[80%] group relative"><div class="chat-bubble-user p-4 rounded-xl rounded-tr-none text-gray-100 shadow-md text-[14px] leading-relaxed">${escapeHtml(text).replace(/\n/g, '<br>')}</div><button class="edit-msg-btn absolute -top-2 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-md" onclick="startEditMessage(this)" title="編輯訊息">✏️</button></div>`;
             } else {
                 msgDiv.className = 'flex justify-start fade-in';
                 msgDiv.innerHTML = `<div class="max-w-[80%] chat-bubble-ai p-4 rounded-xl rounded-tl-none text-gray-100 shadow-md flex gap-3 text-[14px] leading-relaxed"><i class="fa-solid fa-robot mt-1 text-primary shrink-0 text-lg"></i><div>${escapeHtml(text).replace(/\n/g, '<br>')}</div></div>`;
             }
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function startEditMessage(btn) {
+            var wrapper = btn.closest('.max-w-\\[80\\%\\]');
+            if (!wrapper) return;
+            var bubble = wrapper.querySelector('.chat-bubble-user');
+            if (!bubble) return;
+            var originalText = bubble.innerText;
+            btn.style.display = 'none';
+            bubble.outerHTML = `<div class="edit-area" data-orig="${escapeHtml(originalText).replace(/"/g, '&quot;')}"><textarea class="w-full bg-gray-800 border border-primary rounded-lg p-3 text-gray-100 text-[14px] leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary" rows="3">${escapeHtml(originalText)}</textarea><div class="flex justify-end gap-2 mt-2"><button class="px-3 py-1 text-xs rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600" onclick="cancelEditMessage(this)">取消</button><button class="px-3 py-1 text-xs rounded-lg bg-primary text-dark font-bold hover:opacity-90" onclick="saveEditMessage(this)">儲存並重新生成</button></div></div>`;
+        }
+
+        function cancelEditMessage(btn) {
+            var editArea = btn.closest('.edit-area');
+            if (!editArea) return;
+            var origText = editArea.getAttribute('data-orig') || '';
+            editArea.outerHTML = `<div class="chat-bubble-user p-4 rounded-xl rounded-tr-none text-gray-100 shadow-md text-[14px] leading-relaxed">${origText.replace(/\n/g, '<br>')}</div><button class="edit-msg-btn absolute -top-2 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-md" onclick="startEditMessage(this)" title="編輯訊息">✏️</button>`;
+        }
+
+        async function saveEditMessage(btn) {
+            var editArea = btn.closest('.edit-area');
+            if (!editArea) return;
+            var wrapper = editArea.parentElement;
+            var newText = editArea.querySelector('textarea').value.trim();
+            if (!newText) return;
+            editArea.outerHTML = `<div class="chat-bubble-user p-4 rounded-xl rounded-tr-none text-gray-100 shadow-md text-[14px] leading-relaxed">${escapeHtml(newText).replace(/\n/g, '<br>')}</div><button class="edit-msg-btn absolute -top-2 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-md" onclick="startEditMessage(this)" title="編輯訊息">✏️</button>`;
+            var chatBox = document.getElementById('chat-box');
+            var allDivs = Array.from(chatBox.children);
+            var editedDiv = wrapper.closest('.flex');
+            var editIdx = allDivs.indexOf(editedDiv);
+            var userMsgCount = 0;
+            for (var i = 0; i <= editIdx; i++) {
+                if (allDivs[i].querySelector('.chat-bubble-user')) userMsgCount++;
+            }
+            var userMsgIdx = 0;
+            for (var i = 0; i < aiChatHistory.length; i++) {
+                if (aiChatHistory[i].startsWith('User: ')) {
+                    if (userMsgIdx === userMsgCount - 1) {
+                        aiChatHistory[i] = 'User: ' + newText;
+                        aiChatHistory.splice(i + 1, aiChatHistory.length - (i + 1));
+                        break;
+                    }
+                    userMsgIdx++;
+                }
+            }
+            while (chatBox.children.length > editIdx + 1) {
+                chatBox.removeChild(chatBox.lastChild);
+            }
+            var pk = currentPersona ? (Object.keys(personas).find(function(k) { return personas[k] === currentPersona; }) || 'socratic') : 'socratic';
+            var persona = currentPersona || personas.socratic;
+            appendMessage('AI', '\u23F3 思考中...');
+            try {
+                var conversationContext = aiChatHistory.slice(-20).join("\n");
+                var prompt = `目前的對話紀錄：\n${conversationContext}\n\n請根據你的角色設定，接續上述對話給予自然、深刻且口語化的回應。切勿使用死板的模板，請針對 User 的最新提問或回答進行針對性的互動與延伸。`;
+                var aiResponse = await fetchGeminiWithRetry(prompt, persona.systemPrompt);
+                var aiDivs = chatBox.querySelectorAll('.chat-bubble-ai');
+                var lastAiDiv = aiDivs[aiDivs.length - 1];
+                if (lastAiDiv) lastAiDiv.closest('.flex').remove();
+                appendMessage('AI', aiResponse);
+                aiChatHistory.push('AI: ' + aiResponse);
+                saveConversationMsg('user', newText, pk);
+                saveConversationMsg('ai', aiResponse, pk);
+            } catch(e) {
+                var aiDivs2 = chatBox.querySelectorAll('.chat-bubble-ai');
+                var lastAi2 = aiDivs2[aiDivs2.length - 1];
+                if (lastAi2) lastAi2.closest('.flex').remove();
+                appendMessage('AI', '\u26A0\uFE0F 生成失敗：' + e.message);
+            }
         }
 
         async function fetchGeminiWithRetry(prompt, systemInstruction, retries = 5) {
@@ -1842,7 +1910,8 @@
                 var title = firstUserMsg ? firstUserMsg.slice(0, 40) : '對話 ' + g.convId.slice(-6);
                 var isActive = g.convId === currentConvId;
                 var dateLabel = g.timestamp ? g.timestamp.slice(0, 10) : '';
-                return '<div class="conv-item flex items-center gap-1 cursor-pointer hover:bg-gray-700 rounded px-2 py-1.5 text-xs ' + (isActive ? 'bg-gray-700 border-l-2 border-primary text-gray-200' : 'text-gray-400') + '" data-convid="' + g.convId + '" onclick="loadConversation(\'' + g.convId + '\')" title="' + escapeHtml(firstUserMsg || '') + '"><span class="truncate flex-1">' + escapeHtml(title) + '</span><span class="text-[10px] text-gray-600 shrink-0">' + dateLabel + '</span></div>';
+                var displayTitle = g.customTitle || title;
+                return '<div class="conv-item group flex items-center gap-1 cursor-pointer hover:bg-gray-700 rounded px-2 py-1.5 text-xs ' + (isActive ? 'bg-gray-700 border-l-2 border-primary text-gray-200' : 'text-gray-400') + '" data-convid="' + g.convId + '" onclick="loadConversation(\'' + g.convId + '\')" title="' + escapeHtml(firstUserMsg || '') + '"><span class="truncate flex-1">' + escapeHtml(displayTitle) + '</span><span class="text-[10px] text-gray-600 shrink-0">' + dateLabel + '</span><div class="relative shrink-0"><button class="conv-menu-btn opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-gray-300 px-1" onclick="event.stopPropagation();toggleConvMenu(this)" title="選單">⋮</button><div class="conv-menu hidden absolute right-0 top-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl z-50 min-w-[100px] py-1"><button class="w-full text-left px-3 py-1.5 text-xs text-gray-300 hover:bg-gray-700" onclick="event.stopPropagation();renameConversation(\'' + g.convId + '\')">✏️ 重新命名</button><button class="w-full text-left px-3 py-1.5 text-xs text-red-400 hover:bg-gray-700" onclick="event.stopPropagation();deleteConversation(\'' + g.convId + '\')">🗑️ 刪除</button></div></div></div>';
             }).join('');
             if (autoExpand && !convListExpanded) toggleConvList();
         }
@@ -1869,6 +1938,51 @@
                 el.classList.toggle('text-gray-400', el.getAttribute('data-convid') !== convId);
             });
         }
+
+        function renameConversation(convId) {
+            var group = allConversations.find(function(c) { return c.convId === convId; });
+            if (!group) return;
+            var firstUserMsg = '';
+            for (var i = 0; i < allConversations.length; i++) {
+                if (allConversations[i].convId === convId && allConversations[i].role === 'user') { firstUserMsg = allConversations[i].message; break; }
+            }
+            var defaultTitle = firstUserMsg ? firstUserMsg.slice(0, 40) : '對話 ' + convId.slice(-6);
+            var newTitle = prompt('重新命名對話：', group.customTitle || defaultTitle);
+            if (newTitle === null || newTitle.trim() === '') return;
+            allConversations.forEach(function(c) {
+                if (c.convId === convId) c.customTitle = newTitle.trim();
+            });
+            updateConversationList();
+            showToast('已重新命名');
+        }
+
+        function deleteConversation(convId) {
+            if (!confirm('確定要刪除此對話嗎？')) return;
+            allConversations = allConversations.filter(function(c) { return c.convId !== convId; });
+            if (currentConvId === convId) {
+                currentConvId = null;
+                aiChatHistory = [];
+                document.getElementById('chat-box').innerHTML = '';
+            }
+            updateConversationList();
+            if (googleUser && GAS_WEBAPP) {
+                writeToGAS({ action: 'deleteConversation', userEmail: googleUser.email, convId: convId });
+            }
+            showToast('已刪除對話');
+        }
+
+        function toggleConvMenu(btn) {
+            var menu = btn.nextElementSibling;
+            var wasHidden = menu.classList.contains('hidden');
+            document.querySelectorAll('.conv-menu').forEach(function(m) { m.classList.add('hidden'); });
+            if (wasHidden) menu.classList.remove('hidden');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.conv-menu-btn') && !e.target.closest('.conv-menu')) {
+                document.querySelectorAll('.conv-menu').forEach(function(m) { m.classList.add('hidden'); });
+            }
+        });
 
         async function syncConversationsFromGAS() {
             if (!googleUser || !GAS_WEBAPP) return;
@@ -2079,7 +2193,7 @@
                     grid.parentNode.insertBefore(d, grid);
                     return d;
                 })();
-                var subs = [['mine','📝 我的議題'],['collected','🔖 收藏'],['liked','❤️ 按讚']];
+                var subs = [['mine','📝 我的議題'],['collected','📘 收藏'],['liked','❤️ 按讚']];
                 subBar.innerHTML = subs.map(function(s) {
                     return '<button class="personal-tab-btn px-3 py-1.5 rounded-md text-xs font-bold ' + (personalTab === s[0] ? 'bg-primary text-dark' : 'text-gray-400 hover:text-white') + '" data-tab="' + s[0] + '">' + s[1] + '</button>';
                 }).join('');
