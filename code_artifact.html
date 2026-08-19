@@ -228,25 +228,47 @@
                     </div>
 
                     <div id="persona-buttons">
-                        <button onclick="setAIPersona('socratic')" class="persona-btn border-primary bg-gray-700 p-3 rounded-lg text-left hover:border-primary border transition shadow w-full mb-2">
-                            <div class="font-bold text-gray-200"><i class="fa-solid fa-masks-theater text-primary mr-2"></i>蘇格拉底教練</div>
-                            <div class="text-xs text-gray-400 mt-1">引導思考，不直接給答案，幫助解開盲點。</div>
-                        </button>
+                        <div id="persona-cards">
+                            <button onclick="setAIPersona('socratic')" class="persona-btn border-primary bg-gray-700 p-3 rounded-lg text-left hover:border-primary border transition shadow w-full mb-2">
+                                <div class="font-bold text-gray-200"><i class="fa-solid fa-masks-theater text-primary mr-2"></i>蘇格拉底教練</div>
+                                <div class="text-xs text-gray-400 mt-1">引導思考，不直接給答案，幫助解開盲點。</div>
+                            </button>
 
-                        <button onclick="setAIPersona('roleplay')" class="persona-btn bg-gray-800 p-3 rounded-lg text-left hover:border-primary border border-transparent transition shadow w-full mb-2">
-                            <div class="font-bold text-gray-200"><i class="fa-solid fa-user-tie text-blue-400 mr-2"></i>歷史關鍵人物扮演</div>
-                            <div class="text-xs text-gray-400 mt-1">動態Cosplay！根據您探討的事件，AI自動切換為當時的各國領袖或官員。</div>
-                        </button>
+                            <button onclick="setAIPersona('roleplay')" class="persona-btn bg-gray-800 p-3 rounded-lg text-left hover:border-primary border border-transparent transition shadow w-full mb-2">
+                                <div class="font-bold text-gray-200"><i class="fa-solid fa-user-tie text-blue-400 mr-2"></i>歷史關鍵人物扮演</div>
+                                <div class="text-xs text-gray-400 mt-1">動態Cosplay！根據您探討的事件，AI自動切換為當時的各國領袖或官員。</div>
+                            </button>
 
-                        <button onclick="setAIPersona('debate')" class="persona-btn bg-gray-800 p-3 rounded-lg text-left hover:border-primary border border-transparent transition shadow w-full mb-2">
-                            <div class="font-bold text-gray-200"><i class="fa-solid fa-gavel text-red-400 mr-2"></i>歷史爭議辯論庭</div>
-                            <div class="text-xs text-gray-400 mt-1">探討如當代文物返還、地緣政治、陣營對立等思辨議題。</div>
-                        </button>
+                            <button onclick="setAIPersona('debate')" class="persona-btn bg-gray-800 p-3 rounded-lg text-left hover:border-primary border border-transparent transition shadow w-full mb-2">
+                                <div class="font-bold text-gray-200"><i class="fa-solid fa-gavel text-red-400 mr-2"></i>歷史爭議辯論庭</div>
+                                <div class="text-xs text-gray-400 mt-1">探討如當代文物返還、地緣政治、陣營對立等思辨議題。</div>
+                            </button>
 
-                        <button onclick="setAIPersona('counterfactual')" class="persona-btn bg-gray-800 p-3 rounded-lg text-left hover:border-primary border border-transparent transition shadow w-full">
-                            <div class="font-bold text-gray-200"><i class="fa-solid fa-dice text-purple-400 mr-2"></i>反事實推演</div>
-                            <div class="text-xs text-gray-400 mt-1">「如果當時……」推演歷史走向的多種可能性與蝴蝶效應。</div>
-                        </button>
+                            <button onclick="setAIPersona('counterfactual')" class="persona-btn bg-gray-800 p-3 rounded-lg text-left hover:border-primary border border-transparent transition shadow w-full">
+                                <div class="font-bold text-gray-200"><i class="fa-solid fa-dice text-purple-400 mr-2"></i>反事實推演</div>
+                                <div class="text-xs text-gray-400 mt-1">「如果當時……」推演歷史走向的多種可能性與蝴蝶效應。</div>
+                            </button>
+                        </div>
+                        <div id="persona-icons" class="hidden">
+                            <div class="flex gap-2">
+                                <button onclick="setAIPersona('socratic')" class="persona-btn-icon flex-1 flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition" title="蘇格拉底教練">
+                                    <i class="fa-solid fa-masks-theater text-primary text-lg"></i>
+                                    <span class="text-[10px] text-gray-400">蘇格拉底</span>
+                                </button>
+                                <button onclick="setAIPersona('roleplay')" class="persona-btn-icon flex-1 flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-800 hover:bg-gray-600 transition" title="歷史關鍵人物扮演">
+                                    <i class="fa-solid fa-user-tie text-blue-400 text-lg"></i>
+                                    <span class="text-[10px] text-gray-400">人物扮演</span>
+                                </button>
+                                <button onclick="setAIPersona('debate')" class="persona-btn-icon flex-1 flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-800 hover:bg-gray-600 transition" title="歷史爭議辯論庭">
+                                    <i class="fa-solid fa-gavel text-red-400 text-lg"></i>
+                                    <span class="text-[10px] text-gray-400">辯論庭</span>
+                                </button>
+                                <button onclick="setAIPersona('counterfactual')" class="persona-btn-icon flex-1 flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-800 hover:bg-gray-600 transition" title="反事實推演">
+                                    <i class="fa-solid fa-dice text-purple-400 text-lg"></i>
+                                    <span class="text-[10px] text-gray-400">反事實</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                 <!-- 對話紀錄 -->
@@ -1579,9 +1601,9 @@
         function setAIPersona(personaKey, isInit = false) {
             currentPersona = personas[personaKey];
             document.getElementById('chat-title').innerHTML = `當前模式：<span class="text-primary">${currentPersona.name}</span>`;
-            document.querySelectorAll('.persona-btn').forEach(btn => btn.classList.remove('border-primary', 'bg-gray-700'));
-            const activeBtn = document.querySelector(`.persona-btn[onclick="setAIPersona('${personaKey}')"]`);
-            if (activeBtn) activeBtn.classList.add('border-primary', 'bg-gray-700');
+            document.querySelectorAll('.persona-btn, .persona-btn-icon').forEach(btn => btn.classList.remove('border-primary', 'bg-gray-700'));
+            var activeBtns = document.querySelectorAll(`[onclick="setAIPersona('${personaKey}')"]`);
+            activeBtns.forEach(function(btn) { btn.classList.add('border-primary', 'bg-gray-700'); });
 
             if (isInit) {
                 aiChatHistory = [];
@@ -1654,6 +1676,7 @@
             } catch(e) { showToast('⚠️ AI 模式切換失敗：' + e.message); console.error(e); }
         }
 
+        var aiMsgCounter = 0;
         function appendMessage(sender, text) {
             const chatBox = document.getElementById('chat-box');
             const msgDiv = document.createElement('div');
@@ -1661,11 +1684,40 @@
                 msgDiv.className = 'flex justify-end fade-in';
                 msgDiv.innerHTML = `<div class="max-w-[80%] group relative"><div class="chat-bubble-user p-4 rounded-xl rounded-tr-none text-gray-100 shadow-md text-[14px] leading-relaxed">${escapeHtml(text).replace(/\n/g, '<br>')}</div><button class="edit-msg-btn absolute -top-2 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white rounded-full w-7 h-7 flex items-center justify-center text-xs shadow-md" onclick="startEditMessage(this)" title="編輯訊息">✏️</button></div>`;
             } else {
+                var msgId = 'ai-msg-' + (++aiMsgCounter);
+                var feedbackKey = (currentConvId || 'general') + '_' + msgId;
+                var savedFeedback = localStorage.getItem('hlab_feedback_' + feedbackKey) || '';
                 msgDiv.className = 'flex justify-start fade-in';
-                msgDiv.innerHTML = `<div class="max-w-[80%] chat-bubble-ai p-4 rounded-xl rounded-tl-none text-gray-100 shadow-md flex gap-3 text-[14px] leading-relaxed"><i class="fa-solid fa-robot mt-1 text-primary shrink-0 text-lg"></i><div>${escapeHtml(text).replace(/\n/g, '<br>')}</div></div>`;
+                msgDiv.innerHTML = `<div class="max-w-[80%] chat-bubble-ai p-4 rounded-xl rounded-tl-none text-gray-100 shadow-md flex gap-3 text-[14px] leading-relaxed"><i class="fa-solid fa-robot mt-1 text-primary shrink-0 text-lg"></i><div class="flex-1">${escapeHtml(text).replace(/\n/g, '<br>')}</div></div><div class="flex items-center gap-1 ml-10 mt-1 opacity-50 hover:opacity-100 transition-opacity"><button class="feedback-btn text-xs px-2 py-0.5 rounded ${savedFeedback === 'like' ? 'bg-green-800 text-green-300' : 'text-gray-500 hover:text-green-400'}" onclick="toggleFeedback(this, 'like', '${feedbackKey}')" title="有幫助">👍</button><button class="feedback-btn text-xs px-2 py-0.5 rounded ${savedFeedback === 'dislike' ? 'bg-red-800 text-red-300' : 'text-gray-500 hover:text-red-400'}" onclick="toggleFeedback(this, 'dislike', '${feedbackKey}')" title="需改進">👎</button><span class="text-[10px] text-gray-600 ml-1 feedback-label"></span></div>`;
             }
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function toggleFeedback(btn, type, key) {
+            var storageKey = 'hlab_feedback_' + key;
+            var current = localStorage.getItem(storageKey) || '';
+            var container = btn.parentElement;
+            var likeBtn = container.querySelector('.feedback-btn:first-child');
+            var dislikeBtn = container.querySelector('.feedback-btn:last-child');
+            var label = container.querySelector('.feedback-label');
+            if (current === type) {
+                localStorage.removeItem(storageKey);
+                likeBtn.className = 'feedback-btn text-xs px-2 py-0.5 rounded text-gray-500 hover:text-green-400';
+                dislikeBtn.className = 'feedback-btn text-xs px-2 py-0.5 rounded text-gray-500 hover:text-red-400';
+                if (label) label.textContent = '';
+            } else {
+                localStorage.setItem(storageKey, type);
+                if (type === 'like') {
+                    likeBtn.className = 'feedback-btn text-xs px-2 py-0.5 rounded bg-green-800 text-green-300';
+                    dislikeBtn.className = 'feedback-btn text-xs px-2 py-0.5 rounded text-gray-500 hover:text-red-400';
+                    if (label) label.textContent = '已標記有幫助';
+                } else {
+                    likeBtn.className = 'feedback-btn text-xs px-2 py-0.5 rounded text-gray-500 hover:text-green-400';
+                    dislikeBtn.className = 'feedback-btn text-xs px-2 py-0.5 rounded bg-red-800 text-red-300';
+                    if (label) label.textContent = '已標記需改進';
+                }
+            }
         }
 
         function startEditMessage(btn) {
@@ -1879,9 +1931,11 @@
         var personaExpanded = true;
         function togglePersonas() {
             personaExpanded = !personaExpanded;
-            var buttons = document.getElementById('persona-buttons');
+            var cards = document.getElementById('persona-cards');
+            var icons = document.getElementById('persona-icons');
             var icon = document.getElementById('persona-toggle-icon');
-            if (buttons) buttons.classList.toggle('hidden', !personaExpanded);
+            if (cards) cards.classList.toggle('hidden', !personaExpanded);
+            if (icons) icons.classList.toggle('hidden', personaExpanded);
             if (icon) {
                 icon.classList.remove('fa-chevron-right', 'fa-chevron-down');
                 icon.classList.add(personaExpanded ? 'fa-chevron-down' : 'fa-chevron-right');
