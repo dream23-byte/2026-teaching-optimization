@@ -1678,7 +1678,7 @@
                         url = 'https://api.groq.com/openai/v1/chat/completions';
                         body = JSON.stringify({ model: 'openai/gpt-oss-20b', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
                     } else if (provider === 'gemini') {
-                        url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
+                        url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=' + apiKey;
                         body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] } });
                     } else {
                         // OpenAI-compatible (OpenAI, DeepSeek, etc.)
