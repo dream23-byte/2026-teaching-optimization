@@ -1678,7 +1678,7 @@
                         url = 'https://api.groq.com/openai/v1/chat/completions';
                         body = JSON.stringify({ model: 'openai/gpt-oss-20b', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
                     } else if (provider === 'gemini') {
-                        url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+                        url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
                         body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] } });
                     } else {
                         // OpenAI-compatible (OpenAI, DeepSeek, etc.)
@@ -1742,7 +1742,7 @@
         function showApiKeyInput() {
             var currentProvider = localStorage.getItem('hlab_ai_provider') || 'gemini';
             var currentKey = localStorage.getItem('hlab_ai_key') || '';
-            var msg = '選擇 AI 服務並輸入 API Key：\n\n1 = Groq (gsk_...)\n2 = Gemini (AIza...)\n3 = OpenAI (sk-...)\n4 = 自訂網址\n\n格式：服務代碼|你的Key（或直接貼上 Key，系統會自動偵測）\n目前：' + currentProvider + '|' + currentKey.slice(0,8) + '...\n\n範例：groq|gsk_xxx 或 gemini|AIza_xxx 或 openai|sk-xxx 或 https://自訂網址|sk-xxx';
+            var msg = '選擇 AI 服務並輸入 API Key：\n\n1 = Groq (gsk_...)\n2 = Gemini (AQ... 或 AIza...)\n3 = OpenAI (sk-...)\n4 = 自訂網址\n\n格式：服務代碼|你的Key（或直接貼上 Key，系統會自動偵測）\n目前：' + currentProvider + '|' + currentKey.slice(0,8) + '...\n\n範例：groq|gsk_xxx 或 gemini|AQ_xxx 或 openai|sk-xxx 或 https://自訂網址|sk-xxx';
             var input = prompt(msg, currentProvider + '|' + currentKey);
             if (input === null) return;
             var provider, key;
@@ -1753,7 +1753,7 @@
             } else {
                 key = input.trim();
                 if (key.startsWith('gsk_')) provider = 'groq';
-                else if (key.startsWith('AIza')) provider = 'gemini';
+                else if (key.startsWith('AIza') || key.startsWith('AQ.')) provider = 'gemini';
                 else if (key.startsWith('sk-')) provider = 'openai';
                 else if (key.startsWith('http')) provider = key; // custom URL
                 else provider = 'groq';
