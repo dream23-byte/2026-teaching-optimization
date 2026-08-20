@@ -21,4 +21,7 @@
 - 預設 AI provider 改為 `gemini`（3 處）
 
 ## 🕐 最後更新
-2026-08-20 opencode @ MYALY | Git push: ✅ 已推 (afb3a55)
+2026-08-20 opencode @ MYALY | Git push: ✅ 已推 (087cd6a)
+
+## 📝 備註
+- 本次在無 Obsidian 的電腦收工，L3 筆記未更新
