@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動式歷史實驗室 (Interactive History Lab) — 修正版</title>
+    <title>歷史互動實驗室 (Interactive History Lab)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Leaflet CSS & JS -->
@@ -93,7 +93,7 @@
                 <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-dark font-bold text-xl shrink-0 shadow-[0_0_15px_rgba(212,175,55,0.4)]">
                     <i class="fa-solid fa-hourglass-half"></i>
                 </div>
-                <h1 id="sidebar-title" class="font-bold text-lg hidden md:block tracking-wider text-primary whitespace-nowrap">歷史實驗室</h1>
+                <h1 id="sidebar-title" class="font-bold text-lg hidden md:block tracking-wider text-primary whitespace-nowrap">歷史互動實驗室</h1>
             </div>
             <button onclick="toggleSidebar()" class="hidden md:block text-gray-400 hover:text-white transition px-2">
                 <i id="sidebar-icon" class="fa-solid fa-chevron-left"></i>
@@ -1061,7 +1061,7 @@
             const slider = document.getElementById('timeline-slider');
             const yearInput = document.getElementById('current-year-input');
             slider.addEventListener('input', (e) => goToYear(percentToYear(parseFloat(e.target.value) / 10), null, { fly: false }));
-            slider.addEventListener('change', () => flyToYearContext(currentYear));
+            // 時間軸調整時不自動飛到事件（使用者手動點選事件才連動）
             yearInput.addEventListener('change', (e) => goToYear(parseInt(e.target.value), null, { fly: true }));
             yearInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { goToYear(parseInt(e.target.value), null, { fly: true }); e.target.blur(); } });
             attachPlayheadDrag();
@@ -1086,7 +1086,7 @@
                 if (_phEl) _phEl.classList.remove('dragging');
                 document.body.style.cursor = '';
                 document.body.style.userSelect = '';
-                flyToYearContext(currentYear);
+                // 時間軸調整時不自動飛到事件（使用者手動點選事件才連動）
             });
         }
         function attachPlayheadDrag() {
@@ -1236,6 +1236,8 @@
             highlightSelectedTimelineDot(id);
             if (event.specialAction) handleSpecialAction(event);
             openEventPanel(event);
+            // 開啟地圖上的 popup
+            markers.forEach(m => { if (m._event && String(m._event.id) === id) m.openPopup(); });
         }
 
         function highlightSelectedTimelineDot(eventId) {
@@ -1568,7 +1570,15 @@
                     iconSize: isSel ? [32, 32] : [24, 24], iconAnchor: isSel ? [16, 16] : [12, 12]
                 });
                 const marker = L.marker([event.lat, event.lng], { icon: icon, zIndexOffset: isSel ? 2000 : 1000 }).addTo(map);
+                marker._event = event;
                 marker.bindTooltip(`<div class="bg-gray-900 border border-primary p-1.5 rounded text-xs font-bold text-white">${displayYearText} 年 : ${event.title}</div>`, {permanent: false, direction: 'top'});
+                const popupContent = `<div style="background:#1e1e1e;color:#fff;padding:12px;border-radius:8px;border:1px solid #d4af37;min-width:200px;max-width:300px;">
+                    <div style="font-weight:bold;font-size:14px;margin-bottom:6px;color:#d4af37;">${event.title}</div>
+                    <div style="font-size:12px;color:#9ca3af;margin-bottom:6px;">${displayYearText} 年</div>
+                    <div style="font-size:13px;line-height:1.5;">${event.desc || ''}</div>
+                    <div style="margin-top:8px;text-align:right;"><a href="javascript:void(0)" onclick="selectEvent('${event.id}')" style="color:#3b82f6;font-size:12px;">詳細資訊 →</a></div>
+                </div>`;
+                marker.bindPopup(popupContent, { maxWidth: 320, className: 'colored-tip' });
                 marker.on('click', () => selectEvent(event.id));
                 markers.push(marker);
             });
