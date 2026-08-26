@@ -158,9 +158,11 @@
                             <span class="text-sm font-bold text-gray-200"><i class="fa-solid fa-timeline mr-2 text-primary"></i>多軌並行時空軸</span>
                             <div id="track-filters" class="flex gap-1.5">
                                 <button onclick="toggleTrack('世界')" data-track="世界" class="track-btn bg-primary text-dark font-bold text-xs px-2 py-0.5 rounded shadow transition-colors">世界</button>
-                                <button onclick="toggleTrack('中國')" data-track="中國" class="track-btn bg-primary text-dark font-bold text-xs px-2 py-0.5 rounded shadow transition-colors">中國</button>
-                                <button onclick="toggleTrack('日本')" data-track="日本" class="track-btn bg-primary text-dark font-bold text-xs px-2 py-0.5 rounded shadow transition-colors">日本</button>
-                                <button onclick="toggleTrack('臺灣')" data-track="臺灣" class="track-btn bg-primary text-dark font-bold text-xs px-2 py-0.5 rounded shadow transition-colors">臺灣</button>
+                                <button onclick="toggleTrack('中國')" data-track="中國" class="track-btn bg-gray-700 text-gray-300 font-bold text-xs px-2 py-0.5 rounded shadow transition-colors">中國</button>
+                                <button onclick="toggleTrack('日本')" data-track="日本" class="track-btn bg-gray-700 text-gray-300 font-bold text-xs px-2 py-0.5 rounded shadow transition-colors">日本</button>
+                                <button onclick="toggleTrack('臺灣')" data-track="臺灣" class="track-btn bg-gray-700 text-gray-300 font-bold text-xs px-2 py-0.5 rounded shadow transition-colors">臺灣</button>
+                                <button onclick="toggleTrack('歐洲')" data-track="歐洲" class="track-btn bg-gray-700 text-gray-300 font-bold text-xs px-2 py-0.5 rounded shadow transition-colors">歐洲</button>
+                                <button onclick="toggleTrack('美洲')" data-track="美洲" class="track-btn bg-gray-700 text-gray-300 font-bold text-xs px-2 py-0.5 rounded shadow transition-colors">美洲</button>
                             </div>
                         </div>
                         <p class="text-[11px] text-gray-400"><i class="fa-solid fa-arrows-up-down-left-right mr-1"></i>可自由拖動檢視；點擊上方標籤可篩選顯示地區</p>
@@ -474,8 +476,17 @@
         let selectedEvent = null;
         let selectedEventId = null;
         
+        // 區域標籤對照表（DB region_tags → 前端顯示名稱）
+        const TAG_MAP = { 'WORLD': '世界', 'CHINA': '中國', 'JAPAN': '日本', 'TAIWAN': '臺灣', 'EUROPE': '歐洲', 'AMERICAS': '美洲' };
+        const REVERSE_TAG_MAP = { '世界': 'WORLD', '中國': 'CHINA', '日本': 'JAPAN', '臺灣': 'TAIWAN', '歐洲': 'EUROPE', '美洲': 'AMERICAS' };
+
+        function eventMatchesActiveTracks(ev) {
+            if (!ev.regionTags || !Array.isArray(ev.regionTags)) return activeTracks.includes('世界');
+            return ev.regionTags.some(tag => activeTracks.includes(TAG_MAP[tag] || tag));
+        }
+
         // 狀態：目前啟用的時間軸軌道
-        let activeTracks = ["世界", "中國", "日本", "臺灣"];
+        let activeTracks = ["世界"];
 
         // --- Supabase 初始化 ---
         const SUPABASE_URL = 'https://ushwjujxqvonyjumzgkp.supabase.co';
@@ -522,6 +533,7 @@
                         id: String(ev.id),
                         year: ev.year,
                         track: ev.track === 'CN' ? '中國' : ev.track === 'TW' ? '臺灣' : ev.track === 'JP' ? '日本' : '世界',
+                        regionTags: ev.region_tags || ['WORLD'],
                         title: ev.title,
                         lat: ev.latitude,
                         lng: ev.longitude,
@@ -1022,7 +1034,7 @@
         }
 
         function flyToYearContext(year) {
-            const valid = historyData.filter(ev => ev && Number.isFinite(ev.lat) && Number.isFinite(ev.lng) && activeTracks.includes(ev.track));
+            const valid = historyData.filter(ev => ev && Number.isFinite(ev.lat) && Number.isFinite(ev.lng) && eventMatchesActiveTracks(ev));
             if (!valid.length) return;
             let nearest = valid[0];
             for (const ev of valid) {
@@ -1134,7 +1146,7 @@
             } else {
                 activeTracks.push(trackName);
             }
-            const order = ["世界", "中國", "日本", "臺灣"];
+            const order = ["世界", "中國", "日本", "臺灣", "歐洲", "美洲"];
             activeTracks.sort((a, b) => order.indexOf(a) - order.indexOf(b));
 
             updateTrackFilterUI();
@@ -1173,7 +1185,10 @@
                         <div class="absolute top-1/2 left-0 w-full h-px bg-gray-700 -translate-y-1/2"></div>
                 `;
 
-                let trackEvents = historyData.filter(d => d.track === track);
+                let trackEvents = historyData.filter(d => {
+                    const tagName = Object.keys(TAG_MAP).find(k => TAG_MAP[k] === track);
+                    return d.regionTags && d.regionTags.includes(tagName);
+                });
                 trackEvents.sort((a, b) => a.year - b.year); // 確保照年份排序，以利規律錯位
 
                 trackEvents.forEach((event, index) => {
@@ -1546,7 +1561,7 @@
             // 事件星標（±150 年內）—— 選中的事件用不同外觀突顯
             // ✨ 安全過濾：確保所有座標有效再生成，避免 L.marker 崩潰
             const activeEvents = historyData.filter(ev =>
-                ev && Number.isFinite(ev.lat) && Number.isFinite(ev.lng) && Math.abs(ev.year - year) <= 150 && activeTracks.includes(ev.track)
+                ev && Number.isFinite(ev.lat) && Number.isFinite(ev.lng) && Math.abs(ev.year - year) <= 150 && eventMatchesActiveTracks(ev)
             );
 
             activeEvents.forEach(event => {
