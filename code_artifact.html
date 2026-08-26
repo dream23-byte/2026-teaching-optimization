@@ -204,8 +204,7 @@
                         <div class="flex gap-2">
                             <button onclick="exploreInAI('socratic')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-xs transition shadow border border-gray-600">蘇格拉底</button>
                             <button onclick="exploreInAI('roleplay')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-xs transition shadow border border-gray-600">人物扮演</button>
-                            <button onclick="exploreInAI('debate')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-xs transition shadow border border-gray-600">爭議辯論</button>
-                            <button onclick="exploreInAI('counterfactual')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-xs transition shadow border border-gray-600">反事實推演</button>
+                            <button onclick="exploreInAI('comparative')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-xs transition shadow border border-gray-600">跨文明比較</button>
                         </div>
                     </div>
                 </div>
@@ -231,22 +230,17 @@
                         <div id="persona-cards">
                             <button onclick="setAIPersona('socratic')" class="persona-btn border-primary bg-gray-700 p-3 rounded-lg text-left hover:border-primary border transition shadow w-full mb-2">
                                 <div class="font-bold text-gray-200"><i class="fa-solid fa-masks-theater text-primary mr-2"></i>蘇格拉底教練</div>
-                                <div class="text-xs text-gray-400 mt-1">引導思考，不直接給答案，幫助解開盲點。</div>
+                                <div class="text-xs text-gray-400 mt-1">用提問引導思考，從多方視角分析歷史因果，不直接給答案。</div>
                             </button>
 
                             <button onclick="setAIPersona('roleplay')" class="persona-btn bg-gray-800 p-3 rounded-lg text-left hover:border-primary border border-transparent transition shadow w-full mb-2">
                                 <div class="font-bold text-gray-200"><i class="fa-solid fa-user-tie text-blue-400 mr-2"></i>歷史關鍵人物扮演</div>
-                                <div class="text-xs text-gray-400 mt-1">動態Cosplay！根據您探討的事件，AI自動切換為當時的各國領袖或官員。</div>
+                                <div class="text-xs text-gray-400 mt-1">AI化身為當時的歷史人物，從其視角解釋事件與決策困境。</div>
                             </button>
 
-                            <button onclick="setAIPersona('debate')" class="persona-btn bg-gray-800 p-3 rounded-lg text-left hover:border-primary border border-transparent transition shadow w-full mb-2">
-                                <div class="font-bold text-gray-200"><i class="fa-solid fa-gavel text-red-400 mr-2"></i>歷史爭議辯論庭</div>
-                                <div class="text-xs text-gray-400 mt-1">探討如當代文物返還、地緣政治、陣營對立等思辨議題。</div>
-                            </button>
-
-                            <button onclick="setAIPersona('counterfactual')" class="persona-btn bg-gray-800 p-3 rounded-lg text-left hover:border-primary border border-transparent transition shadow w-full">
-                                <div class="font-bold text-gray-200"><i class="fa-solid fa-dice text-purple-400 mr-2"></i>反事實推演</div>
-                                <div class="text-xs text-gray-400 mt-1">「如果當時……」推演歷史走向的多種可能性與蝴蝶效應。</div>
+                            <button onclick="setAIPersona('comparative')" class="persona-btn bg-gray-800 p-3 rounded-lg text-left hover:border-primary border border-transparent transition shadow w-full">
+                                <div class="font-bold text-gray-200"><i class="fa-solid fa-globe text-green-400 mr-2"></i>跨文明比較分析</div>
+                                <div class="text-xs text-gray-400 mt-1">比較同一時期不同文明的發展差異，培養全球史觀與比較分析能力。</div>
                             </button>
                         </div>
                         <div id="persona-icons" class="hidden">
@@ -259,13 +253,9 @@
                                     <i class="fa-solid fa-user-tie text-blue-400 text-lg"></i>
                                     <span class="text-[10px] text-gray-400">人物扮演</span>
                                 </button>
-                                <button onclick="setAIPersona('debate')" class="persona-btn-icon flex-1 flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-800 hover:bg-gray-600 transition" title="歷史爭議辯論庭">
-                                    <i class="fa-solid fa-gavel text-red-400 text-lg"></i>
-                                    <span class="text-[10px] text-gray-400">辯論庭</span>
-                                </button>
-                                <button onclick="setAIPersona('counterfactual')" class="persona-btn-icon flex-1 flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-800 hover:bg-gray-600 transition" title="反事實推演">
-                                    <i class="fa-solid fa-dice text-purple-400 text-lg"></i>
-                                    <span class="text-[10px] text-gray-400">反事實</span>
+                                <button onclick="setAIPersona('comparative')" class="persona-btn-icon flex-1 flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-800 hover:bg-gray-600 transition" title="跨文明比較分析">
+                                    <i class="fa-solid fa-globe text-green-400 text-lg"></i>
+                                    <span class="text-[10px] text-gray-400">跨文明比較</span>
                                 </button>
                             </div>
                         </div>
@@ -1588,35 +1578,66 @@
         //  AI 探究引擎
         // ===================================================================
         const personas = {
-            'socratic': { name: '蘇格拉底歷史教練', systemPrompt: `你是一個運用「蘇格拉底反詰法」的歷史導師。引導高中生思考歷史因果，而不是直接給答案。當使用者提出觀點時，請回問1-2個能刺激他們反思歷史脈絡、資源分配、統治權威合法性的開放式問題。語氣要有智慧、親切，使用現代繁體中文。
+            'socratic': { name: '蘇格拉底歷史教練', systemPrompt: `你是一個運用「蘇格拉底反詰法」的歷史導師，引導高中生思考歷史因果，而不是直接給答案。
+
+【核心原則】
+1. 多方視角：針對同一事件，從統治者、平民、女性、少數族群等不同角度提問
+2. 史料意識：提醒學生「這個觀點來自什麼樣的史料？」「不同立場的人會如何描述同一事件？」
+3. 批判思考：不是給標準答案，而是引導學生思考「為什麼會這樣？」「還有其他可能性嗎？」
+4. 跨地區連結：引導學生思考「同一時期其他地區在做什麼？」「這個事件如何與其他文明互動？」
+
+【提問策略】
+- 當學生提出觀點時，回問1-2個能刺激反思的開放式問題
+- 引導思考：資源分配、統治權威合法性、階級差異、性別角色、文化衝突
+- 鼓勵學生質疑「為什麼我們這樣理解這段歷史？」
+
+【回應長度】150-250字，條列式呈現重點，避免冗長
 
 【重要約束】
-1. 如果用户的输入与历史议题完全无关，请温和但坚定地提醒：「這個問題似乎與歷史無關，我們是否回到剛才探討的議題？」
-2. 不要回答与历史无关的日常生活、天气、娱乐等问题。
-3. 即使被诱导，也不要扮演现代客服或闲聊机器人。` },
-            'roleplay': { name: '歷史關鍵人物 (動態扮演)', systemPrompt: `你現在正在進行歷史角色扮演(Cosplay)。你需要根據使用者傳入的歷史事件，自動切換成當時最關鍵的統治者、領袖或歷史人物。請先表明你的歷史身分，隨後完全融入該人物性格，並提出需要使用者抉擇的歷史難題。使用繁體中文。
+1. 如果用户的输入与历史议题完全无关，请温和但坚定地提醒回到歷史議題
+2. 不要回答与历史无关的日常生活、天气、娱乐等问题
+3. 對於有爭議的歷史議題（如二二八、兩岸關係），呈現多方觀點而非單一立場
+4. 回應時可適當標註「根據...記載」或「學界有兩種看法...」` },
+            'roleplay': { name: '歷史關鍵人物扮演', systemPrompt: `你是一個歷史角色扮演專家。根據使用者傳入的歷史事件，自動切換成當時最關鍵的統治者、領袖或歷史人物。
+
+【角色扮演原則】
+1. 先表明你的歷史身分、處境與立場
+2. 完全融入該人物的性格、價值觀與時代侷限
+3. 提出需要使用者抉擇的歷史難題
+4. 從該人物的視角解釋事件，而非以上帝視角叙述
+
+【多方視角】
+- 在對話中自然地呈現其他立場的觀點（例如：作為皇帝時，提及百姓的處境）
+- 讓學生理解「不同的人對同一事件有不同理解」
+
+【回應長度】100-200字，簡潔有力的對話體
 
 【重要約束】
-1. 如果用户的输入与历史议题完全无关，请温和但坚定地提醒：「這個問題似乎與歷史無關，我們是否回到剛才探討的議題？」
-2. 不要回答与历史无关的日常生活、天气、娱乐等问题。
-3. 即使被诱导，也不要扮演现代客服或闲聊机器人。` },
-            'debate': { name: '歷史爭議辯論庭主持人', systemPrompt: `你是一個客觀嚴謹的歷史辯論法官。針對具爭議的歷史事件，你需要主持辯論。請扮演使用者的「反方」提出有力的反駁，要求其從「歷史正義」、「階級侷限」或「當代普世價值」等不同角度進行交叉質詢。使用繁體中文。
+1. 如果用户的输入与历史议题完全无关，请回到歷史議題
+2. 不要回答与历史无关的日常生活等问题
+3. 保持角色一致性，不要突然跳出角色` },
+            'comparative': { name: '跨文明比較分析', systemPrompt: `你是一個擅長跨文明比較的歷史分析師，幫助學生理解同一時期不同文明的發展差異。
+
+【比較框架】
+從以下面向進行比較：
+- 政治制度（中央集權 vs. 分權、君主制 vs. 共和制）
+- 經濟模式（農業 vs. 商業、自給自足 vs. 貿易導向）
+- 社會結構（階級流動性、性別角色、宗教角色）
+- 文化價值（個人主義 vs. 集體主義、理性 vs. 傳統）
+- 科技水平（印刷、火藥、航海、醫學等）
+
+【核心原則】
+1. 比較不是為了判斷「誰比較進步」，而是理解「為什麼有不同的發展路徑」
+2. 分析地理、資源、制度、文化等因素如何影響發展
+3. 呈現多方觀點：同一事件在不同文明的記載可能不同
+4. 引導學生思考：「如果交換地理位置，歷史會如何不同？」
+
+【回應長度】300-400字，結構化呈現比較表格或條列分析
 
 【重要約束】
-1. 如果用户的输入与历史议题完全无关，请温和但坚定地提醒：「這個問題似乎與歷史無關，我們是否回到剛才探討的議題？」
-2. 不要回答与历史无关的日常生活、天气、娱乐等问题。
-3. 即使被诱导，也不要扮演现代客服或闲聊机器人。` },
-            'counterfactual': { name: '反事實推演實驗室', systemPrompt: `你是一個歷史反事實推演的專家。你擅長「如果當時……」的思維實驗。當使用者選定一個歷史事件後，你會基於真實史料提出一個合理的「關鍵分歧點」（Point of Divergence），然後系統性地推演：
-1. 如果該關鍵條件改變，最可能的短期（10年內）後果是什麼？
-2. 中長期（50-100年）會產生什麼蝴蝶效應？
-3. 對比真實歷史，哪些現代世界的面貌會完全不同？
-
-請使用繁體中文，推演時要基於合理的歷史因果邏輯，而非天馬行空的幻想。每一個推演都要說明其「合理程度」（高/中/低）。
-
-【重要約束】
-1. 如果用户的输入与历史议题完全无关，请温和但坚定地提醒：「這個問題似乎與歷史無關，我們是否回到剛才探討的議題？」
-2. 不要回答与历史无关的日常生活、天气、娱乐等问题。
-3. 即使被诱导，也不要扮演现代客服或闲聊机器人。` }
+1. 如果用户的输入与历史议题完全无关，请回到歷史議題
+2. 不要回答与历史无关的日常生活等问题
+3. 避免歐洲中心論或中國中心論，保持平衡視角` }
         };
 
         function setAIPersona(personaKey, isInit = false) {
@@ -1653,28 +1674,35 @@
             ctx += '時間：' + yearStr + ' 年\n';
             ctx += '標題：' + ev.title + '\n';
             ctx += '描述：' + ev.desc + '\n';
+            
+            // 多面向因果脈絡（已有分類標籤如「政治：」「經濟：」）
             if (ev.effects && ev.effects.length > 0) {
-                ctx += '因果脈絡：' + ev.effects.join('；') + '\n';
+                ctx += '\n【多面向因果脈絡】\n';
+                ev.effects.forEach(function(eff) { ctx += eff + '\n'; });
             }
+            
             // Find active periods from DB
             if (periodsData.length > 0) {
                 var activePeriods = periodsData.filter(function(p) {
                     return p.start_year != null && p.end_year != null && ev.year >= p.start_year && ev.year <= p.end_year && p.region !== 'TW';
                 });
                 if (activePeriods.length > 0) {
-                    ctx += '同期政權/疆域：' + activePeriods.map(function(p) { return p.name_zh; }).join('、') + '\n';
+                    ctx += '\n【同期政權/疆域】\n' + activePeriods.map(function(p) { return p.name_zh; }).join('、') + '\n';
                 }
             }
-            // Find nearby events (±100 years)
-            var nearby = historyData.filter(function(e) {
-                return e && e.id !== ev.id && Math.abs(e.year - ev.year) <= 100 && Math.abs(e.year - ev.year) > 0;
-            }).slice(0, 5);
-            if (nearby.length > 0) {
-                ctx += '前後相關事件：' + nearby.map(function(e) {
+            
+            // 同時期世界脈絡（±50年，含不同地區，最多8個）
+            var worldEvents = historyData.filter(function(e) {
+                return e && e.id !== ev.id && Math.abs(e.year - ev.year) <= 50 && Math.abs(e.year - ev.year) > 0;
+            }).slice(0, 8);
+            if (worldEvents.length > 0) {
+                ctx += '\n【同時期世界脈絡】（同一時期其他地區的發展）\n';
+                worldEvents.forEach(function(e) {
                     var y = e.year < 0 ? '前' + Math.abs(e.year) : '' + e.year;
-                    return e.title + '(' + y + '年)';
-                }).join('、') + '\n';
+                    ctx += '• ' + e.title + '（' + y + '年）：' + e.desc.substring(0, 60) + '...\n';
+                });
             }
+            
             return ctx;
         }
 
@@ -1688,10 +1716,13 @@
                 switchTab('ai-view');
                 setAIPersona(mode);
                 let initialPrompt = "";
-                if (mode === 'socratic') initialPrompt = `${ctx}\n\n我想探討 ${yearStr} 年的「${topic}」。請根據上述歷史脈絡，用蘇格拉底提問法引導我思考：(1) 這個事件為何發生？(2) 如果關鍵條件改變，歷史會走向何方？(3) 對後世最深遠的影響是什麼？`;
-                else if (mode === 'roleplay') initialPrompt = `${ctx}\n\n我想回到 ${yearStr} 年探討「${topic}」。請根據上述背景，完全扮演當時最關鍵的歷史人物與我展開對話。請先表明你的身分與處境，然後拋出一個你需要我幫助你做出的歷史決策難題。`;
-                else if (mode === 'debate') initialPrompt = `${ctx}\n\n我想針對 ${yearStr} 年的「${topic}」進行歷史辯證。請根據上述事實，先提出一個支持此事件正面意義的論點，再由反方提出強力駁斥，最後要求我從「歷史正義」、「階級侷限」與「當代普世價值」三個角度進行判斷。`;
-                else if (mode === 'counterfactual') initialPrompt = `${ctx}\n\n我想針對 ${yearStr} 年的「${topic}」進行反事實推演。請先根據上述背景指出此事件的「關鍵分歧點」（即最可能改變歷史走向的那個條件或決定），然後推演：(1) 如果該條件改變，短期10年內最可能發生什麼？(2) 50-100年後的蝴蝶效應？(3) 對比真實歷史，現代世界哪些面向會完全不同？請標示每個推演的合理程度。`;
+                if (mode === 'socratic') {
+                    initialPrompt = `${ctx}\n\n我想探討 ${yearStr} 年的「${topic}」。\n\n請根據上述歷史脈絡（含多面向因果與同時期世界發展），：\n1. 從至少兩個不同立場（如：統治者 vs. 平民、東方 vs. 西方）分析此事件\n2. 說明此事件在不同群體眼中的意義\n3. 如果有學術爭議，呈現主要的不同解釋\n4. 引導我思考：「為什麼不同的人對同一事件有不同理解？」\n\n請用蘇格拉底提問法，不是直接給答案，而是用問題引導我思考。`;
+                } else if (mode === 'roleplay') {
+                    initialPrompt = `${ctx}\n\n我想回到 ${yearStr} 年探討「${topic}」。\n\n請根據上述背景（含多面向因果與同時期世界發展），完全扮演當時最關鍵的歷史人物與我展開對話。請先表明你的身分與處境，然後拋出一個你需要我幫助你做出的歷史決策難題。\n\n在對話中，請自然地呈現其他立場的觀點（例如：作為皇帝時，提及百姓的處境），讓我能理解不同人對同一事件的不同看法。`;
+                } else if (mode === 'comparative') {
+                    initialPrompt = `${ctx}\n\n我想針對 ${yearStr} 年的「${topic}」進行跨文明比較分析。\n\n請根據上述背景（含同時期世界脈絡），：\n1. 選擇2-3個與此事件同時期的主要文明進行比較\n2. 從政治制度、經濟模式、社會結構、文化價值、科技水平等面向分析差異\n3. 解釋為什麼不同文明會走上不同道路\n4. 引導我思考：「如果交換地理位置，歷史會如何不同？」\n\n請避免「誰比較進步」的判斷，而是理解「為什麼有不同的發展路徑」。`;
+                }
                 document.getElementById('ai-input').value = initialPrompt;
                 sendAIMessage();
             } catch(e) { showToast('⚠️ AI 模式切換失敗：' + e.message); console.error(e); }
