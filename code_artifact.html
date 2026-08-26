@@ -1722,21 +1722,11 @@
         function exploreInAI(mode) {
             if(!selectedEvent) { showToast('⚠️ 請先點選地圖事件'); return; }
             try {
-                const topic = selectedEvent.title;
-                const yearStr = selectedEvent.year < 0 ? `西元前 ${Math.abs(selectedEvent.year)}` : `西元 ${selectedEvent.year}`;
                 const ctx = buildEventContext(selectedEvent);
                 closeEventPanel();
                 switchTab('ai-view');
                 setAIPersona(mode);
-                let initialPrompt = "";
-                if (mode === 'socratic') {
-                    initialPrompt = `關於${yearStr}年的「${topic}」：${selectedEvent.desc}`;
-                } else if (mode === 'roleplay') {
-                    initialPrompt = `關於${yearStr}年的「${topic}」：${selectedEvent.desc}`;
-                } else if (mode === 'comparative') {
-                    initialPrompt = `關於${yearStr}年的「${topic}」：${selectedEvent.desc}`;
-                }
-                document.getElementById('ai-input').value = initialPrompt;
+                document.getElementById('ai-input').value = ctx;
                 sendAIMessage();
             } catch(e) { showToast('⚠️ AI 模式切換失敗：' + e.message); console.error(e); }
         }
