@@ -131,11 +131,14 @@
                 <!-- Toolbar -->
                 <div class="h-14 bg-panel border-b border-gray-800 flex items-center px-4 justify-between shrink-0 shadow-sm z-10">
                     <div class="flex gap-2">
-                        <button onclick="toggleClimateLayer()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 border border-gray-600 transition shadow hidden md:block">
+                        <button onclick="toggleClimateLayer()" id="btn-climate-layer" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 border border-gray-600 transition shadow hidden md:block">
                             <i class="fa-solid fa-cloud-sun-rain mr-1"></i> 氣候巨變圖層
                         </button>
-                        <button onclick="drawTradeRoutes()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 border border-gray-600 transition shadow">
+                        <button onclick="drawTradeRoutes()" id="btn-trade-layer" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 border border-gray-600 transition shadow">
                             <i class="fa-solid fa-route mr-1"></i> 全球貿易網絡
+                        </button>
+                        <button onclick="toggleEmpireLayer()" id="btn-empire-layer" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 border border-gray-600 transition shadow">
+                            <i class="fa-solid fa-earth-americas mr-1"></i> <span id="empire-layer-label">領土</span>
                         </button>
                     </div>
 
@@ -143,9 +146,6 @@
                         <span class="hidden md:inline">地圖年份:</span>
                         <input type="number" id="current-year-input" class="bg-gray-900 border border-gray-600 text-primary text-xl font-bold px-2 py-0.5 rounded w-28 text-center focus:outline-none focus:border-primary transition shadow-inner" value="1945">
                         <span id="bc-ad-indicator" class="text-xs px-1.5 py-0.5 bg-blue-950 text-blue-200 rounded">西元後</span>
-                        <button onclick="toggleEmpireLayer()" id="btn-empire-layer" class="ml-2 bg-gray-900/90 border border-primary/50 text-primary text-xs px-2.5 py-1.5 rounded-lg shadow-lg hover:bg-gray-800 transition-colors flex items-center gap-1.5" title="切換領土 polygon 顯示">
-                            <i class="fa-solid fa-earth-americas"></i> <span id="empire-layer-label">領土</span>
-                        </button>
                     </div>
                 </div>
 
@@ -877,14 +877,19 @@
         function toggleEmpireLayer() {
             if (!empireLayer || !map) return;
             empireLayerVisible = !empireLayerVisible;
+            var btn = document.getElementById('btn-empire-layer');
             if (empireLayerVisible) {
                 map.addLayer(empireLayer);
-                document.getElementById('btn-empire-layer').classList.remove('opacity-50');
+                btn.classList.remove('border-gray-600', 'text-gray-400');
+                btn.classList.add('border-primary', 'text-primary');
                 document.getElementById('empire-layer-label').textContent = '領土';
+                showToast('已開啟領土圖層');
             } else {
                 map.removeLayer(empireLayer);
-                document.getElementById('btn-empire-layer').classList.add('opacity-50');
-                document.getElementById('empire-layer-label').textContent = '領土 (關)';
+                btn.classList.remove('border-primary', 'text-primary');
+                btn.classList.add('border-gray-600', 'text-gray-400');
+                document.getElementById('empire-layer-label').textContent = '領土';
+                showToast('已關閉領土圖層');
             }
         }
 
