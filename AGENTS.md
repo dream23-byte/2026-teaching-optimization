@@ -28,9 +28,16 @@
 - [x] 6 區域 track 系統（世界/中國/日本/臺灣/歐洲/美洲）
 - [x] 新增 12 個歐美事件（歐洲 9 件 + 美洲 3 件）
 - [x] DB region_tags 欄位 + 所有事件標記
+- [x] 地圖底圖切換（CARTO→Esri Dark Gray，免費免 key）
+- [x] 按鈕風格統一（氣候/貿易/領土 active/inactive 切換）
+- [x] 班級面板移至左側 sidebar
+- [x] GAS loadMyClasses 修復 className undefined
+- [x] 匯出按鈕改為教師專用
+- [x] RDQ 需求規格卡完成（班級系統升級）
 - [ ] 其他國家領土 polygon 驗證
 - [ ] 歷史事件描述/butterfly effect 擴充
 - [ ] UI/UX 持續優化
+- [ ] 班級系統開發（Google Classroom 風格）
 
 ## 關鍵技術決策
 - **前端**: 單一 HTML 檔案（code_artifact.html）
@@ -44,4 +51,5 @@
 ## 重要連結
 - GitHub: https://github.com/dream23-byte/2026-teaching-optimization
 - GitHub Pages: https://dream23-byte.github.io/2026-teaching-optimization/code_artifact.html
+- GitHub Pages 班級版: https://dream23-byte.github.io/2026-teaching-optimization/class_artifact.html
 - Supabase: https://ushwjujxqvonyjumzgkp.supabase.co
