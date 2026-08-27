@@ -148,6 +148,12 @@
 
                 <!-- Map Container -->
                 <div id="map" class="flex-1 w-full relative z-0"></div>
+                <!-- Map Layer Toggle -->
+                <div class="absolute top-3 right-3 z-[1000] flex flex-col gap-1.5">
+                    <button onclick="toggleEmpireLayer()" id="btn-empire-layer" class="bg-gray-900/90 border border-primary/50 text-primary text-xs px-2.5 py-1.5 rounded-lg shadow-lg hover:bg-gray-800 transition-colors flex items-center gap-1.5" title="切換領土 polygon 顯示">
+                        <i class="fa-solid fa-earth-americas"></i> <span id="empire-layer-label">領土</span>
+                    </button>
+                </div>
             </div>
 
             <!-- 下半部 (40%)：時間軸區塊 -->
@@ -273,6 +279,7 @@
                             <h3 class="text-xs font-bold text-gray-400 tracking-wide select-none">📋 對話紀錄</h3>
                         </div>
                         <button onclick="event.stopPropagation(); startNewConversation();" class="text-[11px] text-primary hover:text-yellow-400 transition">+ 新對話</button>
+                        <button onclick="exportChat()" class="text-[11px] text-gray-400 hover:text-white transition" title="匯出對話紀錄">📥 匯出</button>
                     </div>
                     <div id="conversation-list" class="space-y-1 max-h-[180px] overflow-y-auto custom-scrollbar pr-1 hidden"></div>
                 </div>                </div>
@@ -838,7 +845,22 @@
         let taiwanLayer = null;
         let warAnimationLayer = null;
         let empireLayer = null;
+        let empireLayerVisible = true;
         let mapPanTimeout = null;
+
+        function toggleEmpireLayer() {
+            if (!empireLayer || !map) return;
+            empireLayerVisible = !empireLayerVisible;
+            if (empireLayerVisible) {
+                map.addLayer(empireLayer);
+                document.getElementById('btn-empire-layer').classList.remove('opacity-50');
+                document.getElementById('empire-layer-label').textContent = '領土';
+            } else {
+                map.removeLayer(empireLayer);
+                document.getElementById('btn-empire-layer').classList.add('opacity-50');
+                document.getElementById('empire-layer-label').textContent = '領土 (關)';
+            }
+        }
 
         const TIMELINE_MIN_YEAR = -5000;
         const TIMELINE_MAX_YEAR = 2050;
@@ -1678,6 +1700,26 @@
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
             aiChatHistory.push(`(System: 使用者已將探究模式切換為 ${currentPersona.name})`);
+        }
+
+        function exportChat() {
+            const messages = [];
+            document.querySelectorAll('#chat-box > div').forEach(function(div) {
+                const bubble = div.querySelector('.chat-bubble-user, .chat-bubble-ai');
+                if (!bubble) return;
+                const isUser = bubble.classList.contains('chat-bubble-user');
+                const text = bubble.innerText.trim();
+                if (text) messages.push((isUser ? '【學生】' : '【AI】') + ' ' + text);
+            });
+            if (messages.length === 0) { showToast('⚠️ 目前沒有對話紀錄'); return; }
+            const title = document.getElementById('chat-title').innerText;
+            const header = '# ' + title + '\n# 匯出時間: ' + new Date().toLocaleString('zh-TW') + '\n\n';
+            const blob = new Blob([header + messages.join('\n\n')], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = '歷史探究對話_' + new Date().toISOString().slice(0,10) + '.txt';
+            a.click(); URL.revokeObjectURL(url);
+            showToast('✅ 已匯出對話紀錄');
         }
 
         function buildEventContext(ev) {
