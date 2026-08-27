@@ -34,10 +34,10 @@
 - [x] GAS loadMyClasses 修復 className undefined
 - [x] 匯出按鈕改為教師專用
 - [x] RDQ 需求規格卡完成（班級系統升級）
+- [x] 班級系統開發（Google Classroom 風格）
 - [ ] 其他國家領土 polygon 驗證
 - [ ] 歷史事件描述/butterfly effect 擴充
 - [ ] UI/UX 持續優化
-- [ ] 班級系統開發（Google Classroom 風格）
 
 ## 關鍵技術決策
 - **前端**: 單一 HTML 檔案（code_artifact.html）

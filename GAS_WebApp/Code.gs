@@ -2,7 +2,8 @@ const S = {
   POSTS: "Posts", REPLIES: "Replies",
   LIKES: "PostLikes", COLLECTS: "PostCollects", REACTIONS: "ReplyReactions",
   CONVERSATIONS: "Conversations", AIFeedback: "AIFeedback",
-  CLASSES: "Classes", CLASS_MEMBERS: "ClassMembers"
+  CLASSES: "Classes", CLASS_MEMBERS: "ClassMembers",
+  MATERIALS: "Materials", INQUIRY_RECORDS: "InquiryRecords"
 };
 
 function onOpen() { ensureSheets(); }
@@ -16,8 +17,10 @@ function ensureSheets() {
   h(S.REACTIONS, ["ReplyRow","UserEmail","Emoji"]);
   h(S.CONVERSATIONS, ["Timestamp","UserEmail","ConvId","Role","Message","PersonaKey","ClassCode"]);
   h(S.AIFeedback, ["Timestamp","UserEmail","ConvId","MsgId","Emoji","ClassCode"]);
-  h(S.CLASSES, ["ClassCode","ClassName","TeacherEmail","CreatedAt"]);
+  h(S.CLASSES, ["ClassCode","ClassName","TeacherEmail","CreatedAt","Unit","Grade","Subject","Room","Color"]);
   h(S.CLASS_MEMBERS, ["ClassCode","UserEmail","Role"]);
+  h(S.MATERIALS, ["Timestamp","UserEmail","ClassCode","Title","Type","Url","Content","Author","Source","License","Tags"]);
+  h(S.INQUIRY_RECORDS, ["Timestamp","UserEmail","ClassCode","ConvId","EventId","Questions","Summary","Score"]);
 }
 
 // 取得使用者角色: class owner / member / student / super-admin
@@ -53,11 +56,11 @@ function generateUniqueClassCode() {
 }
 
 // 建立班級 (教師)
-function createClass(email, className) {
+function createClass(email, className, unit, grade, subject, room, color) {
   if (!email || !className) return "⚠️ 缺少班級名稱";
   const code = generateUniqueClassCode();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  ss.getSheetByName(S.CLASSES).appendRow([code, className, email, new Date()]);
+  ss.getSheetByName(S.CLASSES).appendRow([code, className, email, new Date(), unit || '', grade || '', subject || '', room || '', color || '']);
   ss.getSheetByName(S.CLASS_MEMBERS).appendRow([code, email, 'owner']);
   return code;
 }
@@ -84,11 +87,20 @@ function loadMyClasses(email) {
   if (!email) return [];
   const members = readSheet(S.CLASS_MEMBERS, 3);
   const rows = members.filter(r => String(r[1]).toLowerCase() === email.toLowerCase());
-  const classes = readSheet(S.CLASSES, 4);
+  const classes = readSheet(S.CLASSES, 9);
   return rows.map(r => {
     const code = String(r[0]);
     const cls = classes.find(c => String(c[0]) === code);
-    return { classCode: code, className: cls ? String(cls[1]) : code, role: String(r[2]) };
+    return {
+      classCode: code,
+      className: cls ? String(cls[1]) : code,
+      role: String(r[2]),
+      unit: cls ? String(cls[4]) : '',
+      grade: cls ? String(cls[5]) : '',
+      subject: cls ? String(cls[6]) : '',
+      room: cls ? String(cls[7]) : '',
+      color: cls ? String(cls[8]) : ''
+    };
   });
 }
 
@@ -120,6 +132,14 @@ function doGet(e) {
     }
     if (p.action === 'getClassMembers' && p.classCode && p.email) {
       return ContentService.createTextOutput(p.callback + "(" + JSON.stringify(loadClassMembers(p.classCode, p.email)) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
+    if (p.action === 'getMaterials' && p.classCode) {
+      const materials = readSheet(S.MATERIALS, 11).filter(r => String(r[2]) === p.classCode).map((r,i) => ({
+        row: i+2, timestamp: String(r[0]), userEmail: String(r[1]), classCode: String(r[2]),
+        title: String(r[3]), type: String(r[4]), url: String(r[5]), content: String(r[6]),
+        author: String(r[7]), source: String(r[8]), license: String(r[9]), tags: String(r[10])
+      }));
+      return ContentService.createTextOutput(p.callback + "(" + JSON.stringify({ materials }) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
     }
     const data = buildData(p.email, p.activeClass);
     return ContentService.createTextOutput(p.callback + "(" + JSON.stringify(data) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
@@ -180,7 +200,7 @@ function processAction(p) {
     } else if (p.action === "saveFeedback") {
       ss.getSheetByName(S.AIFeedback).appendRow([new Date(), u, p.convId, p.msgId, p.emoji, p.classCode || ""]); msg = "ok";
     } else if (p.action === "createClass") {
-      msg = createClass(u, p.className);
+      msg = createClass(u, p.className, p.unit, p.grade, p.subject, p.room, p.color);
     } else if (p.action === "joinClass") {
       msg = joinClass(u, p.classCode);
     } else if (p.action === "getMyClasses") {
@@ -190,6 +210,16 @@ function processAction(p) {
     } else if (p.action === "deleteConversation") {
       const sh = ss.getSheetByName(S.CONVERSATIONS); const rows = sh.getDataRange().getValues();
       for (let i = rows.length - 1; i >= 0; i--) { if (String(rows[i][1]) === u && String(rows[i][2]) === p.convId) { sh.deleteRow(i + 1); } }
+      msg = "ok";
+    } else if (p.action === "addMaterial") {
+      ss.getSheetByName(S.MATERIALS).appendRow([new Date(), u, p.classCode || '', p.title || '', p.type || 'url', p.url || '', p.content || '', p.author || '', p.source || '', p.license || '', p.tags || '']);
+      msg = "✅ 已新增素材";
+    } else if (p.action === "deleteMaterial") {
+      const sh = ss.getSheetByName(S.MATERIALS); const rows = sh.getDataRange().getValues();
+      for (let i = rows.length - 1; i >= 0; i--) { if (Number(rows[i][0]) === Number(p.row) && String(rows[i][1]) === u) { sh.deleteRow(i + 1); break; } }
+      msg = "✅ 已刪除素材";
+    } else if (p.action === "saveInquiryRecord") {
+      ss.getSheetByName(S.INQUIRY_RECORDS).appendRow([new Date(), u, p.classCode || '', p.convId || '', p.eventId || '', p.questions || '', p.summary || '', p.score || '']);
       msg = "ok";
     } else { msg = "⚠️ 未知操作"; }
   } catch(err) { msg = "❌ " + err.message; }

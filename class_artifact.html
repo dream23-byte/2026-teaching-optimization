@@ -346,11 +346,21 @@
                     </div>
                 </div>
 
-                <!-- Tabs + Sort -->
+                <!-- 4 Tabs：訊息串/素材庫/探究紀錄/成員 -->
                 <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
                     <div class="flex gap-1 bg-panel rounded-lg p-1 border border-gray-800">
-                        <button id="tab-public" class="tab-btn px-4 py-2 rounded-md text-sm font-bold bg-primary text-dark">🌐 公共區域</button>
-                        <button id="tab-personal" class="tab-btn px-4 py-2 rounded-md text-sm font-bold text-gray-400 hover:text-white">👤 個人區域</button>
+                        <button id="tab-threads" onclick="switchSalonTab('threads')" class="tab-btn px-4 py-2 rounded-md text-sm font-bold bg-primary text-dark">
+                            <i class="fa-solid fa-comments mr-1"></i>訊息串
+                        </button>
+                        <button id="tab-materials" onclick="switchSalonTab('materials')" class="tab-btn px-4 py-2 rounded-md text-sm font-bold text-gray-400 hover:text-white">
+                            <i class="fa-solid fa-folder-open mr-1"></i>素材庫
+                        </button>
+                        <button id="tab-inquiry" onclick="switchSalonTab('inquiry')" class="tab-btn px-4 py-2 rounded-md text-sm font-bold text-gray-400 hover:text-white">
+                            <i class="fa-solid fa-magnifying-glass mr-1"></i>探究紀錄
+                        </button>
+                        <button id="tab-members" onclick="switchSalonTab('members')" class="tab-btn px-4 py-2 rounded-md text-sm font-bold text-gray-400 hover:text-white">
+                            <i class="fa-solid fa-users mr-1"></i>成員
+                        </button>
                     </div>
                     <div id="sort-bar" class="flex gap-2 items-center">
                         <span class="text-xs text-gray-500">排序：</span>
@@ -359,8 +369,43 @@
                     </div>
                 </div>
 
-                <!-- Forum Grid -->
-                <div id="forum-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10"></div>
+                <!-- Tab Content: 訊息串 -->
+                <div id="salon-tab-threads" class="salon-tab-content">
+                    <div id="forum-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10"></div>
+                </div>
+
+                <!-- Tab Content: 素材庫 -->
+                <div id="salon-tab-materials" class="salon-tab-content hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-200">班級素材庫</h3>
+                        <button onclick="showAddMaterialModal()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-4 py-2 rounded-lg text-sm transition">
+                            <i class="fa-solid fa-plus mr-1"></i>新增素材
+                        </button>
+                    </div>
+                    <div id="materials-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10">
+                        <p class="text-gray-500 text-sm col-span-full text-center py-8">尚無素材</p>
+                    </div>
+                </div>
+
+                <!-- Tab Content: 探究紀錄 -->
+                <div id="salon-tab-inquiry" class="salon-tab-content hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-200">探究紀錄</h3>
+                    </div>
+                    <div id="inquiry-list" class="space-y-4 pb-10">
+                        <p class="text-gray-500 text-sm text-center py-8">尚無探究紀錄</p>
+                    </div>
+                </div>
+
+                <!-- Tab Content: 成員 -->
+                <div id="salon-tab-members" class="salon-tab-content hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-200">班級成員</h3>
+                    </div>
+                    <div id="members-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-10">
+                        <p class="text-gray-500 text-sm text-center py-8">請先選擇班級</p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -465,7 +510,7 @@
 
     <!-- 加入/建立班級 Modal -->
     <div id="join-class-modal" class="fixed inset-0 modal-bg hidden items-center justify-center z-[9995] px-4">
-        <div class="bg-panel border border-gray-700 rounded-xl max-w-md w-full shadow-2xl relative flex flex-col p-6">
+        <div class="bg-panel border border-gray-700 rounded-xl max-w-md w-full shadow-2xl relative flex flex-col p-6" style="max-height:90vh;overflow-y:auto;">
             <button onclick="closeModal('join-class-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="text-2xl font-bold text-primary mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-door-open mr-2"></i> 加入班級</h2>
             <label class="text-sm text-gray-400 mb-1">輸入教師提供的班級代碼</label>
@@ -473,11 +518,84 @@
             <p class="text-[11px] text-gray-500 mb-4">6 位英文數字代碼（不含易混淆字符）</p>
             <button onclick="doJoinClass()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-6 py-3 rounded-lg transition shadow-lg w-full">加入班級</button>
             <div class="flex items-center gap-3 my-3"><div class="flex-1 h-px bg-gray-700"></div><span class="text-xs text-gray-500">或</span><div class="flex-1 h-px bg-gray-700"></div></div>
-            <div id="create-class-form" class="space-y-2">
+            <div id="create-class-form" class="space-y-3">
                 <label class="text-sm text-gray-400 mb-1">建立新班級（教師用）</label>
                 <input type="text" id="create-class-name" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary shadow-inner" placeholder="例如：高一仁歷史探究">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] text-gray-500 mb-1 block">單元</label>
+                        <input type="text" id="create-class-unit" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-primary shadow-inner" placeholder="例如：冷戰時期">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-gray-500 mb-1 block">年級</label>
+                        <select id="create-class-grade" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-primary shadow-inner">
+                            <option value="">請選擇</option>
+                            <option value="G7">國一</option>
+                            <option value="G8">國二</option>
+                            <option value="G9">國三</option>
+                            <option value="G10">高一</option>
+                            <option value="G11">高二</option>
+                            <option value="G12">高三</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-gray-500 mb-1 block">科目</label>
+                        <input type="text" id="create-class-subject" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-primary shadow-inner" placeholder="例如：歷史">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-gray-500 mb-1 block">教室</label>
+                        <input type="text" id="create-class-room" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-primary shadow-inner" placeholder="例如：博雅樓301">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] text-gray-500 mb-1 block">班級顏色</label>
+                    <div class="flex gap-2 flex-wrap" id="class-color-picker">
+                        <button type="button" onclick="selectClassColor('#4285F4')" class="w-7 h-7 rounded-full border-2 border-transparent hover:border-white transition" style="background:#4285F4;"></button>
+                        <button type="button" onclick="selectClassColor('#EA4335')" class="w-7 h-7 rounded-full border-2 border-transparent hover:border-white transition" style="background:#EA4335;"></button>
+                        <button type="button" onclick="selectClassColor('#FBBC05')" class="w-7 h-7 rounded-full border-2 border-transparent hover:border-white transition" style="background:#FBBC05;"></button>
+                        <button type="button" onclick="selectClassColor('#34A853')" class="w-7 h-7 rounded-full border-2 border-transparent hover:border-white transition" style="background:#34A853;"></button>
+                        <button type="button" onclick="selectClassColor('#9C27B0')" class="w-7 h-7 rounded-full border-2 border-transparent hover:border-white transition" style="background:#9C27B0;"></button>
+                        <button type="button" onclick="selectClassColor('#FF9800')" class="w-7 h-7 rounded-full border-2 border-transparent hover:border-white transition" style="background:#FF9800;"></button>
+                        <button type="button" onclick="selectClassColor('#00BCD4')" class="w-7 h-7 rounded-full border-2 border-transparent hover:border-white transition" style="background:#00BCD4;"></button>
+                        <button type="button" onclick="selectClassColor('#E91E63')" class="w-7 h-7 rounded-full border-2 border-transparent hover:border-white transition" style="background:#E91E63;"></button>
+                        <button type="button" onclick="selectClassColor('#795548')" class="w-7 h-7 rounded-full border-2 border-transparent hover:border-white transition" style="background:#795548;"></button>
+                        <button type="button" onclick="selectClassColor('#607D8B')" class="w-7 h-7 rounded-full border-2 border-transparent hover:border-white transition" style="background:#607D8B;"></button>
+                    </div>
+                    <input type="hidden" id="create-class-color" value="#4285F4">
+                </div>
                 <button onclick="doCreateClass()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-lg transition shadow-lg w-full mt-1">建立班級，取得代碼</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 新增素材 Modal -->
+    <div id="add-material-modal" class="fixed inset-0 modal-bg hidden items-center justify-center z-[9995] px-4">
+        <div class="bg-panel border border-gray-700 rounded-xl max-w-md w-full shadow-2xl relative flex flex-col p-6">
+            <button onclick="closeModal('add-material-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-primary mb-4 border-b border-gray-800 pb-2"><i class="fa-solid fa-folder-plus mr-2"></i> 新增素材</h2>
+            <label class="text-sm text-gray-400 mb-1">素材標題 *</label>
+            <input type="text" id="material-title" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-3 shadow-inner" placeholder="例如：冷戰時期海報">
+            <label class="text-sm text-gray-400 mb-1">素材類型</label>
+            <select id="material-type" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-3 shadow-inner">
+                <option value="url">網頁連結</option>
+                <option value="text">文字內容</option>
+                <option value="image">圖片</option>
+            </select>
+            <label class="text-sm text-gray-400 mb-1">網址</label>
+            <input type="url" id="material-url" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-3 shadow-inner" placeholder="https://...">
+            <label class="text-sm text-gray-400 mb-1">文字內容</label>
+            <textarea id="material-content" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary resize-none mb-3 shadow-inner" placeholder="貼上文字內容..."></textarea>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="text-[11px] text-gray-500 mb-1 block">出處</label>
+                    <input type="text" id="material-source" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-primary shadow-inner" placeholder="例如：維基共享">
+                </div>
+                <div>
+                    <label class="text-[11px] text-gray-500 mb-1 block">授權</label>
+                    <input type="text" id="material-license" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-primary shadow-inner" placeholder="例如：CC-BY-SA">
+                </div>
+            </div>
+            <button onclick="doAddMaterial()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-6 py-3 rounded-lg transition shadow-lg w-full">新增素材</button>
         </div>
     </div>
 
@@ -2323,11 +2441,42 @@
         // ─── 我的班級（Class 版）─────────────────────
         var myClasses = [];
         var activeClassCode = '';
+        // 隨機色板 8-10 組（Google Classroom 風格）
+        var classColors = [
+            '#4285F4', // 藍色
+            '#EA4335', // 紅色
+            '#FBBC05', // 黃色
+            '#34A853', // 綠色
+            '#9C27B0', // 紫色
+            '#FF9800', // 橘色
+            '#00BCD4', // 青色
+            '#E91E63', // 粉紅色
+            '#795548', // 棕色
+            '#607D8B'  // 灰藍色
+        ];
+        function getClassColor(classCode) {
+            if (!classCode) return classColors[0];
+            var hash = 0;
+            for (var i = 0; i < classCode.length; i++) {
+                hash = ((hash << 5) - hash) + classCode.charCodeAt(i);
+                hash = hash & hash;
+            }
+            return classColors[Math.abs(hash) % classColors.length];
+        }
 
         function showJoinClassModal() {
             if (!googleUser) { showToast('⚠️ 請先登入 Google'); return; }
             document.getElementById('join-class-code').value = '';
             document.getElementById('create-class-name').value = '';
+            document.getElementById('create-class-unit').value = '';
+            document.getElementById('create-class-grade').value = '';
+            document.getElementById('create-class-subject').value = '';
+            document.getElementById('create-class-room').value = '';
+            document.getElementById('create-class-color').value = '#4285F4';
+            document.querySelectorAll('#class-color-picker button').forEach(function(btn, i) {
+                btn.classList.toggle('border-white', i === 0);
+                btn.classList.toggle('border-transparent', i !== 0);
+            });
             openModal('join-class-modal');
         }
         function openModal(id) {
@@ -2347,9 +2496,23 @@
             if (!googleUser) { showToast('⚠️ 請先登入'); return; }
             var name = (document.getElementById('create-class-name').value || '').trim();
             if (!name) { showToast('⚠️ 請輸入班級名稱'); return; }
-            writeToGAS({ action:'createClass', className:name, userEmail:googleUser.email })
+            var unit = (document.getElementById('create-class-unit').value || '').trim();
+            var grade = document.getElementById('create-class-grade').value || '';
+            var subject = (document.getElementById('create-class-subject').value || '').trim();
+            var room = (document.getElementById('create-class-room').value || '').trim();
+            var color = document.getElementById('create-class-color').value || '#4285F4';
+            writeToGAS({ action:'createClass', className:name, userEmail:googleUser.email, unit:unit, grade:grade, subject:subject, room:room, color:color })
                 .then(function(m) { showToast(m); closeModal('join-class-modal'); refreshMyClasses(); })
                 .catch(function() { showToast('❌ 建立失敗'); });
+        }
+        function selectClassColor(color) {
+            document.getElementById('create-class-color').value = color;
+            document.querySelectorAll('#class-color-picker button').forEach(function(btn) {
+                btn.classList.remove('border-white');
+                btn.classList.add('border-transparent');
+            });
+            event.target.classList.remove('border-transparent');
+            event.target.classList.add('border-white');
         }
         async function refreshMyClasses() {
             var list = document.getElementById('my-classes-list');
@@ -2360,14 +2523,18 @@
                 var res = await loadActionJSONP({ action:'getMyClasses', email:googleUser.email });
                 myClasses = res.myClasses || [];
                 if (myClasses.length === 0) { list.innerHTML = '<p class="text-[11px] text-gray-500">尚未加入任何班級。<button onclick="showJoinClassModal()" class="text-primary hover:text-yellow-400">點此加入</button></p>'; return; }
-                list.innerHTML = myClasses.map(c =>
-                    '<button onclick="setActiveClass(\'' + c.classCode + '\')" class="w-full text-left text-[11px] px-2 py-1.5 rounded-lg border transition ' +
-                    (activeClassCode === c.classCode ? 'border-primary bg-gray-700 text-primary' : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-500') +
-                    '" title="' + escapeHtml(c.className) + '">' +
-                    '<span class="font-bold">' + escapeHtml(c.className) + '</span>' +
-                    '<span class="text-[9px] text-gray-500 block">代碼：' + c.classCode + (c.role === 'owner' ? ' · 👨‍🏫教師' : '') + '</span>' +
-                    '</button>'
-                ).join('');
+                list.innerHTML = myClasses.map(function(c) {
+                    var bgColor = c.color || getClassColor(c.classCode);
+                    var isActive = activeClassCode === c.classCode;
+                    return '<button onclick="setActiveClass(\'' + c.classCode + '\')" class="w-full text-left text-[11px] px-2 py-1.5 rounded-lg border transition ' +
+                        (isActive ? 'border-white' : 'border-gray-700 hover:border-gray-500') + '" style="background:' + (isActive ? bgColor : '#1f2937') + ';">' +
+                        '<div class="flex items-center gap-2">' +
+                        '<div class="w-2 h-2 rounded-full shrink-0" style="background:' + bgColor + ';"></div>' +
+                        '<span class="font-bold ' + (isActive ? 'text-white' : 'text-gray-300') + '">' + escapeHtml(c.className) + '</span>' +
+                        '</div>' +
+                        '<span class="text-[9px] ' + (isActive ? 'text-gray-200' : 'text-gray-500') + ' block ml-4">代碼：' + c.classCode + (c.role === 'owner' ? ' · 👨‍🏫教師' : '') + '</span>' +
+                        '</button>';
+                }).join('');
                 updateTeacherUI();
             } catch(e) { list.innerHTML = '<p class="text-[11px] text-gray-500">載入失敗</p>'; }
         }
@@ -2380,6 +2547,119 @@
         function updateTeacherUI() {
             var eb = document.getElementById('btn-export-chat');
             if (eb) eb.style.display = isCurrentUserTeacher() ? '' : 'none';
+        }
+
+        // ─── 沙龍 Tab 切換 ─────────────────────────
+        var currentSalonTab = 'threads';
+        function switchSalonTab(tab) {
+            currentSalonTab = tab;
+            document.querySelectorAll('.salon-tab-content').forEach(function(el) { el.classList.add('hidden'); });
+            document.getElementById('salon-tab-' + tab).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.remove('bg-primary', 'text-dark');
+                btn.classList.add('text-gray-400');
+            });
+            var activeBtn = document.getElementById('tab-' + tab);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-primary', 'text-dark');
+                activeBtn.classList.remove('text-gray-400');
+            }
+            if (tab === 'materials') loadMaterials();
+            if (tab === 'members') loadClassMembers();
+            if (tab === 'inquiry') loadInquiryRecords();
+        }
+
+        // ─── 素材庫 ─────────────────────────────
+        var classMaterials = [];
+        async function loadMaterials() {
+            if (!activeClassCode) return;
+            try {
+                var res = await loadActionJSONP({ action:'getMaterials', classCode: activeClassCode });
+                classMaterials = res.materials || [];
+                renderMaterials();
+            } catch(e) { console.warn('Load materials failed:', e); }
+        }
+        function renderMaterials() {
+            var grid = document.getElementById('materials-grid');
+            if (!grid) return;
+            if (classMaterials.length === 0) {
+                grid.innerHTML = '<p class="text-gray-500 text-sm col-span-full text-center py-8">尚無素材</p>';
+                return;
+            }
+            grid.innerHTML = classMaterials.map(function(m) {
+                var typeIcon = m.type === 'url' ? 'fa-link' : m.type === 'image' ? 'fa-image' : 'fa-file-alt';
+                return '<div class="bg-panel border border-gray-700 rounded-lg p-4 hover:border-primary transition">' +
+                    '<div class="flex items-start gap-3">' +
+                    '<div class="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center shrink-0"><i class="fa-solid ' + typeIcon + ' text-primary"></i></div>' +
+                    '<div class="flex-1 min-w-0">' +
+                    '<h4 class="font-bold text-gray-200 truncate">' + escapeHtml(m.title) + '</h4>' +
+                    '<p class="text-xs text-gray-500 truncate">' + escapeHtml(m.content || m.url || '') + '</p>' +
+                    '<div class="flex items-center gap-2 mt-2">' +
+                    '<span class="text-[10px] text-gray-600">' + escapeHtml(m.author || '匿名') + '</span>' +
+                    '<span class="text-[10px] text-gray-600">' + (m.timestamp ? m.timestamp.slice(0,10) : '') + '</span>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+        }
+        function showAddMaterialModal() {
+            if (!googleUser) { showToast('⚠️ 請先登入'); return; }
+            if (!activeClassCode) { showToast('⚠️ 請先選擇班級'); return; }
+            document.getElementById('material-title').value = '';
+            document.getElementById('material-url').value = '';
+            document.getElementById('material-content').value = '';
+            document.getElementById('material-source').value = '';
+            document.getElementById('material-license').value = '';
+            openModal('add-material-modal');
+        }
+        function doAddMaterial() {
+            var title = (document.getElementById('material-title').value || '').trim();
+            var type = document.getElementById('material-type').value;
+            var url = (document.getElementById('material-url').value || '').trim();
+            var content = (document.getElementById('material-content').value || '').trim();
+            var source = (document.getElementById('material-source').value || '').trim();
+            var license = (document.getElementById('material-license').value || '').trim();
+            if (!title) { showToast('⚠️ 請輸入素材標題'); return; }
+            writeToGAS({ action:'addMaterial', classCode:activeClassCode, userEmail:googleUser.email, title:title, type:type, url:url, content:content, author:googleUser.displayName || googleUser.email, source:source, license:license })
+                .then(function() { showToast('✅ 已新增素材'); closeModal('add-material-modal'); loadMaterials(); });
+        }
+
+        // ─── 成員列表 ─────────────────────────────
+        async function loadClassMembers() {
+            if (!activeClassCode || !isCurrentUserTeacher()) return;
+            var list = document.getElementById('members-list');
+            if (!list) return;
+            list.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">載入中...</p>';
+            try {
+                var res = await loadActionJSONP({ action:'getClassMembers', classCode: activeClassCode, email: googleUser.email });
+                if (res.error) { list.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">' + res.error + '</p>'; return; }
+                var members = res.members || [];
+                if (members.length === 0) {
+                    list.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">尚無成員</p>';
+                    return;
+                }
+                list.innerHTML = members.map(function(m) {
+                    var roleLabel = m.role === 'owner' ? '👨‍🏫 教師' : m.role === 'super-admin' ? '⭐ 管理員' : '👤 學生';
+                    return '<div class="bg-panel border border-gray-700 rounded-lg p-3 flex items-center gap-3">' +
+                        '<div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-sm">' + (m.role === 'owner' ? '👨‍🏫' : '👤') + '</div>' +
+                        '<div class="flex-1">' +
+                        '<div class="text-sm text-gray-200">' + escapeHtml(m.email) + '</div>' +
+                        '<div class="text-[10px] text-gray-500">' + roleLabel + '</div>' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+            } catch(e) { list.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">載入失敗</p>'; }
+        }
+
+        // ─── 探究紀錄 ─────────────────────────────
+        async function loadInquiryRecords() {
+            if (!activeClassCode) return;
+            var list = document.getElementById('inquiry-list');
+            if (!list) return;
+            list.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">載入中...</p>';
+            // TODO: 從 GAS 載入探究紀錄
+            list.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">尚無探究紀錄</p>';
         }
 
         // ─── 資料載入（JSONP）─────────────────────
