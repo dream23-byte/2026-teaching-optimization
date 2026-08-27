@@ -221,6 +221,8 @@ function processAction(p) {
     } else if (p.action === "saveInquiryRecord") {
       ss.getSheetByName(S.INQUIRY_RECORDS).appendRow([new Date(), u, p.classCode || '', p.convId || '', p.eventId || '', p.questions || '', p.summary || '', p.score || '']);
       msg = "ok";
+    } else if (p.action === "getClassConversations") {
+      msg = JSON.stringify({ conversations: loadClassConversations(p.classCode, u) });
     } else { msg = "⚠️ 未知操作"; }
   } catch(err) { msg = "❌ " + err.message; }
   return msg;
@@ -243,6 +245,17 @@ function loadConversations(email) {
     if (visibleClasses.has(r.classCode)) return true;
     return false;
   });
+}
+
+// 載入班級的所有對話紀錄（教師/管理員用）
+function loadClassConversations(classCode, email) {
+  if (!classCode || !email) return [];
+  const role = getUserClassRole(email, classCode);
+  if (role !== 'owner' && role !== 'super-admin') return [];
+  const all = readSheet(S.CONVERSATIONS, 7).map(r => ({
+    timestamp: String(r[0]), userEmail: String(r[1]), convId: String(r[2]), role: String(r[3]), message: String(r[4]), personaKey: String(r[5]), classCode: String(r[6] || '')
+  }));
+  return all.filter(r => String(r.classCode) === classCode);
 }
 
 function readSheet(name, cols) {

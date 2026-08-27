@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Google Identity Services (with auto-init) -->
     <script>
         window.gisReady = new Promise(function(resolve) {
@@ -391,7 +393,39 @@
                 <div id="salon-tab-inquiry" class="salon-tab-content hidden">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-bold text-gray-200">探究紀錄</h3>
+                        <div class="flex gap-2">
+                            <button onclick="exportClassDiscussion()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-lg text-sm transition">
+                                <i class="fa-solid fa-download mr-1"></i>匯出討論
+                            </button>
+                            <button onclick="generateClassSummary()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-4 py-2 rounded-lg text-sm transition">
+                                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>AI 學習分析
+                            </button>
+                        </div>
                     </div>
+                    <div id="ai-summary-panel" class="hidden bg-panel border border-gray-700 rounded-lg p-4 mb-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-robot text-primary"></i>
+                            <span class="font-bold text-gray-200">AI 學習分析報告</span>
+                        </div>
+                        <div id="ai-summary-content" class="text-sm text-gray-300 whitespace-pre-wrap">載入中...</div>
+                    </div>
+
+                    <!-- 統計圖表區塊 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-panel border border-gray-700 rounded-lg p-4">
+                            <h4 class="text-sm font-bold text-gray-300 mb-3"><i class="fa-solid fa-chart-bar mr-2 text-primary"></i>發問次數統計</h4>
+                            <canvas id="chart-questions" height="200"></canvas>
+                        </div>
+                        <div class="bg-panel border border-gray-700 rounded-lg p-4">
+                            <h4 class="text-sm font-bold text-gray-300 mb-3"><i class="fa-solid fa-chart-pie mr-2 text-primary"></i>主題分佈</h4>
+                            <canvas id="chart-topics" height="200"></canvas>
+                        </div>
+                        <div class="bg-panel border border-gray-700 rounded-lg p-4 md:col-span-2">
+                            <h4 class="text-sm font-bold text-gray-300 mb-3"><i class="fa-solid fa-chart-line mr-2 text-primary"></i>活躍度趨勢</h4>
+                            <canvas id="chart-activity" height="150"></canvas>
+                        </div>
+                    </div>
+
                     <div id="inquiry-list" class="space-y-4 pb-10">
                         <p class="text-gray-500 text-sm text-center py-8">尚無探究紀錄</p>
                     </div>
@@ -1795,7 +1829,13 @@
 - 不要自己回答自己的問題
 - 不要產出超過 150 字
 
-【爭議議題】對於有爭議的歷史議題，呈現多方觀點而非單一立場` },
+【爭議議題】對於有爭議的歷史議題，呈現多方觀點而非單一立場
+
+【安全規範】
+- 絕對不生成暴力、色情、歧視、仇恨等不當內容
+- 不提供任何危險物品、武器、毒品等相關資訊
+- 不參與任何可能造成傷害的對話
+- 若學生詢問不當問題，禮貌地引導回歷史探究主題` },
             'roleplay': { name: '歷史關鍵人物扮演', systemPrompt: `你是一個歷史角色扮演專家。根據使用者傳入的歷史事件，自動切換成當時最關鍵的統治者、領袖或歷史人物。
 
 【角色扮演原則】
@@ -1813,7 +1853,13 @@
 【禁止事項】
 - 不要用表格、條列式呈現
 - 不要跳出角色做客觀分析
-- 不要回答與歷史無關的問題` },
+- 不要回答與歷史無關的問題
+
+【安全規範】
+- 絕對不生成暴力、色情、歧視、仇恨等不當內容
+- 不提供任何危險物品、武器、毒品等相關資訊
+- 不參與任何可能造成傷害的對話
+- 若學生詢問不當問題，禮貌地引導回歷史探究主題` },
             'comparative': { name: '跨文明比較分析', systemPrompt: `你是一位擅長跨文明比較的歷史導師。你的任務不是整理資訊，而是幫學生「看见差異背後的原因」。
 
 【你的風格】
@@ -1832,7 +1878,13 @@
 - 不要產出超過 200 字
 - 不要產出「為什麼走上不同道路？」這種步驟式標題
 
-【爭議議題】避免歐洲中心論或中國中心論，保持平衡視角` }
+【爭議議題】避免歐洲中心論或中國中心論，保持平衡視角
+
+【安全規範】
+- 絕對不生成暴力、色情、歧視、仇恨等不當內容
+- 不提供任何危險物品、武器、毒品等相關資訊
+- 不參與任何可能造成傷害的對話
+- 若學生詢問不當問題，禮貌地引導回歷史探究主題` }
         };
 
         function setAIPersona(personaKey, isInit = false) {
@@ -1880,6 +1932,39 @@
             a.href = url; a.download = '歷史探究對話_' + new Date().toISOString().slice(0,10) + '.txt';
             a.click(); URL.revokeObjectURL(url);
             showToast('✅ 已匯出對話紀錄');
+        }
+
+        // 匯出班級討論（教師專用）
+        async function exportClassDiscussion() {
+            if (!activeClassCode) { showToast('⚠️ 請先選擇班級'); return; }
+            if (!isCurrentUserTeacher()) { showToast('⚠️ 僅教師可使用'); return; }
+
+            try {
+                var res = await loadActionJSONP({ action:'getClassConversations', classCode: activeClassCode, email: googleUser.email });
+                var conversations = res.conversations || [];
+                if (conversations.length === 0) { showToast('⚠️ 該班級尚無對話紀錄'); return; }
+
+                var currentClass = myClasses.find(function(c) { return c.classCode === activeClassCode; });
+                var className = currentClass ? currentClass.className : activeClassCode;
+
+                var header = '# ' + className + ' 班級討論紀錄\n';
+                header += '# 匯出時間: ' + new Date().toLocaleString('zh-TW') + '\n';
+                header += '# 匯出教師: ' + (googleUser.displayName || googleUser.email) + '\n\n';
+
+                var messages = conversations.map(function(c) {
+                    var time = c.timestamp ? c.timestamp.slice(0, 19).replace('T', ' ') : '';
+                    var role = c.role === 'ai' ? '【AI】' : '【學生】';
+                    var user = c.userEmail || '未知';
+                    return '[' + time + '] ' + role + ' ' + user + ':\n' + c.message;
+                }).join('\n\n');
+
+                var blob = new Blob([header + messages], { type: 'text/plain;charset=utf-8' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url; a.download = className + '_班級討論_' + new Date().toISOString().slice(0,10) + '.txt';
+                a.click(); URL.revokeObjectURL(url);
+                showToast('✅ 已匯出班級討論紀錄');
+            } catch(e) { showToast('❌ 匯出失敗: ' + e.message); }
         }
 
         function buildEventContext(ev) {
@@ -2097,11 +2182,37 @@
             }
         }
 
+        // 內容安全過濾
+        function filterInappropriateContent(text) {
+            if (!text) return text;
+            // 不當內容關鍵字（教育用途過濾）
+            var blockedPatterns = [
+                /自[殺剎]方法/i, /如何製作[炸毒]彈/i, /購買[槍武]器/i,
+                /色情|裸露|性愛/i, /歧視|仇恨|種族/i, /暴力教學|傷害他人/i,
+                /毒品|吸[食毒]|製[毒毒]品/i
+            ];
+            for (var i = 0; i < blockedPatterns.length; i++) {
+                if (blockedPatterns[i].test(text)) {
+                    return '⚠️ 此內容已被安全過濾。請回到歷史探究主題。';
+                }
+            }
+            return text;
+        }
+
         async function sendAIMessage() {
             if (!currentPersona) return;
             const inputEl = document.getElementById('ai-input');
             const text = inputEl.value.trim();
             if (!text) return;
+
+            // 用戶端內容審查過濾
+            var filteredUserText = filterInappropriateContent(text);
+            if (filteredUserText.includes('已被安全過濾')) {
+                appendMessage('User', text);
+                inputEl.value = '';
+                appendMessage('AI', '⚠️ 偵測到不當內容，本系統僅限歷史探究與學術討論使用。');
+                return;
+            }
 
             appendMessage('User', text);
             inputEl.value = '';
@@ -2117,7 +2228,8 @@
             document.getElementById('ai-loading').classList.remove('hidden');
             try {
                 const prompt = `目前的對話紀錄：\n${conversationContext}\n\n請根據你的角色設定，接續上述對話給予自然、深刻且口語化的回應。切勿使用死板的模板，請針對 User 的最新提問或回答進行針對性的互動與延伸。`;
-                const aiResponse = await fetchGeminiWithRetry(prompt, currentPersona.systemPrompt);
+                let aiResponse = await fetchGeminiWithRetry(prompt, currentPersona.systemPrompt);
+                aiResponse = filterInappropriateContent(aiResponse);
                 document.getElementById('ai-loading').classList.add('hidden');
                 appendMessage('AI', aiResponse);
                 aiChatHistory.push(`AI: ${aiResponse}`);
@@ -2566,7 +2678,7 @@
             }
             if (tab === 'materials') loadMaterials();
             if (tab === 'members') loadClassMembers();
-            if (tab === 'inquiry') loadInquiryRecords();
+            if (tab === 'inquiry') { loadInquiryRecords(); updateClassCharts(); }
         }
 
         // ─── 素材庫 ─────────────────────────────
@@ -2660,6 +2772,109 @@
             list.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">載入中...</p>';
             // TODO: 從 GAS 載入探究紀錄
             list.innerHTML = '<p class="text-gray-500 text-sm text-center py-8">尚無探究紀錄</p>';
+        }
+
+        // ─── AI 學習分析 ─────────────────────────
+        async function generateClassSummary() {
+            if (!activeClassCode) { showToast('⚠️ 請先選擇班級'); return; }
+            if (!isCurrentUserTeacher()) { showToast('⚠️ 僅教師可使用'); return; }
+            if (!apiKey) { showToast('⚠️ 請先設定 API Key'); return; }
+
+            var panel = document.getElementById('ai-summary-panel');
+            var content = document.getElementById('ai-summary-content');
+            panel.classList.remove('hidden');
+            content.innerHTML = '<span class="animate-pulse">正在分析班級對話紀錄...</span>';
+
+            try {
+                var res = await loadActionJSONP({ action:'getClassConversations', classCode: activeClassCode, email: googleUser.email });
+                var conversations = res.conversations || [];
+                if (conversations.length === 0) {
+                    content.innerHTML = '尚無對話紀錄可供分析。';
+                    return;
+                }
+
+                var chatText = conversations.map(function(c) {
+                    var role = c.role === 'ai' ? 'AI' : '學生';
+                    return role + ' (' + c.userEmail + '): ' + c.message;
+                }).join('\n');
+
+                var prompt = '你是一位教育分析專家。請分析以下班級的歷史探究對話紀錄，並提供學習分析報告。\n\n' +
+                    '班級對話紀錄：\n' + chatText.slice(0, 8000) + '\n\n' +
+                    '請提供以下分析（使用繁體中文）：\n' +
+                    '1. **學習概況**：學生參與度、提問質量、討論深度\n' +
+                    '2. **主題分佈**：學生最常討論的歷史主題\n' +
+                    '3. **偏題偵測**：是否有學生偏离歷史探究主題\n' +
+                    '4. **主題相關度**：學生討論與歷史主題的相關程度（1-10分）\n' +
+                    '5. **建議**：教師可以採取的教學建議\n' +
+                    '6. **需關注學生**：需要個別輔導的學生（如有）';
+
+                var systemPrompt = '你是一位專業的歷史教育分析師，擅長分析學生的學習行為並提供有價值的教學建議。請以客觀、專業的態度進行分析。';
+                var aiResponse = await fetchGeminiWithRetry(prompt, systemPrompt);
+                content.innerHTML = aiResponse;
+            } catch(e) {
+                content.innerHTML = '⚠️ 分析失敗：' + e.message;
+            }
+        }
+
+        // ─── 統計圖表 ─────────────────────────────
+        var chartQuestions, chartTopics, chartActivity;
+        async function updateClassCharts() {
+            if (!activeClassCode) return;
+            try {
+                var res = await loadActionJSONP({ action:'getClassConversations', classCode: activeClassCode, email: googleUser.email });
+                var conversations = res.conversations || [];
+                if (conversations.length === 0) return;
+
+                // 統計發問次數（依學生）
+                var studentQuestions = {};
+                conversations.forEach(function(c) {
+                    if (c.role !== 'ai') {
+                        studentQuestions[c.userEmail] = (studentQuestions[c.userEmail] || 0) + 1;
+                    }
+                });
+                var qLabels = Object.keys(studentQuestions).map(function(e) { return e.split('@')[0]; });
+                var qData = Object.values(studentQuestions);
+
+                // 統計主題分佈（依 personaKey）
+                var topicCount = {};
+                conversations.forEach(function(c) {
+                    if (c.personaKey) {
+                        var topic = c.personaKey === 'socratic' ? '蘇格拉底' : c.personaKey === 'roleplay' ? '人物扮演' : '跨文明比較';
+                        topicCount[topic] = (topicCount[topic] || 0) + 1;
+                    }
+                });
+                var tLabels = Object.keys(topicCount);
+                var tData = Object.values(topicCount);
+
+                // 統計活躍度趨勢（依日期）
+                var dailyCount = {};
+                conversations.forEach(function(c) {
+                    if (c.timestamp) {
+                        var date = c.timestamp.slice(0, 10);
+                        dailyCount[date] = (dailyCount[date] || 0) + 1;
+                    }
+                });
+                var aLabels = Object.keys(dailyCount).sort();
+                var aData = aLabels.map(function(d) { return dailyCount[d]; });
+
+                // 渲染圖表
+                var chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af', font: { size: 11 } } } }, scales: { x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#374151' } }, y: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#374151' } } } };
+                var pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 11 }, padding: 10 } } } };
+                var colors = ['#d4af37', '#4285F4', '#34A853', '#EA4335', '#FF9800', '#9C27B0'];
+
+                if (chartQuestions) chartQuestions.destroy();
+                chartQuestions = new Chart(document.getElementById('chart-questions'), {
+                    type: 'bar', data: { labels: qLabels, datasets: [{ label: '發問次數', data: qData, backgroundColor: '#d4af37' }] }, options: chartOptions
+                });
+                if (chartTopics) chartTopics.destroy();
+                chartTopics = new Chart(document.getElementById('chart-topics'), {
+                    type: 'doughnut', data: { labels: tLabels, datasets: [{ data: tData, backgroundColor: colors.slice(0, tLabels.length) }] }, options: pieOptions
+                });
+                if (chartActivity) chartActivity.destroy();
+                chartActivity = new Chart(document.getElementById('chart-activity'), {
+                    type: 'line', data: { labels: aLabels, datasets: [{ label: '發言數', data: aData, borderColor: '#d4af37', backgroundColor: 'rgba(212,175,55,0.2)', fill: true, tension: 0.3 }] }, options: chartOptions
+                });
+            } catch(e) { console.warn('Chart update failed:', e); }
         }
 
         // ─── 資料載入（JSONP）─────────────────────

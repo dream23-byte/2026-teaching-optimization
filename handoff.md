@@ -37,7 +37,7 @@
 - 東亞 polygon 來源：aourednik/historical-basemaps（CC0 授權）
 
 ## 🕐 最後更新
-2026-08-27 opencode @ ALYSSALGGRAM | Git push: 待執行
+2026-08-27 opencode @ ALYSSALGGRAM | Git push: ✅ 已推 (be6251c)
 
 ## 📝 備註
 - 本次開發完成班級系統核心功能，待 GAS 部署後測試
