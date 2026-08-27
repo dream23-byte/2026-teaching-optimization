@@ -539,7 +539,8 @@
                         lng: ev.longitude,
                         desc: ev.description,
                         effects: ev.ripple_effect ? (typeof ev.ripple_effect === 'string' ? ev.ripple_effect.replace(/^\{(.*)\}$/, '$1').split('|').map(s => s.trim()).filter(Boolean) : Array.isArray(ev.ripple_effect) ? ev.ripple_effect : [ev.ripple_effect]) : [],
-                        specialAction: ev.special_action || null
+                        specialAction: ev.special_action || null,
+                        keyFigures: ev.key_figures || null
                     }));
                     console.log('[Supabase] Loaded ' + historyDataFromDB.length + ' events');
                 }
@@ -1719,10 +1720,18 @@
             return ctx;
         }
 
+        function buildRoleplayContext(ev) {
+            var base = buildEventContext(ev);
+            if (ev.keyFigures) {
+                base += '\n【關鍵人物與抉擇】\n' + ev.keyFigures + '\n';
+            }
+            return base;
+        }
+
         function exploreInAI(mode) {
             if(!selectedEvent) { showToast('⚠️ 請先點選地圖事件'); return; }
             try {
-                const ctx = buildEventContext(selectedEvent);
+                const ctx = mode === 'roleplay' ? buildRoleplayContext(selectedEvent) : buildEventContext(selectedEvent);
                 closeEventPanel();
                 switchTab('ai-view');
                 setAIPersona(mode);
