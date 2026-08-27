@@ -84,7 +84,12 @@ function loadMyClasses(email) {
   if (!email) return [];
   const members = readSheet(S.CLASS_MEMBERS, 3);
   const rows = members.filter(r => String(r[1]).toLowerCase() === email.toLowerCase());
-  return rows.map(r => ({ classCode: String(r[0]), role: String(r[2]) }));
+  const classes = readSheet(S.CLASSES, 4);
+  return rows.map(r => {
+    const code = String(r[0]);
+    const cls = classes.find(c => String(c[0]) === code);
+    return { classCode: code, className: cls ? String(cls[1]) : code, role: String(r[2]) };
+  });
 }
 
 // 教師/管理員查詢某班級成員

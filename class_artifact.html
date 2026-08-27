@@ -287,7 +287,7 @@
                             <h3 class="text-xs font-bold text-gray-400 tracking-wide select-none">📋 對話紀錄</h3>
                         </div>
                         <button onclick="event.stopPropagation(); startNewConversation();" class="text-[11px] text-primary hover:text-yellow-400 transition">+ 新對話</button>
-                        <button onclick="exportChat()" class="text-[11px] text-gray-400 hover:text-white transition" title="匯出對話紀錄">📥 匯出</button>
+                        <button id="btn-export-chat" onclick="exportChat()" class="text-[11px] text-gray-400 hover:text-white transition hidden" title="匯出對話紀錄（教師專用）">📥 匯出</button>
                     </div>
                     <div id="conversation-list" class="space-y-1 max-h-[180px] overflow-y-auto custom-scrollbar pr-1 hidden"></div>
                 </div>                </div>
@@ -2364,12 +2364,22 @@
                     (activeClassCode === c.classCode ? 'border-primary bg-gray-700 text-primary' : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-500') +
                     '" title="' + escapeHtml(c.className) + '">' +
                     '<span class="font-bold">' + escapeHtml(c.className) + '</span>' +
-                    '<span class="text-[9px] text-gray-500 block">代碼：' + c.classCode + (c.role === 'teacher' ? ' · 👨‍🏫教師' : '') + '</span>' +
+                    '<span class="text-[9px] text-gray-500 block">代碼：' + c.classCode + (c.role === 'owner' ? ' · 👨‍🏫教師' : '') + '</span>' +
                     '</button>'
                 ).join('');
+                updateTeacherUI();
             } catch(e) { list.innerHTML = '<p class="text-[11px] text-gray-500">載入失敗</p>'; }
         }
-        function setActiveClass(code) { activeClassCode = code; refreshMyClasses(); syncForumFromGAS(); showToast('已切換至班級'); }
+        function setActiveClass(code) { activeClassCode = code; refreshMyClasses(); syncForumFromGAS(); updateTeacherUI(); showToast('已切換至班級'); }
+        function isCurrentUserTeacher() {
+            if (!activeClassCode || !myClasses.length) return false;
+            var c = myClasses.find(x => x.classCode === activeClassCode);
+            return c && (c.role === 'owner' || c.role === 'super-admin');
+        }
+        function updateTeacherUI() {
+            var eb = document.getElementById('btn-export-chat');
+            if (eb) eb.style.display = isCurrentUserTeacher() ? '' : 'none';
+        }
 
         // ─── 資料載入（JSONP）─────────────────────
         function loadActionJSONP(params) {
