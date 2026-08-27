@@ -955,7 +955,7 @@
             map = L.map('map', { zoomControl: false }).setView([38.0, 15.0], 3);
             L.control.zoom({ position: 'topright' }).addTo(map);
 
-            L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
                 attribution: '&copy; OSM contributors',
                 subdomains: 'abcd', maxZoom: 20
             }).addTo(map);
