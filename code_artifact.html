@@ -137,7 +137,7 @@
                         <button onclick="drawTradeRoutes()" id="btn-trade-layer" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 border border-gray-600 transition shadow">
                             <i class="fa-solid fa-route mr-1"></i> 全球貿易網絡
                         </button>
-                        <button onclick="toggleEmpireLayer()" id="btn-empire-layer" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 border border-gray-600 transition shadow">
+                        <button onclick="toggleEmpireLayer()" id="btn-empire-layer" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm border transition shadow border-primary text-primary">
                             <i class="fa-solid fa-earth-americas mr-1"></i> <span id="empire-layer-label">領土</span>
                         </button>
                     </div>
@@ -456,8 +456,8 @@
         <span id="toast-msg">Message</span>
     </div>
 
-    <script src="cliopatria_features.js"></script>
-    <script src="cliopatria_index.js"></script>
+    <script src="cliopatria_features.js?v=2"></script>
+    <script src="cliopatria_index.js?v=2"></script>
     <script>
         // 註：在 Gemini Canvas / Google AI Studio 環境會自動注入金鑰。獨立開啟時請填入自己的 Gemini API Key。
         // 也可在 AI 探究引擎頁面點擊 ⚙️ 按鈕輸入金鑰（會儲存在瀏覽器中）
@@ -970,9 +970,12 @@
 
         function toggleClimateLayer() {
             if (!map) return;
+            var btn = document.getElementById('btn-climate-layer');
             if (climateLayer) {
                 map.removeLayer(climateLayer);
                 climateLayer = null;
+                btn.classList.remove('border-primary', 'text-primary');
+                btn.classList.add('border-gray-600', 'text-gray-300');
                 showToast('已關閉氣候圖層');
             } else {
                 climateLayer = L.layerGroup();
@@ -987,15 +990,20 @@
                     circle.bindTooltip('<div class="text-xs font-bold">' + z.name + '</div>', { permanent: false, direction: 'center', className: 'trade-tooltip' });
                 });
                 climateLayer.addTo(map);
+                btn.classList.remove('border-gray-600', 'text-gray-300');
+                btn.classList.add('border-primary', 'text-primary');
                 showToast('已開啟氣候巨變圖層');
             }
         }
 
         function drawTradeRoutes() {
             if (!map) return;
+            var btn = document.getElementById('btn-trade-layer');
             if (tradeRoutesLayer) {
                 map.removeLayer(tradeRoutesLayer);
                 tradeRoutesLayer = null;
+                btn.classList.remove('border-primary', 'text-primary');
+                btn.classList.add('border-gray-600', 'text-gray-300');
                 showToast('已關閉貿易網絡');
             } else {
                 tradeRoutesLayer = L.layerGroup();
@@ -1013,6 +1021,8 @@
                     L.marker(r.path[0], { icon: lbl }).addTo(tradeRoutesLayer);
                 });
                 tradeRoutesLayer.addTo(map);
+                btn.classList.remove('border-gray-600', 'text-gray-300');
+                btn.classList.add('border-primary', 'text-primary');
                 showToast('已開啟全球貿易網絡');
             }
         }
