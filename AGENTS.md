@@ -5,7 +5,7 @@
 
 ## 資料夾結構
 ```
-├── code_artifact.html          # 主前端（~2557行）
+├── code_artifact.html          # 主前端（~2625行）
 ├── cliopatria_features.js     # Seshat 歷史 empire GeoJSON（496 features）
 ├── cliopatria_index.js        # Seshat 索引
 ├── process_cliopatria.js      # Seshat 處理腳本
@@ -25,6 +25,9 @@
 - [x] Persona 折疊圖示
 - [x] 美國領土 polygon 修正（參照 Van Zandt 1976 權威來源）
 - [x] 美國史料加入 Supabase 資料庫
+- [x] 6 區域 track 系統（世界/中國/日本/臺灣/歐洲/美洲）
+- [x] 新增 12 個歐美事件（歐洲 9 件 + 美洲 3 件）
+- [x] DB region_tags 欄位 + 所有事件標記
 - [ ] 其他國家領土 polygon 驗證
 - [ ] 歷史事件描述/butterfly effect 擴充
 - [ ] UI/UX 持續優化
@@ -36,6 +39,7 @@
 - **論壇**: Google Apps Script + Sheets
 - **地圖**: Leaflet.js + Cliopatria/Seshat 歷史 empire 資料
 - **美國領土**: 硬編碼 polygon（DB 無此資料），參照 Van Zandt (1976) 權威來源
+- **區域篩選**: DB `region_tags` 陣列欄位，前端6 track checkbox，預設只勾「世界」
 
 ## 重要連結
 - GitHub: https://github.com/dream23-byte/2026-teaching-optimization
