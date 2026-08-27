@@ -1,7 +1,7 @@
 const S = {
   POSTS: "Posts", REPLIES: "Replies",
   LIKES: "PostLikes", COLLECTS: "PostCollects", REACTIONS: "ReplyReactions",
-  CONVERSATIONS: "Conversations"
+  CONVERSATIONS: "Conversations", AIFeedback: "AIFeedback"
 };
 
 function onOpen() { ensureSheets(); }
@@ -14,6 +14,7 @@ function ensureSheets() {
   h(S.COLLECTS, ["PostRow","UserEmail"]);
   h(S.REACTIONS, ["ReplyRow","UserEmail","Emoji"]);
   h(S.CONVERSATIONS, ["Timestamp","UserEmail","ConvId","Role","Message","PersonaKey"]);
+  h(S.AIFeedback, ["Timestamp","UserEmail","ConvId","MsgId","Emoji"]);
 }
 
 function doGet(e) {
@@ -85,6 +86,8 @@ function processAction(p) {
       msg = "✅ 已移除反應";
     } else if (p.action === "saveConversation") {
       ss.getSheetByName(S.CONVERSATIONS).appendRow([new Date(), u, p.convId, p.role, p.message, p.personaKey]); msg = "ok";
+    } else if (p.action === "saveFeedback") {
+      ss.getSheetByName(S.AIFeedback).appendRow([new Date(), u, p.convId, p.msgId, p.emoji]); msg = "ok";
     } else if (p.action === "deleteConversation") {
       const sh = ss.getSheetByName(S.CONVERSATIONS); const rows = sh.getDataRange().getValues();
       for (let i = rows.length - 1; i >= 0; i--) { if (String(rows[i][1]) === u && String(rows[i][2]) === p.convId) { sh.deleteRow(i + 1); } }

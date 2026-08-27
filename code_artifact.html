@@ -1765,6 +1765,7 @@
             var likeBtn = container.querySelector('.feedback-btn:first-child');
             var dislikeBtn = container.querySelector('.feedback-btn:last-child');
             var label = container.querySelector('.feedback-label');
+            var emoji = '';
             if (current === type) {
                 localStorage.removeItem(storageKey);
                 likeBtn.className = 'feedback-btn text-xs px-2 py-0.5 rounded text-gray-500 hover:text-green-400';
@@ -1772,6 +1773,7 @@
                 if (label) label.textContent = '';
             } else {
                 localStorage.setItem(storageKey, type);
+                emoji = type === 'like' ? '👍' : '👎';
                 if (type === 'like') {
                     likeBtn.className = 'feedback-btn text-xs px-2 py-0.5 rounded bg-green-800 text-green-300';
                     dislikeBtn.className = 'feedback-btn text-xs px-2 py-0.5 rounded text-gray-500 hover:text-red-400';
@@ -1781,6 +1783,14 @@
                     dislikeBtn.className = 'feedback-btn text-xs px-2 py-0.5 rounded bg-red-800 text-red-300';
                     if (label) label.textContent = '已標記需改進';
                 }
+            }
+            // Persist feedback to GAS AIFeedback sheet
+            if (googleUser && GAS_WEBAPP) {
+                var parts = key.split('_');
+                var msgId = parts.length > 1 ? parts.slice(1).join('_') : key;
+                var params = { action:'saveFeedback', userEmail:googleUser.email, convId:currentConvId||'general', msgId:msgId, emoji:emoji };
+                var body = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+                try { fetch(GAS_WEBAPP, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:body }); } catch(e){}
             }
         }
 
