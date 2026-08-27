@@ -143,17 +143,14 @@
                         <span class="hidden md:inline">地圖年份:</span>
                         <input type="number" id="current-year-input" class="bg-gray-900 border border-gray-600 text-primary text-xl font-bold px-2 py-0.5 rounded w-28 text-center focus:outline-none focus:border-primary transition shadow-inner" value="1945">
                         <span id="bc-ad-indicator" class="text-xs px-1.5 py-0.5 bg-blue-950 text-blue-200 rounded">西元後</span>
+                        <button onclick="toggleEmpireLayer()" id="btn-empire-layer" class="ml-2 bg-gray-900/90 border border-primary/50 text-primary text-xs px-2.5 py-1.5 rounded-lg shadow-lg hover:bg-gray-800 transition-colors flex items-center gap-1.5" title="切換領土 polygon 顯示">
+                            <i class="fa-solid fa-earth-americas"></i> <span id="empire-layer-label">領土</span>
+                        </button>
                     </div>
                 </div>
 
                 <!-- Map Container -->
                 <div id="map" class="flex-1 w-full relative z-0"></div>
-                <!-- Map Layer Toggle -->
-                <div class="absolute top-3 right-3 z-[1000] flex flex-col gap-1.5">
-                    <button onclick="toggleEmpireLayer()" id="btn-empire-layer" class="bg-gray-900/90 border border-primary/50 text-primary text-xs px-2.5 py-1.5 rounded-lg shadow-lg hover:bg-gray-800 transition-colors flex items-center gap-1.5" title="切換領土 polygon 顯示">
-                        <i class="fa-solid fa-earth-americas"></i> <span id="empire-layer-label">領土</span>
-                    </button>
-                </div>
             </div>
 
             <!-- 下半部 (40%)：時間軸區塊 -->
