@@ -142,7 +142,22 @@
                         </button>
                     </div>
 
-                    <div class="text-sm text-primary font-mono font-bold bg-dark px-4 py-2 rounded-lg border border-gray-700 shadow-inner flex items-center gap-1">
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <button onclick="toggleClassPanel()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 border border-gray-600 transition shadow flex items-center gap-1">
+                                <i class="fa-solid fa-school"></i> <span class="hidden md:inline">班級</span>
+                            </button>
+                            <div id="class-dropdown" class="hidden absolute right-0 top-full mt-2 w-64 bg-panel border border-gray-700 rounded-xl shadow-2xl z-50 p-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xs font-bold text-gray-400 tracking-wide select-none">🏫 我的班級</h3>
+                                    <button onclick="showJoinClassModal()" class="text-[11px] text-primary hover:text-yellow-400 transition">+ 加入</button>
+                                </div>
+                                <div id="my-classes-list" class="space-y-1 max-h-[160px] overflow-y-auto custom-scrollbar pr-1">
+                                    <p class="text-[11px] text-gray-500">登入後可加入或建立班級</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-primary font-mono font-bold bg-dark px-4 py-2 rounded-lg border border-gray-700 shadow-inner flex items-center gap-1">
                         <span class="hidden md:inline">地圖年份:</span>
                         <input type="number" id="current-year-input" class="bg-gray-900 border border-gray-600 text-primary text-xl font-bold px-2 py-0.5 rounded w-28 text-center focus:outline-none focus:border-primary transition shadow-inner" value="1945">
                         <span id="bc-ad-indicator" class="text-xs px-1.5 py-0.5 bg-blue-950 text-blue-200 rounded">西元後</span>
@@ -265,17 +280,6 @@
                             </div>
                         </div>
                     </div>
-
-                <!-- 我的班級 -->
-                <div class="border-t border-gray-700 pt-3 mt-2">
-                    <div class="flex justify-between items-center mb-1">
-                        <h3 class="text-xs font-bold text-gray-400 tracking-wide select-none">🏫 我的班級</h3>
-                        <button onclick="showJoinClassModal()" class="text-[11px] text-primary hover:text-yellow-400 transition">+ 加入</button>
-                    </div>
-                    <div id="my-classes-list" class="space-y-1 max-h-[140px] overflow-y-auto custom-scrollbar pr-1">
-                        <p class="text-[11px] text-gray-500">登入後可加入或建立班級</p>
-                    </div>
-                </div>
 
                 <!-- 對話紀錄 -->
                 <div class="border-t border-gray-700 pt-3 mt-2">
@@ -2371,6 +2375,10 @@
             } catch(e) { list.innerHTML = '<p class="text-[11px] text-gray-500">載入失敗</p>'; }
         }
         function setActiveClass(code) { activeClassCode = code; refreshMyClasses(); syncForumFromGAS(); updateTeacherUI(); showToast('已切換至班級'); }
+        function toggleClassPanel() {
+            var dd = document.getElementById('class-dropdown');
+            dd.classList.toggle('hidden');
+        }
         function isCurrentUserTeacher() {
             if (!activeClassCode || !myClasses.length) return false;
             var c = myClasses.find(x => x.classCode === activeClassCode);
@@ -2789,6 +2797,13 @@
             refreshMyClasses();
         };
         window.addEventListener('resize', function() { if (map) map.invalidateSize(); });
+        document.addEventListener('click', function(e) {
+            var dd = document.getElementById('class-dropdown');
+            var btn = dd && dd.previousElementSibling;
+            if (dd && !dd.classList.contains('hidden') && !dd.contains(e.target) && btn && !btn.contains(e.target)) {
+                dd.classList.add('hidden');
+            }
+        });
     </script>
 </body>
 </html>
