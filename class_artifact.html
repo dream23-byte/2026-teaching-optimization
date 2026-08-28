@@ -57,6 +57,7 @@
         /* Chat bubbles */
         .chat-bubble-ai { background-color: #2d3748; border-left: 4px solid #d4af37; }
         .chat-bubble-user { background-color: #4a5568; border-right: 4px solid #63b3ed; }
+        .source-cite { color: #d4af37; background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.35); border-radius: 4px; padding: 0 5px; font-size: 12px; cursor: help; }
 
         /* Colored tooltip - match polygon color */
         .colored-tip { background: transparent !important; border: none !important; box-shadow: none !important; }
@@ -680,6 +681,7 @@
         let supabaseClient = null;
         let periodsData = [];
         let historyDataFromDB = null;
+        let sourcesByEvent = {};
 
         function initSupabase() {
             try {
@@ -733,10 +735,31 @@
             } catch(e) { console.warn('[Supabase] events load failed:', e); }
         }
 
+        async function loadEventSourcesFromDB() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('event_sources')
+                    .select('event_id, sources(id, title_zh, source_name, creator, date, source_url, language, description)');
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    sourcesByEvent = {};
+                    data.forEach(function(row) {
+                        var s = row.sources;
+                        if (!s) return;
+                        var evId = String(row.event_id);
+                        if (!sourcesByEvent[evId]) sourcesByEvent[evId] = [];
+                        sourcesByEvent[evId].push(s);
+                    });
+                    console.log('[Supabase] Loaded ' + data.length + ' event-sources links, ' + Object.keys(sourcesByEvent).length + ' events with sources');
+                }
+            } catch(e) { console.warn('[Supabase] event_sources load failed:', e); }
+        }
+
         async function loadDataFromSupabase() {
             initSupabase();
             if (!supabaseClient) return;
-            await Promise.all([loadEventsFromDB(), loadPeriodsFromDB()]);
+            await Promise.all([loadEventsFromDB(), loadPeriodsFromDB(), loadEventSourcesFromDB()]);
             if (historyDataFromDB && historyDataFromDB.length > 0) {
                 // Replace hardcoded historyData with DB data
                 historyData.length = 0;
@@ -1848,6 +1871,8 @@
 - 在對話中自然地呈現其他立場的觀點（例如：作為皇帝時，提及百姓的處境）
 - 讓學生理解「不同的人對同一事件有不同理解」
 
+【爭議議題】對於有爭議的歷史議題，以該人物身分呈現多元看法，避免單一立場；同時承認其他觀點的存在，維持中立、教育導向的態度。
+
 【回應長度】100-200字，簡潔有力的對話體
 
 【禁止事項】
@@ -1886,6 +1911,12 @@
 - 不參與任何可能造成傷害的對話
 - 若學生詢問不當問題，禮貌地引導回歷史探究主題` }
         };
+
+        // 史料約束（統一追加至三個 persona，防止不當引用與幻覺）
+        var SOURCE_CONSTRAINT = '\n\n【史料約束】回答歷史問題時，必須優先依據對話紀錄中提供的「相關史料」與事件描述作答；若史料不足或與提問無關，必須明確說明「依據現有所知，無法確認」，不得編造具體史料原文、頁碼或來源。引用「相關史料」中的具體史料時，以〔史料：《標題》〕格式標記其來源。';
+        for (var pk in personas) {
+            personas[pk].systemPrompt += SOURCE_CONSTRAINT;
+        }
 
         function setAIPersona(personaKey, isInit = false) {
             currentPersona = personas[personaKey];
@@ -2003,6 +2034,20 @@
                 });
             }
             
+            // 相關史料（event_sources + sources 交叉查詢，最多 5 筆控制 token）
+            var srcs = (sourcesByEvent && ev.id ? sourcesByEvent[String(ev.id)] : null) || [];
+            if (srcs.length > 0) {
+                ctx += '\n【相關史料】\n';
+                srcs.slice(0, 5).forEach(function(s) {
+                    var cite = '《' + s.title_zh + '》';
+                    if (s.source_name) cite += '（' + s.source_name;
+                    if (s.creator) cite += '，' + s.creator;
+                    if (s.date) cite += '，' + s.date;
+                    if (s.source_name || s.creator || s.date) cite += '）';
+                    ctx += '• ' + cite + '：' + (s.description || s.source_description || '無描述') + '\n';
+                });
+            }
+            
             return ctx;
         }
 
@@ -2027,6 +2072,11 @@
         }
 
         var aiMsgCounter = 0;
+        function renderAiText(text) {
+            var safe = escapeHtml(text);
+            safe = safe.replace(/〔史料：([^〕]{1,80})〕/g, '<span class="source-cite" title="此為史料引用標記">〔史料：$1〕</span>');
+            return safe.replace(/\n/g, '<br>');
+        }
         function appendMessage(sender, text) {
             const chatBox = document.getElementById('chat-box');
             const msgDiv = document.createElement('div');
@@ -2038,7 +2088,7 @@
                 var feedbackKey = (currentConvId || 'general') + '_' + msgId;
                 var savedFeedback = localStorage.getItem('hlab_feedback_' + feedbackKey) || '';
                 msgDiv.className = 'flex justify-start fade-in';
-                msgDiv.innerHTML = `<div class="max-w-[80%]"><div class="chat-bubble-ai p-4 rounded-xl rounded-tl-none text-gray-100 shadow-md flex gap-3 text-[14px] leading-relaxed"><i class="fa-solid fa-robot mt-1 text-primary shrink-0 text-lg"></i><div class="flex-1">${escapeHtml(text).replace(/\n/g, '<br>')}</div></div><div class="flex items-center gap-1 ml-10 mt-1 opacity-50 hover:opacity-100 transition-opacity"><button class="feedback-btn text-xs px-2 py-0.5 rounded ${savedFeedback === 'like' ? 'bg-green-800 text-green-300' : 'text-gray-500 hover:text-green-400'}" onclick="toggleFeedback(this, 'like', '${feedbackKey}')" title="有幫助">👍</button><button class="feedback-btn text-xs px-2 py-0.5 rounded ${savedFeedback === 'dislike' ? 'bg-red-800 text-red-300' : 'text-gray-500 hover:text-red-400'}" onclick="toggleFeedback(this, 'dislike', '${feedbackKey}')" title="需改進">👎</button><span class="text-[10px] text-gray-600 ml-1 feedback-label"></span></div></div>`;
+                msgDiv.innerHTML = `<div class="max-w-[80%]"><div class="chat-bubble-ai p-4 rounded-xl rounded-tl-none text-gray-100 shadow-md flex gap-3 text-[14px] leading-relaxed"><i class="fa-solid fa-robot mt-1 text-primary shrink-0 text-lg"></i><div class="flex-1">${renderAiText(text)}</div></div><div class="flex items-center gap-1 ml-10 mt-1 opacity-50 hover:opacity-100 transition-opacity"><button class="feedback-btn text-xs px-2 py-0.5 rounded ${savedFeedback === 'like' ? 'bg-green-800 text-green-300' : 'text-gray-500 hover:text-green-400'}" onclick="toggleFeedback(this, 'like', '${feedbackKey}')" title="有幫助">👍</button><button class="feedback-btn text-xs px-2 py-0.5 rounded ${savedFeedback === 'dislike' ? 'bg-red-800 text-red-300' : 'text-gray-500 hover:text-red-400'}" onclick="toggleFeedback(this, 'dislike', '${feedbackKey}')" title="需改進">👎</button><span class="text-[10px] text-gray-600 ml-1 feedback-label"></span></div></div>`;
             }
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -2159,7 +2209,11 @@
                         body = JSON.stringify({ model: 'openai/gpt-oss-20b', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
                     } else if (provider === 'gemini') {
                         url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=' + apiKey;
-                        body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] } });
+                        body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] }, safetySettings: [
+                            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
+                        ] });
                     } else {
                         // OpenAI-compatible (OpenAI, DeepSeek, etc.)
                         var baseUrl = provider === 'openai' ? 'https://api.openai.com/v1' : provider;
