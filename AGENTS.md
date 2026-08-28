@@ -9,6 +9,8 @@
 ├── cliopatria_features.js     # Seshat 歷史 empire GeoJSON（496 features）
 ├── cliopatria_index.js        # Seshat 索引
 ├── process_cliopatria.js      # Seshat 處理腳本
+├── GAS_WebApp/Code.gs         # 論壇+班級系統 GAS 後端
+├── rdq/                       # RDQ 需求規格卡 + 實作計畫
 ├── 史料/                       # 歷史資料參考文件
 └── .gitignore
 ```
@@ -35,6 +37,8 @@
 - [x] 匯出按鈕改為教師專用
 - [x] RDQ 需求規格卡完成（班級系統升級）
 - [x] 班級系統開發（Google Classroom 風格）
+- [ ] 班級系統 AI 學習分析 / 統計圖表 / 討論匯出 / 內容審查（GAS 部署後測試）— 實作完成，待部署驗證
+- [ ] **AI 內容效度實作**（RAG／史料庫約束／爭議議題；計畫：`rdq/AI-內容效度實作計畫-20260828.md`，依 A1→A2→A3→B1→B2→A4 順序）
 - [ ] 其他國家領土 polygon 驗證
 - [ ] 歷史事件描述/butterfly effect 擴充
 - [ ] UI/UX 持續優化
