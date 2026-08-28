@@ -37,7 +37,7 @@
 - 東亞 polygon 來源：aourednik/historical-basemaps（CC0 授權）
 
 ## 🕐 最後更新
-2026-08-28 opencode @ ALYSSALGGRAM | Git push: 待推
+2026-08-28 opencode @ ALYSSALGGRAM | Git push: ✅ 已推 (dc5662e)
 
 ## 📝 備註
 - 本次新增 `rdq/AI-內容效度實作計畫-20260828.md`（診斷＋實作順序，供下一個 session 開工直接參照）
