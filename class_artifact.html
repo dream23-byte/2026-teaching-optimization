@@ -3248,15 +3248,23 @@
         // ===================================================================
         //  事件綁定與啟動
         // ===================================================================
-        document.getElementById('ai-input').addEventListener('keydown', function(e) {
+        function bindEl(id, type, handler) {
+            var el = document.getElementById(id);
+            if (el) { el.addEventListener(type, handler); return true; }
+            console.warn('[bind] #' + id + ' 不存在於 DOM，略過綁定');
+            return false;
+        }
+        function setClass(id, cls) {
+            var el = document.getElementById(id);
+            if (el) el.className = cls;
+        }
+        bindEl('ai-input', 'keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIMessage(); }
         });
 
-        // Tab / Sort 切換
-        document.getElementById('tab-public').addEventListener('click', function() { tabMode='public'; document.getElementById('tab-public').className='tab-btn px-4 py-2 rounded-md text-sm font-bold bg-primary text-dark'; document.getElementById('tab-personal').className='tab-btn px-4 py-2 rounded-md text-sm font-bold text-gray-400 hover:text-white'; renderForum(); });
-        document.getElementById('tab-personal').addEventListener('click', function() { tabMode='personal'; document.getElementById('tab-personal').className='tab-btn px-4 py-2 rounded-md text-sm font-bold bg-primary text-dark'; document.getElementById('tab-public').className='tab-btn px-4 py-2 rounded-md text-sm font-bold text-gray-400 hover:text-white'; renderForum(); });
-        document.getElementById('sort-new').addEventListener('click', function() { sortMode='new'; document.getElementById('sort-new').className='sort-btn px-3 py-1.5 rounded text-xs font-bold bg-primary text-dark'; document.getElementById('sort-hot').className='sort-btn px-3 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white bg-panel border border-gray-800'; renderForum(); });
-        document.getElementById('sort-hot').addEventListener('click', function() { sortMode='hot'; document.getElementById('sort-hot').className='sort-btn px-3 py-1.5 rounded text-xs font-bold bg-primary text-dark'; document.getElementById('sort-new').className='sort-btn px-3 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white bg-panel border border-gray-800'; renderForum(); });
+        // Sort 切換
+        bindEl('sort-new', 'click', function() { sortMode='new'; setClass('sort-new', 'sort-btn px-3 py-1.5 rounded text-xs font-bold bg-primary text-dark'); setClass('sort-hot', 'sort-btn px-3 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white bg-panel border border-gray-800'); renderForum(); });
+        bindEl('sort-hot', 'click', function() { sortMode='hot'; setClass('sort-hot', 'sort-btn px-3 py-1.5 rounded text-xs font-bold bg-primary text-dark'); setClass('sort-new', 'sort-btn px-3 py-1.5 rounded text-xs font-bold text-gray-400 hover:text-white bg-panel border border-gray-800'); renderForum(); });
 
         window.onload = async function() {
             // 先檢查從 Google OAuth 回傳的 hash token
