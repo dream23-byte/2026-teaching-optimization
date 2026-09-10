@@ -38,7 +38,9 @@
 - [x] RDQ 需求規格卡完成（班級系統升級）
 - [x] 班級系統開發（Google Classroom 風格）
 - [ ] 班級系統 AI 學習分析 / 統計圖表 / 討論匯出 / 內容審查（GAS 部署後測試）— 實作完成，待部署驗證
-- [ ] **AI 內容效度實作**（RAG／史料庫約束／爭議議題；計畫：`rdq/AI-內容效度實作計畫-20260828.md`，依 A1→A2→A3→B1→B2→A4 順序）
+- [x] **AI 內容效度實作**（RAG／史料庫約束／爭議議題；`rdq/AI-內容效度實作計畫-20260828.md` A1-A4+B1+B2 已完成）
+- [x] **內建史料集 Phase 1**（`source_texts` 表 + 前端關鍵字/事件綁定檢索 + `tools/build_source_index.js` 導入 pipeline；指引：`rdq/史料導入指引-20260910.md`）
+- [ ] 內建史料集 Phase 2（擴充史料內容、pgvector 語意檢索啟用、史料庫網站層）
 - [ ] 其他國家領土 polygon 驗證
 - [ ] 歷史事件描述/butterfly effect 擴充
 - [ ] UI/UX 持續優化
