@@ -1733,8 +1733,8 @@
         function setAIPersona(personaKey, isInit = false) {
             currentPersona = personas[personaKey];
             document.getElementById('chat-title').innerHTML = `當前模式：<span class="text-primary">${currentPersona.name}</span> <span class="text-[10px] text-gray-500 font-normal ml-1">v2-fix</span>`;
-            document.querySelectorAll('.persona-btn, .persona-btn-icon, .explore-ai-btn').forEach(btn => btn.classList.remove('p-active'));
-            document.querySelectorAll('[data-mode="' + personaKey + '"]').forEach(btn => btn.classList.add('p-active'));
+            document.querySelectorAll('.persona-btn, .persona-btn-icon, .explore-ai-btn').forEach(btn => { btn.classList.remove('p-active', 'border-primary', 'text-primary'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.boxShadow = ''; btn.style.backgroundColor = ''; });
+            document.querySelectorAll('[data-mode="' + personaKey + '"]').forEach(btn => { btn.classList.add('p-active'); btn.style.borderColor = '#d4af37'; btn.style.boxShadow = '0 0 0 1px #d4af37, 0 0 8px rgba(212,175,55,0.3)'; if (!btn.classList.contains('explore-ai-btn')) { btn.style.backgroundColor = '#374151'; } else { btn.style.color = '#d4af37'; } });
 
             if (isInit) {
                 aiChatHistory = [];
