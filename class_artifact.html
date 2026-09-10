@@ -68,6 +68,9 @@
             border: 1px solid #d4af37 !important;
             box-shadow: 0 0 0 1px #d4af37, 0 0 8px rgba(212,175,55,0.3) !important;
         }
+        .explore-ai-btn {
+            background-color: #1f2937 !important;
+        }
         .explore-ai-btn.p-active {
             border-color: #d4af37 !important;
             color: #d4af37 !important;
@@ -1934,8 +1937,8 @@
             currentPersona = personas[personaKey];
             document.getElementById('chat-title').innerHTML = `當前模式：<span class="text-primary">${currentPersona.name}</span> <span class="text-[10px] text-gray-500 font-normal ml-1">v2-fix</span>`;
             document.querySelectorAll('.persona-btn, .persona-btn-icon').forEach(btn => { btn.classList.remove('p-active', 'border-primary'); btn.style.borderColor = 'transparent'; btn.style.boxShadow = 'none'; btn.style.backgroundColor = '#1f2937'; });
-            document.querySelectorAll('.explore-ai-btn').forEach(btn => { btn.classList.remove('p-active', 'text-primary'); btn.classList.add('text-white'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.backgroundColor = ''; });
-            document.querySelectorAll('[data-mode="' + personaKey + '"]').forEach(btn => { btn.classList.add('p-active'); btn.style.borderColor = '#d4af37'; btn.style.boxShadow = '0 0 0 1px #d4af37, 0 0 8px rgba(212,175,55,0.3)'; if (!btn.classList.contains('explore-ai-btn')) { btn.style.backgroundColor = '#374151'; } else { btn.style.color = '#d4af37'; } });
+            document.querySelectorAll('.explore-ai-btn').forEach(btn => { btn.classList.remove('p-active', 'text-primary'); btn.classList.add('text-white'); btn.style.borderColor = '#4b5563'; btn.style.color = '#ffffff'; btn.style.backgroundColor = '#1f2937'; btn.style.boxShadow = 'none'; });
+            document.querySelectorAll('[data-mode="' + personaKey + '"]').forEach(btn => { btn.classList.add('p-active'); btn.style.borderColor = '#d4af37'; btn.style.boxShadow = '0 0 0 1px #d4af37, 0 0 8px rgba(212,175,55,0.3)'; if (!btn.classList.contains('explore-ai-btn')) { btn.style.backgroundColor = '#374151'; } else { btn.style.color = '#d4af37'; btn.style.backgroundColor = '#374151'; } });
 
             if (isInit) {
                 aiChatHistory = [];
