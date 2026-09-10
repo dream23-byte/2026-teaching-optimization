@@ -516,6 +516,7 @@
         let periodsData = [];
         let historyDataFromDB = null;
         let sourcesByEvent = {};
+        let sourceTexts = [];
 
         function initSupabase() {
             try {
@@ -590,10 +591,38 @@
             } catch(e) { console.warn('[Supabase] event_sources load failed:', e); }
         }
 
+        async function loadSourceTextsFromDB() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('source_texts')
+                    .select('id, event_id, title, source_name, creator, date, language, material_type, summary, keywords, content');
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    sourceTexts = data.map(function(r) {
+                        return {
+                            id: r.id,
+                            eventId: r.event_id != null ? String(r.event_id) : null,
+                            title: r.title || '',
+                            sourceName: r.source_name || '',
+                            creator: r.creator || '',
+                            date: r.date || '',
+                            language: r.language || 'zh',
+                            materialType: r.material_type || '',
+                            summary: r.summary || '',
+                            keywords: Array.isArray(r.keywords) ? r.keywords : [],
+                            content: r.content || ''
+                        };
+                    });
+                    console.log('[Supabase] Loaded ' + sourceTexts.length + ' source_texts');
+                }
+            } catch(e) { console.warn('[Supabase] source_texts load failed:', e); }
+        }
+
         async function loadDataFromSupabase() {
             initSupabase();
             if (!supabaseClient) return;
-            await Promise.all([loadEventsFromDB(), loadPeriodsFromDB(), loadEventSourcesFromDB()]);
+            await Promise.all([loadEventsFromDB(), loadPeriodsFromDB(), loadEventSourcesFromDB(), loadSourceTextsFromDB()]);
             if (historyDataFromDB && historyDataFromDB.length > 0) {
                 // Replace hardcoded historyData with DB data
                 historyData.length = 0;
@@ -1781,6 +1810,46 @@
             showToast('✅ 已匯出對話紀錄');
         }
 
+        // --- 內建史料檢索（Phase 1：本地關鍵字 + 事件綁定，零等待）---
+        const _STOP_WORDS = new Set(['什麼','為何','比較','分析','歷史','請問','這個','那個','事件','台灣','中國','日本','歐洲','美洲','原因','如何','是否','影響','時期','結果','發展','過程','我們','你們','可以']);
+        function _srcTokenize(s) {
+            var t = new Set();
+            var c = String(s || '').replace(/[^\u3040-\u30ff\u4e00-\u9fffa-zA-Z0-9]/g, '');
+            for (var i = 0; i < c.length; i++) {
+                t.add(c[i]);
+                if (i + 1 < c.length) t.add(c.substr(i, 2));
+                if (i + 2 < c.length) t.add(c.substr(i, 3));
+            }
+            t.delete(c[0]);
+            return t;
+        }
+        function retrieveSources(question, eventId, limit) {
+            if (!sourceTexts || sourceTexts.length === 0) return [];
+            var q = [];
+            _srcTokenize(question).forEach(function(tok) { if (!_STOP_WORDS.has(tok)) q.push(tok); });
+            var scored = [];
+            for (var i = 0; i < sourceTexts.length; i++) {
+                var st = sourceTexts[i];
+                var idx = _srcTokenize([st.title, st.sourceName, st.creator, st.keywords.join(' '), st.summary].join(' '));
+                var hit = 0;
+                for (var j = 0; j < q.length; j++) if (idx.has(q[j])) hit++;
+                if (hit === 0) continue;
+                var score = hit / Math.log(1 + idx.size);
+                if (eventId && st.eventId === String(eventId)) score += 0.7;
+                scored.push({ score: score, st: st });
+            }
+            scored.sort(function(a, b) { return b.score - a.score; });
+            return scored.slice(0, limit || 4).map(function(x) { return x.st; });
+        }
+        function buildSourcePrompt(sources, title) {
+            if (!sources || sources.length === 0) return '';
+            var lines = ['\n' + title + '（以下為內建史料檢索結果，優先於其上作答並以〔史料：《標題》〕標註引用）'];
+            sources.slice(0, 4).forEach(function(st) {
+                lines.push('• 《' + st.title + '》（' + [st.sourceName, st.creator, st.date].filter(Boolean).join('，') + '）：' + (st.summary ? st.summary : '') + '｜節錄：' + (st.content ? st.content.substring(0, 400) : '無全文'));
+            });
+            return lines.join('\n');
+        }
+
         function buildEventContext(ev) {
             if (!ev) return '';
             var yearStr = ev.year < 0 ? '西元前 ' + Math.abs(ev.year) : '西元 ' + ev.year;
@@ -1817,9 +1886,19 @@
                 });
             }
             
-            // 相關史料（event_sources + sources 交叉查詢，最多 5 筆控制 token）
+            // 相關史料：優先內建史料全文檢索；未命中再退回書目層級
+            var stHits = retrieveSources((ev.title || '') + ' ' + (ev.desc || ''), ev.id, 4);
             var srcs = (sourcesByEvent && ev.id ? sourcesByEvent[String(ev.id)] : null) || [];
-            if (srcs.length > 0) {
+            if (stHits.length > 0) {
+                ctx += buildSourcePrompt(stHits, '【內建史料檢索】');
+                if (srcs.length > 0) {
+                    ctx += '\n【相關書目】\n' + srcs.slice(0, 2).map(function(s) {
+                        var c = '《' + s.title_zh + '》';
+                        if (s.source_name || s.creator || s.date) c += '（' + [s.source_name, s.creator, s.date].filter(Boolean).join('，') + '）';
+                        return '• ' + c;
+                    }).join('\n');
+                }
+            } else if (srcs.length > 0) {
                 ctx += '\n【相關史料】\n';
                 srcs.slice(0, 5).forEach(function(s) {
                     var cite = '《' + s.title_zh + '》';
@@ -2038,7 +2117,11 @@
             const conversationContext = aiChatHistory.slice(-20).join("\n");
             document.getElementById('ai-loading').classList.remove('hidden');
             try {
-                const prompt = `目前的對話紀錄：\n${conversationContext}\n\n請根據你的角色設定，接續上述對話給予自然、深刻且口語化的回應。切勿使用死板的模板，請針對 User 的最新提問或回答進行針對性的互動與延伸。`;
+                const eventCtx = selectedEvent && selectedEvent.id ? buildEventContext(selectedEvent) : '';
+                const srcHits = retrieveSources(text + ' ' + conversationContext.slice(-600), selectedEvent ? selectedEvent.id : null, 4);
+                const srcBlock = buildSourcePrompt(srcHits, '【內建史料檢索】');
+                if (srcHits.length > 0) appendSystemMessage(`🔎 內建史料檢索命中 ${srcHits.length} 份：${srcHits.map(s => '《' + s.title + '》').join('、')}`);
+                const prompt = `${srcBlock}${eventCtx ? '\n' + eventCtx : ''}\n\n目前的對話紀錄：\n${conversationContext}\n\n請根據你的角色設定，接續上述對話給予自然、深刻且口語化的回應。切勿使用死板的模板，請針對 User 的最新提問或回答進行針對性的互動與延伸。`;
                 const aiResponse = await fetchGeminiWithRetry(prompt, currentPersona.systemPrompt);
                 document.getElementById('ai-loading').classList.add('hidden');
                 appendMessage('AI', aiResponse);
