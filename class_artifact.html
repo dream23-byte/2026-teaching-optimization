@@ -70,13 +70,12 @@
         }
         .explore-ai-btn {
             background-color: #1f2937 !important;
-            border-color: transparent !important;
-            color: #9ca3af !important;
+            border-color: #4b5563 !important;
+            color: #cbd5e1 !important;
         }
-        .explore-ai-btn.p-active {
-            border-color: #d4af37 !important;
-            color: #d4af37 !important;
+        .explore-ai-btn:hover {
             background-color: #374151 !important;
+            border-color: #9ca3af !important;
         }
         .colored-tip div { margin: 0; }
         .leaflet-tooltip-top.colored-tip:before, .leaflet-tooltip-bottom.colored-tip:before,
@@ -239,7 +238,7 @@
                     <div>
                         <div class="text-xs text-gray-400 font-bold mb-2 text-center"><i class="fa-solid fa-robot mr-1"></i> 帶入 AI 探究模式</div>
                         <div class="flex gap-2">
-                            <button onclick="exploreInAI('socratic')" data-mode="socratic" class="explore-ai-btn p-active flex-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-xs transition shadow border border-gray-600">蘇格拉底</button>
+                            <button onclick="exploreInAI('socratic')" data-mode="socratic" class="explore-ai-btn flex-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-xs transition shadow border border-gray-600">蘇格拉底</button>
                             <button onclick="exploreInAI('roleplay')" data-mode="roleplay" class="explore-ai-btn flex-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-xs transition shadow border border-gray-600">人物扮演</button>
                             <button onclick="exploreInAI('comparative')" data-mode="comparative" class="explore-ai-btn flex-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-xs transition shadow border border-gray-600">跨文明比較</button>
                         </div>
@@ -1939,8 +1938,8 @@
             currentPersona = personas[personaKey];
             document.getElementById('chat-title').innerHTML = `當前模式：<span class="text-primary">${currentPersona.name}</span> <span class="text-[10px] text-gray-500 font-normal ml-1">v2-fix</span>`;
             document.querySelectorAll('.persona-btn, .persona-btn-icon').forEach(btn => { btn.classList.remove('p-active', 'border-primary'); btn.style.borderColor = 'transparent'; btn.style.boxShadow = 'none'; btn.style.backgroundColor = '#1f2937'; });
-            document.querySelectorAll('.explore-ai-btn').forEach(btn => { btn.classList.remove('p-active', 'text-primary'); btn.classList.add('text-white'); btn.style.borderColor = 'transparent'; btn.style.color = '#9ca3af'; btn.style.backgroundColor = '#1f2937'; btn.style.boxShadow = 'none'; });
-            document.querySelectorAll('[data-mode="' + personaKey + '"]').forEach(btn => { btn.classList.add('p-active'); btn.style.borderColor = '#d4af37'; btn.style.boxShadow = '0 0 0 1px #d4af37, 0 0 8px rgba(212,175,55,0.3)'; if (!btn.classList.contains('explore-ai-btn')) { btn.style.backgroundColor = '#374151'; } else { btn.style.color = '#d4af37'; btn.style.backgroundColor = '#374151'; } });
+            document.querySelectorAll('.explore-ai-btn').forEach(btn => { btn.classList.remove('p-active'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.backgroundColor = ''; btn.style.boxShadow = 'none'; });
+            document.querySelectorAll('.persona-btn[data-mode="' + personaKey + '"], .persona-btn-icon[data-mode="' + personaKey + '"]').forEach(btn => { btn.classList.add('p-active'); btn.style.borderColor = '#d4af37'; btn.style.boxShadow = '0 0 0 1px #d4af37, 0 0 8px rgba(212,175,55,0.3)'; btn.style.backgroundColor = '#374151'; });
 
             if (isInit) {
                 aiChatHistory = [];
