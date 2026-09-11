@@ -24,7 +24,8 @@ const EVENT_MAP = {
   '辛丑條約全文.md': [41],
   '馬關條約全文.md': [40, 58],
   '臺灣省戒嚴令-1949.md': [60],
-  '解嚴公告-1987.md': [62]
+  '解嚴公告-1987.md': [62],
+  '聯合國2758決議-1971.md': [61]
 };
 
 const ONLY = process.argv.slice(2).filter(a => !a.startsWith('--'));
