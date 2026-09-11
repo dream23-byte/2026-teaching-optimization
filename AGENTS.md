@@ -41,7 +41,7 @@
 - [x] **AI 內容效度實作**（RAG／史料庫約束／爭議議題；`rdq/AI-內容效度實作計畫-20260828.md` A1-A4+B1+B2 已完成）
 - [x] **內建史料集 Phase 1**（`source_texts` 表 + 前端關鍵字/事件綁定檢索 + `tools/build_source_index.js` 導入 pipeline；指引：`rdq/史料導入指引-20260910.md`）
 - [x] **內建史料集 Phase 2 前置**（embedding vector(768) + HNSW 索引 + `match_source_texts` RPC + 前端語意檢索層 `retrieveSemanticSources`，失敗自動退回關鍵字；`tools/backfill_embeddings.js` 待跑）
-- [ ] 內建史料集 Phase 2 進行中（8 檔規則版 metadata 待 Groq TPD 重置後重跑 LLM 升級；embedding 回填需 GEMINI_API_KEY；史料庫網站層）
+- [ ] 內建史料集 Phase 2 進行中（metadata 全 17 份已 LLM 升級並同步 DB 26 列；embedding 回填需 GEMINI_API_KEY；史料庫網站層）
 - [ ] 其他國家領土 polygon 驗證
 - [ ] 歷史事件描述/butterfly effect 擴充
 - [ ] UI/UX 持續優化
