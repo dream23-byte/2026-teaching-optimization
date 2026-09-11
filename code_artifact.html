@@ -1867,6 +1867,7 @@
         }
         async function retrieveSemanticSources(question, eventId, limit) {
             if (!supabaseClient || !apiKey) return [];
+            if (savedProvider !== 'gemini') return [];
             var cacheKey = (eventId || 'global') + ':' + String(question || '').slice(0, 60);
             if (semanticCache[cacheKey] !== undefined) return semanticCache[cacheKey];
             try {
