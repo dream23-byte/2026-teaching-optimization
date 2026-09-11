@@ -1850,6 +1850,53 @@
             return lines.join('\n');
         }
 
+        // --- Phase 2：語意檢索（Gemini embedding + Supabase RPC；無 embedding 資料或失敗時自動退回關鍵字）---
+        var semanticCache = {};
+        async function _geminiEmbedding(text) {
+            if (!apiKey) throw new Error('no key');
+            var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/text-embedding-005:embedContent?key=' + apiKey, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: 'models/text-embedding-005', content: { parts: [{ text: String(text).slice(0, 8000) }] } })
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            var data = await res.json();
+            var v = data.embedding && data.embedding.values;
+            if (!v || v.length !== 768) throw new Error('bad embedding');
+            return v;
+        }
+        async function retrieveSemanticSources(question, eventId, limit) {
+            if (!supabaseClient || !apiKey) return [];
+            var cacheKey = (eventId || 'global') + ':' + String(question || '').slice(0, 60);
+            if (semanticCache[cacheKey] !== undefined) return semanticCache[cacheKey];
+            try {
+                var emb = await _geminiEmbedding(question);
+                var res = await supabaseClient.rpc('match_source_texts', { query_embedding: emb, match_count: limit || 4 });
+                if (res.error) throw res.error;
+                var rows = (res.data || []).map(function(r) {
+                    return {
+                        id: r.id,
+                        eventId: r.event_id != null ? String(r.event_id) : null,
+                        title: r.title || '',
+                        sourceName: r.source_name || '',
+                        creator: r.creator || '',
+                        date: r.date || '',
+                        language: 'zh',
+                        materialType: '',
+                        summary: r.summary || '',
+                        keywords: r.keywords ? String(r.keywords).replace(/[{}"]/g, '').split(',').map(function(k){ return k.trim(); }).filter(Boolean) : [],
+                        content: r.content || '',
+                        similarity: r.similarity
+                    };
+                });
+                semanticCache[cacheKey] = rows;
+                return rows;
+            } catch (e) {
+                semanticCache[cacheKey] = [];
+                return [];
+            }
+        }
+
         function buildEventContext(ev) {
             if (!ev) return '';
             var yearStr = ev.year < 0 ? '西元前 ' + Math.abs(ev.year) : '西元 ' + ev.year;
@@ -2118,9 +2165,14 @@
             document.getElementById('ai-loading').classList.remove('hidden');
             try {
                 const eventCtx = selectedEvent && selectedEvent.id ? buildEventContext(selectedEvent) : '';
-                const srcHits = retrieveSources(text + ' ' + conversationContext.slice(-600), selectedEvent ? selectedEvent.id : null, 4);
+                let srcHits = [], semanticUsed = false;
+                try {
+                    srcHits = await retrieveSemanticSources(text + ' ' + conversationContext.slice(-600), selectedEvent ? selectedEvent.id : null, 4);
+                    semanticUsed = srcHits.length > 0;
+                } catch (e) { srcHits = []; }
+                if (!semanticUsed) srcHits = retrieveSources(text + ' ' + conversationContext.slice(-600), selectedEvent ? selectedEvent.id : null, 4);
                 const srcBlock = buildSourcePrompt(srcHits, '【內建史料檢索】');
-                if (srcHits.length > 0) appendSystemMessage(`🔎 內建史料檢索命中 ${srcHits.length} 份：${srcHits.map(s => '《' + s.title + '》').join('、')}`);
+                if (srcHits.length > 0) appendSystemMessage(`🔎 內建史料檢索命中 ${srcHits.length} 份：${srcHits.map(s => '《' + s.title + '》').join('、')}${semanticUsed ? '（語意）' : ''}`);
                 const prompt = `${srcBlock}${eventCtx ? '\n' + eventCtx : ''}\n\n目前的對話紀錄：\n${conversationContext}\n\n請根據你的角色設定，接續上述對話給予自然、深刻且口語化的回應。切勿使用死板的模板，請針對 User 的最新提問或回答進行針對性的互動與延伸。`;
                 const aiResponse = await fetchGeminiWithRetry(prompt, currentPersona.systemPrompt);
                 document.getElementById('ai-loading').classList.add('hidden');
