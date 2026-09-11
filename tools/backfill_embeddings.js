@@ -37,7 +37,7 @@ async function embed(text) {
 
 (async () => {
   const only = process.argv.includes('--limit') ? Number(process.argv[process.argv.indexOf('--limit') + 1]) : Infinity;
-  const rest = await fetch(`${SUPABASE_URL}/rest/v1/source_texts?select=id,event_id,title,content&order=id`, {
+  const rest = await fetch(`${SUPABASE_URL}/rest/v1/source_texts?select=id,event_id,title,content&embedding=is.null&order=id`, {
     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
   });
   if (!rest.ok) throw new Error('fetch rows HTTP ' + rest.status);

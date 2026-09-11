@@ -22,9 +22,11 @@ const PROVIDER = GROQ_KEY ? 'groq' : 'gemini';
 function splitParagraphs(text) {
   const blocks = text
     .replace(/^\uFEFF/, '')
+    .replace(/^#{1,6}\s.*$/gm, '')
+    .replace(/^---+$/gm, '')
     .split(/\n{2,}/)
     .map(b => b.trim())
-    .filter(b => b.length >= 60);
+    .filter(Boolean);
   const merged = [];
   let buf = '';
   for (const b of blocks) {
@@ -36,6 +38,10 @@ function splitParagraphs(text) {
     }
   }
   if (buf.trim()) merged.push(buf.trim());
+  if (merged.length === 0) {
+    const t = text.replace(/^\uFEFF/, '').trim();
+    if (t) merged.push(t);
+  }
   return merged;
 }
 

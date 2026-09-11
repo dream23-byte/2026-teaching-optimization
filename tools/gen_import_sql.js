@@ -22,8 +22,12 @@ const EVENT_MAP = {
   '論語-學而為政節錄.md': [13],
   '資治通鑑-安史之亂節錄.md': [25],
   '辛丑條約全文.md': [41],
-  '馬關條約全文.md': [40, 58]
+  '馬關條約全文.md': [40, 58],
+  '臺灣省戒嚴令-1949.md': [60],
+  '解嚴公告-1987.md': [62]
 };
+
+const ONLY = process.argv.slice(2).filter(a => !a.startsWith('--'));
 
 function q(value) {
   return "$$" + String(value == null ? '' : value).replace(/\$\$/g, '$\\$') + "$$";
@@ -51,6 +55,7 @@ function flush() {
 }
 
 for (const s of INDEX.sources) {
+  if (ONLY.length && !ONLY.includes(s.file)) continue;
   const evs = EVENT_MAP[s.file] || [];
   if (evs.length === 0) continue;
   for (const ev of evs) {
