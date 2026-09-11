@@ -75,7 +75,7 @@ async function callGemini(prompt) {
         if (!res.ok) { lastErr = 'Groq HTTP ' + res.status + ': ' + body.slice(0, 300); throw new Error(lastErr); }
         const data = JSON.parse(body);
         const txt = data.choices?.[0]?.message?.content || '';
-        try { return JSON.parse(txt); } catch (e) { lastErr = 'Groq JSON 解析失敗: ' + txt.slice(0, 200); throw new Error(lastErr); }
+        try { return parseJSON(txt); } catch (e) { lastErr = 'Groq JSON 解析失敗: ' + txt.slice(0, 200); throw new Error(lastErr); }
       } catch (e) {
         clearTimeout();
         if (e.message === 'DAILY_TPD_EXCEEDED') throw e;
@@ -111,11 +111,11 @@ async function callGemini(prompt) {
         }
         const data = await res.json();
         const txt = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        return JSON.parse(txt);
+        return parseJSON(txt);
       } catch (e) {
         clearTimeout();
         if (e.message === 'DAILY_TPD_EXCEEDED') throw e;
-        if (e instanceof SyntaxError) throw new Error('Gemini JSON 解析失敗: ' + e.message);
+        if (e instanceof SyntaxError) throw new Error('retryable');
         if (attempt < 3) await new Promise(r => setTimeout(r, (attempt + 2) * 4000));
       }
     }
@@ -134,6 +134,14 @@ async function mapLimit(arr, limit, fn) {
   }
   await Promise.all(Array.from({ length: Math.min(limit, arr.length) }, worker));
   return out;
+}
+
+function parseJSON(txt) {
+  let t = String(txt || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/```$/, '');
+  const s = t.indexOf('{');
+  const e = t.lastIndexOf('}');
+  if (s >= 0 && e > s) t = t.slice(s, e + 1);
+  return JSON.parse(t);
 }
 
 const STOP_CHARS = new Set(Array.from('的一在了是有和就都而及與。，、；：？！「」『』（）《》〈〉─—…\n 0123456789。'));
@@ -167,7 +175,7 @@ async function buildSource(fileName, text) {
     segMeta = await callGemini(JSON.stringify({
       task: '為下列史料檔案產生索引資訊',
       fileName: fileName,
-      paragraphs: paras.slice(0, 3).map((p, i) => ({ i, content: p.slice(0, 500) }))
+      paragraphs: paras.slice(0, 1).map((p, i) => ({ i, content: p.slice(0, 400) }))
     }) + '\n請回覆 JSON：{"title":"標題","source_name":"出處書名/機構","creator":"作者/編者","date":"年代或朝代","language":"zh","material_type":"史料全文或整理摘要","keywords":["關鍵詞5-8個"]}');
   } catch (e) {
     segMeta = ruleMeta(fileName, paras);
