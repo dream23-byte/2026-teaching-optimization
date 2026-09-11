@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-11T03:39:51.693Z",
+ "generated_at": "2026-09-11T04:03:13.512Z",
  "model": "openai/gpt-oss-20b",
  "sources": [
   {
@@ -304,17 +304,51 @@
    ]
   },
   {
+   "file": "論語-學而為政節錄.md",
+   "title": "論語-學而為政節錄",
+   "source_name": "論語",
+   "creator": "孔子",
+   "date": "公元前5世紀",
+   "language": "zh",
+   "material_type": "史料全文",
+   "keywords": [
+    "孝弟",
+    "君子",
+    "仁",
+    "道",
+    "本",
+    "犯上",
+    "亂",
+    "本立"
+   ],
+   "segments": [
+    {
+     "idx": 0,
+     "summary": "有子說孝弟是仁之本，重在守本，少有人喜犯上或作亂。",
+     "keywords": [
+      "孝弟",
+      "仁",
+      "守本",
+      "有子",
+      "作亂"
+     ],
+     "content": "有子曰：「其為人也孝弟，而好犯上者，鮮矣；不好犯上，而好作亂者，未之有也。君子務本，本立而道生；孝弟也者，其為仁之本與？」",
+     "len": 61
+    }
+   ]
+  },
+  {
    "file": "宗教改革-九十五條論綱節錄.md",
-   "title": "九十五條論綱節錄",
+   "title": "宗教改革-九十五條論綱節錄",
    "source_name": "馬丁路德（Martin Luther）／1517年10月31日",
    "creator": "馬丁路德",
-   "date": "1517年10月31日",
+   "date": "1517",
    "language": "zh",
    "material_type": "史料全文（節錄）",
    "keywords": [
     "宗教改革",
-    "九十五條論綱",
     "馬丁路德",
+    "九十五條論綱",
     "天主教",
     "教會改革",
     "聖經",
@@ -324,21 +358,27 @@
    "segments": [
     {
      "idx": 0,
-     "summary": "**出處**：馬丁路德（Martin Luther）／1517年10月31日（英譯：Henry Eyster Jacobs & Adolph Spaeth, 1",
+     "summary": "馬丁路德於1517年提出95條論點，首條主張信徒應全心悔改，非僅僅是教士主持的懺悔儀式。",
      "keywords": [
-      "全文",
-      "出處",
-      "處馬",
-      "馬丁",
-      "丁路"
+      "馬丁路德",
+      "95條論點",
+      "悔改",
+      "懺悔儀式",
+      "教士"
      ],
      "content": "**出處**：馬丁路德（Martin Luther）／1517年10月31日（英譯：Henry Eyster Jacobs & Adolph Spaeth, 1915）\n**性質**：史料全文（節錄）——本文僅錄前30條，全文共95條\nOut of love for the truth and the desire to bring it to light, the following propositions will be discussed at Wittenberg, under the presidency of the Reverend Father Martin Luther, Master of Arts and of Sacred Theology, and Lecturer in Ordinary on the same at that place. Wherefore he requests that those who are unable to be present and debate orally with us, may do so by letter.\n**Thesis 1.** Our Lord and Master Jesus Christ, when He said Poenitentiam agite, willed that the whole life of believers should be repentance.\n**Thesis 2.** This word cannot be understood to mean sacramental penance, i. e., confession and satisfaction, which is administered by the priests.\n**Thesis 3.** Yet it means not inward repentance only; nay, there is no inward repentance which does not outwardly work divers mortifications of the flesh.\n**Thesis 4.** The penalty [of sin], therefore, continues so long as hatred of self continues; for this is the true inward repentance, and continues until our entrance into the kingdom of heaven.\n**Thesis 5.** The pope does not intend to remit, and cannot remit any penalties other than those which he has imposed either by his own authority or by that of the Canons.\n**Thesis 6.** The pope cannot remit any guilt, except by declaring that it has been remitted by God and by assenting to God's remission; though, to be sure, he may grant remission in cases reserved to his judgment. If his right to grant remission in such cases were despised, the guilt would remain entirely unforgiven.\n**Thesis 7.** God remits guilt to no one whom He does not, at the same time, humble in all things and bring into subjection to His vicar, the priest.",
      "len": 1784
     },
     {
      "idx": 1,
-     "summary": "**Thesis 8.** The penitential canons are imposed only on the living, and, accord",
-     "keywords": [],
+     "summary": "主張懺悔法規只適用於活人，死亡者不受懲罰，批評將死者懺悔轉為煉獄刑罰，呼籲恢復古代懺悔前懲罰。",
+     "keywords": [
+      "懺悔法規",
+      "死亡者",
+      "煉獄",
+      "古代懲罰",
+      "批評"
+     ],
      "content": "**Thesis 8.** The penitential canons are imposed only on the living, and, according to them, nothing should be imposed on the dying.\n**Thesis 9.** Therefore the Holy Spirit in the pope is kind to us, because in his decrees he always makes exception of the article of death and of necessity.\n**Thesis 10.** Ignorant and wicked are the doings of those priests who, in the case of the dying, reserve canonical penances for purgatory.\n**Thesis 11.** This changing of the canonical penalty to the penalty of purgatory is quite evidently one of the tares that were sown while the bishops slept.\n**Thesis 12.** In former times the canonical penalties were imposed not after, but before absolution, as tests of true contrition.\n**Thesis 13.** The dying are freed by death from all penalties; they are already dead to canonical rules, and have a right to be released from them.\n**Thesis 14.** The imperfect health [of soul], that is to say, the imperfect love, of the dying brings with it, of necessity, great fear; and the smaller the love, the greater is the fear.\n**Thesis 15.** This fear and horror is sufficient of itself alone (to say nothing of other things) to constitute the penalty of purgatory, since it is very near to the horror of despair.\n**Thesis 16.** Hell, purgatory, and heaven seem to differ as do despair, almost-despair, and the assurance of safety.\n**Thesis 17.** With souls in purgatory it seems necessary that horror should grow less and love increase.\n**Thesis 18.** It seems unproved, either by reason or Scripture, that they are outside the state of merit, that is to say, of increasing love.\n**Thesis 19.** Again, it seems unproved that they, or at least that all of them, are certain or assured of their own blessedness, though we may be quite certain of it.",
      "len": 1779
     },
@@ -385,13 +425,13 @@
     },
     {
      "idx": 1,
-     "summary": "政府對盧溝橋事件堅持和平但準備戰備，呼籲全國民眾嚴守紀律、保衛國家，強調犧牲與責任。",
+     "summary": "總之，政府對於盧溝橋事件，已確定始終一貫的方針和立場，且必以全力固守這個立場。我們希望和平，而不求苟安；準備應戰，而決不求戰。我們知道全國應戰以後之局勢，就祗有",
      "keywords": [
-      "盧溝橋事件",
-      "和平與戰備",
-      "國家責任",
-      "全國紀律",
-      "犧牲"
+      "政府",
+      "立場",
+      "我們",
+      "希望",
+      "不求"
      ],
      "content": "總之，政府對於盧溝橋事件，已確定始終一貫的方針和立場，且必以全力固守這個立場。我們希望和平，而不求苟安；準備應戰，而決不求戰。我們知道全國應戰以後之局勢，就祗有犧牲到底，無絲毫僥倖求免之理。如果戰端一開，那就是地無分南北，年無分老幼，無論何人，皆有守土抗戰之責任，皆應抱定犧牲一切之決心。所以政府必特別謹慎，以臨此大事；全國國民亦必須嚴肅沉著，準備自衛。在此安危絕續之交，唯賴舉國一致，服從紀律，嚴守秩序。希望各位回到各地，將此意轉達於社會，俾咸能明了局勢，效忠國家，這是兄弟所懇切期望的。",
      "len": 245
@@ -497,40 +537,6 @@
      ],
      "content": "**出處**：聯合國國際組織會議／1945年6月26日簽訂於舊金山；1945年10月24日生效\n**性質**：史料全文（節錄）——本文節錄序言及第一章全文，並列其餘各章標題\n欲免後世再遭今代人類兩度身歷慘不堪言之戰禍，重申基本人權，人格尊嚴與價值，以及男女與大小各國平等權利之信念，\n創造適當環境，俾克維持正義，尊重由條約與國際法其他淵源而起之義務，久而弗懈，\n促成大自由中之社會進步及較善之民生，\n並為達此目的\n力行容恕，彼此以善鄰之道，和睦相處，\n集中力量，以維持國際和平及安全，\n接受原則，確立方法，以保證非為公共利益，不得使用武力，\n運用國際機構，以促成全球人民經濟及社會之進展，\n用是發憤立志，務當同心協力，以竟厥功。\n爰由我各本國政府，經齊集金山市之代表各將所奉全權證書，互相校閱，均屬妥善，議定本聯合國憲章，並設立國際組織，定名聯合國。\n**第一條**　聯合國之宗旨為：\n一、維持國際和平及安全；並為此目的：採取有效集體辦法、以防止且消除對於和平之威脅，制止侵略行為或其他和平之破壞；並以和平方法且依正義及國際法之原則，調整或解決足以破壞和平之國際爭端或情勢。\n二、發展國際間以尊重人民平等權利及自決原則為根據之友好關係，並採取其他適當辦法，以增強普遍和平。\n三、促成國際合作，以解決國際間屬於經濟、社會、文化、及人類福利性質之國際問題，且不分種族、性別、語言、或宗教，增進並激勵對於全體人類之人權及基本自由之尊重。\n四、構成一協調各國行動之中心，以達成上述共同目的。\n**第二條**　為求實現第一條所述各宗旨起見，本組織及其會員國應遵行下列原則：\n一、本組織係基於各會員國主權平等之原則。\n二、各會員國應一秉善意，履行其依本憲章所擔負之義務，以保證全體會員國由加入本組織而發生之權益。\n三、各會員國應以和平方法解決其國際爭端，俾免危及國際和平、安全、及正義。\n四、各會員國在其國際關係上不得使用威脅或武力，或以與聯合國宗旨不符之任何其他方法，侵害任何會員國或國家之領土完整或政治獨立。\n五、各會員國對於聯合國依本憲章規定而採取之行動，應盡力予以協助，聯合國對於任何國家正在採取防止或執行行動時，各會員國對該國不得給予協助。\n六、本組織在維持國際和平及安全之必要範圍內，應保證非聯合國會員國遵行上述原則。\n七、本憲章不得認為授權聯合國干涉在本質上屬於任何國家國內管轄之事件，且並不要求會員國將該項事件依本憲章提請解決；但此項原則不妨礙第七章內執行辦法之適用。\n- **第二章　會員**（第三條至第六條）\n- **第三章　機關**（第七條至第八條）\n- **第四章　大會**（第九條至第二十二條）\n- **第五章　安全理事會**（第二十三條至第三十二條）\n- **第六章　爭端之和平解決**（第三十三條至第三十八條）\n- **第七章　對於和平之威脅和平之破壞及侵略行為之應付辦法**（第三十九條至第五十一條）\n- **第八章　區域辦法**（第五十二條至第五十四條）\n- **第九章　國際經濟及社會合作**（第五十五條至第六十條）\n- **第十章　經濟暨社會理事會**（第六十一條至第七十二條）\n- **第十一章　關於非自治領土之宣言**（第七十三條至第七十四條）\n- **第十二章　國際託管制度**（第七十五條至第八十五條）\n- **第十三章　託管理事會**（第八十六條至第九十一條）\n- **第十四章　國際法院**（第九十二條至第九十六條）\n- **第十五章　秘書處**（第九十七條至第一百零一條）\n- **第十六章　雜項條款**（第一百零二條至第一百零五條）\n- **第十七章　過渡安全辦法**（第一百零六條至第一百零七條）\n- **第十八章　修正**（第一百零八條至第一百零九條）\n- **第十九章　批准及簽字**（第一百一十條至第一百一十一條）",
      "len": 1582
-    }
-   ]
-  },
-  {
-   "file": "論語-學而為政節錄.md",
-   "title": "論語-學而為政節錄",
-   "source_name": "",
-   "creator": "",
-   "date": "",
-   "language": "zh",
-   "material_type": "整理史料",
-   "keywords": [
-    "其為",
-    "孝弟",
-    "好犯",
-    "犯上",
-    "子曰",
-    "曰其",
-    "為人",
-    "人也"
-   ],
-   "segments": [
-    {
-     "idx": 0,
-     "summary": "有子曰：「其為人也孝弟，而好犯上者，鮮矣；不好犯上，而好作亂者，未之有也。君子務本，本立而道生；孝弟也者，其為仁之本與？」",
-     "keywords": [
-      "其為",
-      "孝弟",
-      "好犯",
-      "犯上",
-      "子曰"
-     ],
-     "content": "有子曰：「其為人也孝弟，而好犯上者，鮮矣；不好犯上，而好作亂者，未之有也。君子務本，本立而道生；孝弟也者，其為仁之本與？」",
-     "len": 61
     }
    ]
   },
