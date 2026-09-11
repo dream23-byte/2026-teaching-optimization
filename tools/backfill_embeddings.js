@@ -9,7 +9,7 @@ const path = require('path');
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
-const MODEL = process.env.EMBED_MODEL || 'text-embedding-005';
+const MODEL = process.env.EMBED_MODEL || 'gemini-embedding-001';
 const OUT_FILE = path.join(__dirname, '..', '史料', '_embeddings.sql');
 const MAX_CHARS = 2800;
 
@@ -22,7 +22,7 @@ async function embed(text) {
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:embedContent?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: `models/${MODEL}`, content: { parts: [{ text: text }] } })
+    body: JSON.stringify({ model: `models/${MODEL}`, content: { parts: [{ text: text }] }, outputDimensionality: 768 })
   });
   if (!res.ok) {
     const body = await res.text();
