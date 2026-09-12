@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-12T07:14:24.739Z",
+ "generated_at": "2026-09-12T08:41:57.689Z",
  "model": "gemini-3.6-flash",
  "sources": [
   {
@@ -2203,6 +2203,239 @@
      ],
      "content": "第四條：下列各項經認定與煤钢共同市場不相容，故依本條約所定方式，於共同體內部予以廢除並禁止：\n（甲）煤與鋼之進出口關稅、具有同等效力之費用，及數量性之限制；\n（乙）在生產者之間、買方之間或消費者之間實行歧視之措施或做法，特別是有關價格、交貨條件與運費率，以及妨礙買方自由選擇供應商之措施或做法；\n（丙）任何形式之補貼或國家援助，或國家課徵之特別費用；\n（丁）趨向劃分市場或剝削消費者之限制性做法。",
      "len": 198
+    }
+   ]
+  },
+  {
+   "file": "漢穆拉比法典-序言與精選條文-前1792.md",
+   "title": "漢穆拉比法典（序言與精選條文）",
+   "source_name": "漢摩拉比法典（Code of Hammurabi）",
+   "creator": "古巴比倫王漢摩拉比",
+   "date": "約公元前1792–前1750年",
+   "language": "zh",
+   "material_type": "史料節錄",
+   "keywords": [
+    "漢摩拉比法典",
+    "巴比倫",
+    "以眼還眼",
+    "同態復仇",
+    "成文法典",
+    "司法"
+   ],
+   "segments": [
+    {
+     "idx": 0,
+     "summary": "法典出處與序言：天神安努與貝爾呼召漢摩拉比伸張正義、毀邪抑強、造福黑頭人類。",
+     "keywords": [
+      "漢摩拉比",
+      "巴比倫",
+      "序言",
+      "正義"
+     ],
+     "content": "**出處**：《漢摩拉比法典》（Code of Hammurabi），古巴比倫第六代國王漢摩拉比（Hammurabi，約公元前1792–前1750年在位）晚年頒布之成文法典，鐫刻於黑色玄武岩石柱。錄自 Robert Francis Harper《The Code of Hammurabi, King of Babylon》（芝加哥大學出版社，1904年）英譯本轉錄，翻譯底本依英文維基文庫（Wikisource）；中文譯文為本站課程翻譯\n**性質**：史料節錄（人類史上保存最完整之古代成文法典，以「以眼還眼」同態報復為核心原則，並依身分階級訂定差異化刑罰，是探究古代法律、正義觀與階級社會結構之關鍵一手史料）\n(...)\nWhen the lofty Anu, king of the Anunnaki, and Bel, lord of heaven and earth, he who determines the destiny of the land, committed the rule of all mankind to Marduk, the chief son of Ea; when they made him great among the Igigi; when they pronounced the lofty name of Babylon; when they made it famous among the quarters of the world and in its midst established an everlasting kingdom whose foundations were firm as heaven and earth—at that time, Anu and Bel called me, Hammurabi, the exalted prince, the worshiper of the gods, to cause justice to prevail in the land, to destroy the wicked and the evil, to prevent the strong from oppressing the weak, to go forth like the Sun over the Black Head Race, to enlighten the land and to further the welfare of the people. Hammurabi, the governor named by Bel, am I, who brought about plenty and abundance; ... the powerful king, the Sun of Babylon, who caused light to go forth over the lands of Sumer and Akkad; the king, who caused the four quarters of the world to render obedience; the favorite of Nana, am I. When Marduk sent me to rule the people and to bring help to the country, I established law and justice in the land and promoted the welfare of the people.",
+     "len": 1527
+    },
+    {
+     "idx": 1,
+     "summary": "司法程序條文：誣告或無法舉證者處死，巫術指控以投河神判，謊報盜失與偽證有罰。",
+     "keywords": [
+      "誣告",
+      "巫術",
+      "神判",
+      "偽證",
+      "審判"
+     ],
+     "content": "(...)\n1. If a man bring an accusation against a man, and charge him with a (capital) crime, but cannot prove it, he, the accuser, shall be put to death.\n2. If a man charge a man with sorcery, and cannot prove it, he who is charged with sorcery shall go to the river, into the river he shall throw himself and if the river overcome him, his accuser shall take to himself his house (estate). If the river show that man to be innocent and he come forth unharmed, he who charged him with sorcery shall be put to death. He who threw himself into the river shall take to himself the house of his accuser.\n3. If a man, in a case (pending judgment), bear false (threatening) witness, or do not establish the testimony that he has given, if that case be a case involving life, that man shall be put to death.\n4. If a man (in a case) bear witness for grain or money (as a bribe), he shall himself bear the penalty imposed in that case.\n5. If a judge pronounce a judgment, render a decision, deliver a verdict duly signed and sealed and afterward alter his judgment, they shall call that judge to account for the alteration of the judgment which he had pronounced, and he shall pay twelve-fold the penalty which was in said judgment; and, in the assembly, they shall expel him from his seat of judgment, and he shall not return, and with the judges in a case he shall not take his seat.",
+     "len": 1375
+    },
+    {
+     "idx": 2,
+     "summary": "竊盜與搶劫條文：竊神殿王宮財物處死，贓物依神殿或平民分別三十倍、十倍償，搶案由城邦補償。",
+     "keywords": [
+      "竊盜",
+      "搶劫",
+      "贓物",
+      "賠償",
+      "死刑"
+     ],
+     "content": "(...)\n6. If a man steal the property of a god (temple) or palace, that man shall be put to death; and he who receives from his hand the stolen (property) shall also be put to death.\n7. If a man purchase silver or gold, manservant or maid servant, ox, sheep or ass, or anything else from a man's son, or a man's servant without witnesses or contracts, or if he receive (the same) in trust, that man shall be put to death as a thief.\n8. If a man steal ox or sheep, ass or pig, or boat—if it be from a god (temple) or a palace, he shall restore thirtyfold; if it be from a freeman, he shall render tenfold. If the thief have nothing wherewith to pay he shall be put to death.\n21. If a man make a breach in a house, they shall put him to death in front of that breach and they shall thrust him therein.\n22. If a man practice brigandage and be captured, that man shall be put to death.\n23. If the brigand be not captured, the man who has been robbed, shall, in the presence of god, make an itemized statement of his loss, and the city and the governor, in whose province and jurisdiction the robbery was committed, shall compensate him for whatever was lost.\n24. If it be a life (that is lost), the city and governor shall pay one mana of silver to his heirs.",
+     "len": 1254
+    },
+    {
+     "idx": 3,
+     "summary": "婚姻與家庭條文：婚約效力、通姦投河、休妻財物、妻子行為失當之罰與離婚規則。",
+     "keywords": [
+      "婚姻",
+      "婚約",
+      "通姦",
+      "離婚",
+      "婦女地位"
+     ],
+     "content": "(...)\n128. If a man take a wife and do not arrange with her the (proper) contracts, that woman is not a (legal) wife.\n129. If the wife of a man be taken in lying with another man, they shall bind them and throw them into the water. If the husband of the woman would save his wife, or if the king would save his male servant (he may).\n130. If a man force the (betrothed) wife of another who has not known a male and is living in her father's house, and he lie in her bosom and they take him, that man shall be put to death and that woman shall go free.\n131. If a man accuse his wife and she has not been taken in lying with another man, she shall take an oath in the name of god and she shall return to her house.\n132. If the finger have been pointed at the wife of a man because of another man, and she have not been taken in lying with another man, for her husband's sake she shall throw herself into the river.\n138. If a man would put away his wife who has not borne him children, he shall give her money to the amount of her marriage settlement and he shall make good to her the dowry which she brought from her father's house and then he may put her away.\n139. If there were no marriage settlement, he shall give to her one mana of silver for a divorce.\n140. If he be a freeman, he shall give her one-third mana of silver.\n141. If the wife of a man who is living in his house, set her face to go out and play the part of a fool, neglect her house, belittle her husband, they shall call her to account: if her husband say: \"I have put her away,\" he shall let her go. On her departure nothing shall be given to her for her divorce.\n142. If a woman hate her husband, and say: \"thou shalt not have me,\" they shall inquire into her antecedents for her defects; and if she have been a careful mistress and been without reproach and her husband has been going about and greatly belittling her, that woman has no blame. She shall receive her dowry and go to her father's house.\n143. If she have not been a careful mistress, have gadded about, have neglected her house and have belittled her husband, they shall throw that woman into the water.",
+     "len": 2139
+    },
+    {
+     "idx": 4,
+     "summary": "以眼還眼條文：依同態復仇原則毀眼、折骨、擊牙互償，但依貴族、平民、奴隸身分差異處罰。",
+     "keywords": [
+      "以眼還眼",
+      "同態復仇",
+      "人身傷害",
+      "階級"
+     ],
+     "content": "(...)\n195. If a son strike his father, they shall cut off his fingers.\n196. If a man destroy the eye of another man, they shall destroy his eye.\n197. If one break a man's bone, they shall break his bone.\n198. If one destroy the eye of a freeman or break the bone of a freeman he shall pay one mana of silver.\n199. If one destroy the eye of a man's slave or break a bone of a man's slave he shall pay one-half his price.\n200. If a man knock out a tooth of a man of his own rank, they shall knock out his tooth.\n201. If one knock out a tooth of a freeman, he shall pay one-third mana of silver.\n202. If a man strike the person of a man who is his superior, he shall receive sixty strokes with an ox-tail whip in public.\n203. If a man strike another man of his own rank, he shall pay one mana of silver.\n204. If a freeman strike a freeman, he shall pay ten shekels of silver.\n205. If a man's slave strike a man's son, they shall cut off his ear.",
+     "len": 942
+    },
+    {
+     "idx": 5,
+     "summary": "醫療與營建條文：外科手術成敗對醫生之獎懲，房屋倒塌致人傷亡時營建者與其子之連坐責任。",
+     "keywords": [
+      "醫師",
+      "手術",
+      "營建",
+      "責任"
+     ],
+     "content": "(...)\n215. If a physician operate on a man for a severe wound with a bronze lancet and save the man's life; or if he open an abscess (in the eye) of a man with a bronze lancet and save that man's eye, he shall receive ten shekels of silver (as his fee).\n216. If he be a freeman, he shall receive five shekels.\n217. If it be a man's slave, the owner of the slave shall give two shekels of silver to the physician.\n218. If a physician operate on a man for a severe wound with a bronze lancet and cause that man's death; or open an abscess (in the eye) of a man with a bronze lancet and destroy the man's eye, they shall cut off his fingers.\n219. If a physician operate on a slave of a freeman for a severe wound with a bronze lancet and cause his death, he shall restore a slave of equal value.\n220. If he open an abscess (in his eye) with a bronze lancet, and destroy his eye, he shall pay silver to the extent of one-half of his price.\n229. If a builder build a house for a man and do not make its construction firm, and the house which he has built collapse and cause the death of the owner of the house, that builder shall be put to death.\n230. If it cause the death of a son of the owner of the house, they shall put to death a son of that builder.\n231. If it cause the death of a slave of the owner of the house, he shall give the owner of the house a slave of equal value.",
+     "len": 1377
+    },
+    {
+     "idx": 6,
+     "summary": "序言中譯與法典尾跋：漢摩拉比自許正義之王、護佑蘇美爾與阿卡德人民，召喚受冤者前來申冤。",
+     "keywords": [
+      "序言",
+      "尾跋",
+      "正義之王",
+      "孤兒與寡婦"
+     ],
+     "content": "(...)\nThe righteous laws, which Hammurabi, the wise king, established and (by which) he gave the land stable support and pure government. Hammurabi, the perfect king, am I. I was not careless, nor was I neglectful of the Black-Head people, whose rule Bel presented and Marduk delivered to me. I provided them with a peaceful country. I opened up difficult barriers and lent them support. ... The great gods proclaimed me and I am the guardian governor, whose scepter is righteous and whose beneficent protection is spread over my city. In my bosom I carried the people of the land of Sumer and Akkad; under my protection I brought their brethren into security; in my wisdom I restrained them; that the strong might not oppose the weak, and that they should give justice to the orphan and the widow, ... my weighty words I have written upon my monument, and in the presence of my image as king of righteousness have I established. ... Let any oppressed man, who has a cause, come before my image as king of righteousness! Let him read the inscription on my monument! Let him give heed to my weighty words! And may my monument enlighten him as to his cause and may he understand his case! May he set his heart at ease! (and he will exclaim): \"Hammurabi indeed is a ruler who is like a real father to his people.\"\n**中文譯文**（本站課程翻譯）：\n(……)\n崇高的天神安努——眾阿努納基神之王——與地與天的主人、決定大地命運的主神貝爾，將統治全人類的權柄交付給智慧神埃亞之長子馬爾杜克；當諸神尊崇他、宣告巴比倫之盛名，使它在世界萬邦之中聞名，並在城邦之中建立一個根基堅如天地的永恆王朝之時——就在那時，安努與貝爾呼召了我，漢摩拉比，高貴的王子，諸神的敬拜者，要我使正義在土地上得以伸張，毀滅邪惡與奸徒，阻止強者欺凌弱者，如太陽般照耀黑頭人類，啟迪大地、增進人民之福祉。我，漢摩拉比，是貝爾所指派的統治者，帶來了豐饒與富足；……我是強大的君王、巴比倫的太陽，使光明普照蘇美爾與阿卡德之地；我是使四方世界臣服的君王、女神娜娜的寵兒。當馬爾杜克派遣我治理人民、扶助國家的時候，我建立了法律與正義，促進人民的福祉。",
+     "len": 1658
+    },
+    {
+     "idx": 7,
+     "summary": "法典條文中譯（司法與婚姻諸條）：誣告、竊盜、家庭、夫婦與刑罰規則之中文翻譯。",
+     "keywords": [
+      "中譯",
+      "條文",
+      "刑法",
+      "民法"
+     ],
+     "content": "(……)\n第一條：倘若有人控告另一人犯下（可處死刑之）重罪，卻無法舉證，則告訴者本人應處死。\n第二條：倘若有人指控他人施巫術而無法證明，被指控者應投河自證；若河水吞沒了他，則控告者得以佔有其家屋。若河水證明其清白、使他安然上岸，則誣告巫術者應處死，而被投河者將取得誣告者之家屋。\n第三條：倘若有人在（待審）案件中作虛偽（恐嚇性）證言，或無法確立其證詞，若該案涉及性命，則此人應處死。\n第四條：倘若有人以穀物或金錢（賄賂）作證，他應自擔該案推定之刑罰。\n第五條：倘若法官審判案件、作出裁決、交付已簽名蓋章之判決，事後又更改其判決，則應追究該法官擅改判決之責，他應償付原判刑罰之十二倍，並在集會中被逐出其審判席位，永不復職，不得再與法官同席審案。\n(……)\n第六條：倘若有人竊取神（神殿）或王宮之財物，該人應處死；接受其贓物者亦應處死。\n第七條：倘若有人未經證人與契約，向他人之子或其僕役購買銀、金、男僕、女婢、牛、羊、驢或其他任何財物，或受託保管之，此人應以竊盜論處死。\n第八條：倘若有人竊取牛、羊、驢、豬或船——若竊自神（神殿）或王宮，應三十倍償還；若竊自平民，應十倍償還。若竊賊無力賠償，則應處死。\n第二十一條：倘若有人破屋而入，應於該破口之前處死，並將其屍塞入破口之中。\n第二十二條：倘若有人犯下搶劫之罪而遭捕獲，該人應處死。\n第二十三條：倘若搶匪未被捕獲，被劫者應在神前詳細列舉其損失，搶案發生所在之城邦與總督應在其轄區內賠償其所失。\n第二十四條：倘若（被搶而）喪命，則城邦與總督應賠償其繼承人一明那（mana）之銀。\n(……)\n第一百二十八條：倘若有人娶妻而未曾立下（正式的）婚約，則此女不得視為（合法）妻子。\n第一百二十九條：倘若已婚婦女被人發現與他人同寢，他們應綑綁二人投入水中。若其夫欲保全其妻，或國王欲保全其臣僕，則可免之。\n第一百三十條：倘若有人強迫侵犯別人已訂婚、仍未近男子、居住於父家之未婚妻，並與之同寢而遭捕獲，該男子應處死，其女無罪。\n第一百三十一條：倘若有人離間其妻（誣她不貞），而她並未被捉到與他人同寢，她應在神前起誓，然後回到家中。\n第一百三十二條：倘若因為另一男子之緣故，有人以手指指責人妻不貞，而她並未與人同寢，則她應為其夫之緣故投入河中自證清白。\n第一百三十八條：倘若有人欲休棄未育之妻，應給付她聘金之數額，並償還她自娘家帶來之妝奩，然後方得休棄。\n第一百三十九條：倘若（原本）沒有聘金，他應給付她一明那（mana）之銀作為離婚之資。\n第一百四十條：倘若他是平民，則應給付她三分之一明那之銀。\n第一百四十一條：倘若住在夫家之妻，圖謀外出、行為荒誕、疏忽家務、輕視其夫，則應追究其過；若其夫說：「我已休棄她」，則放她離去，離去時不給任何離婚之資。倘若其夫說：「我沒有休棄她」，夫可另娶，而前妻應留居夫家以為婢僕。\n第一百四十二條：倘若妻子厭惡其夫，說：「你不得再擁有我」，官府應調查她先前之行為；倘若她一向審慎持家、無可指摘，而其夫終日遊蕩、百般輕蔑於她，則此婦無過。她可取回妝奩返回父家。\n第一百四十三條：倘若她並非審慎持家，而是四處遊蕩、疏忽家務、輕視其夫，則應將此婦投入水中。\n(……)\n第一百九十五條：倘若子毆其父，則應斬斷其手（指）。\n第一百九十六條：倘若有人毀損另一人之眼，則應毀其眼。\n第一百九十七條：倘若有人折斷他人之骨，則應折其骨。\n第一百九十八條：倘若有人毀損平民之眼或折斷平民之骨，應賠償一明那（mana）之銀。\n第一百九十九條：倘若有人毀損他人奴隸之眼或折斷其骨，應賠其價之半。\n第二百條：倘若有人打落與自己同階之人之牙，應打落其牙。\n第二百零一條：倘若有人打落平民之牙，應賠償三分之一明那之銀。\n第二百零二條：倘若有人毆打身分高於自己的人，應在公開場合受牛尾鞭笞六十下。\n第二百零三條：倘若有人毆打同階之人，應賠償一明那之銀。\n第二百零四條：倘若平民毆打平民，應賠償十雪克（shekel）之銀。\n第二百零五條：倘若奴隸毆打自由民之子，應割去其耳。",
+     "len": 1654
+    },
+    {
+     "idx": 8,
+     "summary": "法典條文中譯（醫療、營建與尾跋）：醫師與營建者責任之懲處，以及王者自述其正義統治。",
+     "keywords": [
+      "中譯",
+      "醫師",
+      "營建者",
+      "尾跋"
+     ],
+     "content": "(……)\n第二百一十五條：倘若醫師以青銅手術刀為人施行重傷手術而救活其命，或以青銅手術刀割開（眼中之）膿腫而保住其眼，他應收取十雪克（shekel）之銀（作為手術費）。\n第二百一十六條：倘若（病患）是平民，他應收取五雪克之銀。\n第二百一十七條：倘若（病患）是他人之奴隸，奴隸主人應給付醫師二雪克之銀。\n第二百一十八條：倘若醫師以青銅手術刀為人施行重傷手術而致其死亡，或以青銅手術刀割開（眼中）膿腫而毀其眼，則應斬斷該醫師之手（指）。\n第二百一十九條：倘若醫師以青銅手術刀為平民之奴隸施行重傷手術而致其死亡，他應償還一名等價之奴隸。\n第二百二十條：倘若他割開（其眼中之）膿腫而毀其眼，應賠償其價之半數之銀。\n第二百二十九條：倘若營建者為人建造房屋而未使之堅固，所建之屋倒塌致屋主死亡，該營建者應處死。\n第二百三十條：倘若（房屋倒塌）致屋主之子死亡，則應處死該營建者之子。\n第二百三十一條：倘若（房屋倒塌）致屋主之奴隸死亡，他應賠償屋主一名等價之奴隸。\n(……)\n漢摩拉比，睿智之王，制定正義之法律，以之賦予大地穩固之根基與純正之治理。我，漢摩拉比，是完美的君王。我並未疏忽，也未曾懈怠對黑頭人類之治理——那是貝爾所交付、馬爾杜克所託付於我的。我給予他們和平安寧之國土，我開通艱險之障礙而予以支援。……偉大的諸神宣告了我，我是守護之統治者，其權杖正直，其恩澤庇蔭我所統治之城邦。我以胸懷承載蘇美爾與阿卡德之地的人民；在我的庇護之下，我使他們的同胞安居樂業；以我的智慧我約束他們——要使強者不得欺壓弱者，要使孤兒與寡婦獲得公正，於是我將鄭重之詞鐫刻於我的紀念石碑之上，立於我正義之王的聖像之前。……凡受冤屈之人，凡有訴求者，可來到我這正義之王的聖像之前！讓他讀誦碑上之銘文！讓他傾聽我鄭重之言！願此碑使他明瞭自己所受之冤屈，明白自己的案件！願他心靈安寧！（然後他將讚嘆：）「漢摩拉比確實是一位如生父般善待其人民的君王。」",
+     "len": 807
+    }
+   ]
+  },
+  {
+   "file": "十字軍東征-烏爾班二世克萊蒙演說-1095.md",
+   "title": "烏爾班二世在克萊蒙會議的號召",
+   "source_name": "Robert the Monk《Historia Hierosolymitana》",
+   "creator": "教宗烏爾班二世（Robert the Monk 記）",
+   "date": "1095",
+   "language": "zh",
+   "material_type": "史料節錄",
+   "keywords": [
+    "十字軍",
+    "烏爾班二世",
+    "克萊蒙會議",
+    "朝聖",
+    "贖罪",
+    "聖戰",
+    "Deus vult"
+   ],
+   "segments": [
+    {
+     "idx": 0,
+     "summary": "演說出處與性質：烏爾班二世1095年克萊蒙會議之號召，Robert the Monk 目擊記述，為第一次十字軍發端文獻。",
+     "keywords": [
+      "烏爾班二世",
+      "克萊蒙會議",
+      "十字軍",
+      "發端"
+     ],
+     "content": "**出處**：《烏爾班二世的號召》（Urban II's Call for the Crusade），教宗烏爾班二世1095年11月27日於法國克萊蒙會議（Council of Clermont）向群眾發表之演說，此為第一次十字軍東征之發端文獻。本演說無會議原始紀錄，今存四大當事人記述，此為 Robert the Monk《Historia Hierosolymitana》（約1107–1120）所載版本（Robert the Monk 自稱親身與會）。英譯錄自 Dana C. Munro, \"Urban and the Crusaders\", Translations and Reprints from the Original Sources of European History, Vol. 1:2（賓夕法尼亞大學，1895）；中文譯文為本站課程翻譯\n**性質**：史料節錄（以「這是上帝的意旨」（Deus vult）為口號發動之武裝朝聖號召，充分展現中世紀教廷如何以宗教贖罪、聖地情懷與「轉內戰為聖戰」之訴求動員群眾，為探究中世紀宗教與暴力、東西接觸與十字軍運動根源之核心一手史料）",
+     "len": 500
+    },
+    {
+     "idx": 1,
+     "summary": "教宗以法蘭克族受上帝眷顧開場，陳述東方基督徒遭劫掠屠戮、教堂被焚、聖地蒙汙之慘況。",
+     "keywords": [
+      "法蘭克",
+      "耶路撒冷",
+      "基督徒",
+      "劫掠"
+     ],
+     "content": "(...)\nOh, race of Franks, race from across the mountains, race chosen and beloved by God—as shines forth in very many of your works—set apart from all nations by the situation of your land, your catholic faith, and your regard for the holy church: to you our discourse is addressed and for you our exhortation is intended. We wish you to know what a grave matter has brought us to your country. The sad news has come from Jerusalem and Constantinople that the people of Persia, an accursed and foreign race, enemies of God, \"a generation that set not their heart aright, and whose spirit was not steadfast with God,\" have invaded the lands of those Christians and devastated them with the sword, rapine, and fire. Some of the Christians they have carried away as slaves, others they have put to death. The churches they have either destroyed or turned into mosques. They desecrate and overthrow the altars. They circumcise the Christians and pour the blood from the circumcision on the altars or in the baptismal fonts. Some they kill in a horrible way by cutting open the abdomen, taking out a part of the entrails and tying them to a stake; they then beat them and compel them to walk until all their entrails are drawn out and they fall to the ground. Some they use as targets for their arrows. They compel some to stretch out their necks and then they try to see whether they can cut off their heads with one stroke of the sword. It is better to say nothing of their horrible treatment of the women. They have taken from the Greek empire a tract of land so large that it takes more than two months to walk through it.",
+     "len": 1621
+    },
+    {
+     "idx": 2,
+     "summary": "教宗呼籲憑先祖尚武精神為基督復仇，勸騎士撇下眷戀、停止內戰，把互相殘殺之武力轉向聖戰。",
+     "keywords": [
+      "騎士",
+      "復仇",
+      "內戰",
+      "尚武"
+     ],
+     "content": "(...)\nWhose duty is it to avenge this and recover that land, if not yours? For to you more than to other nations the Lord has given the military spirit, courage, agile bodies, and the bravery to strike down those who resist you. Let your minds be stirred to bravery by the deeds of your forefathers, and by the efficiency and greatness of Karl the Great, and of Ludwig his son, and of the other kings who have destroyed Turkish kingdoms, and established Christianity in their lands. You should be moved especially by the holy grave of our Lord and Saviour which is now held by unclean peoples, and by the holy places which are treated with dishonor and irreverently befouled with their uncleanness.\n(...)\nO bravest of knights, descendants of unconquered ancestors, do not be weaker than they, but remember their courage. If you are kept back by your love for your children, relatives, and wives, remember what the Lord says in the Gospel: \"He that loveth father or mother more than me is not worthy of me\"; \"and everyone that hath forsaken houses, or brothers, or sisters, or father, or mother, or wife, or children, or lands for my name's sake, shall receive a hundredfold and shall inherit everlasting life.\" Let no possessions keep you back, no solicitude for your property. Your land is shut in on all sides by the sea and mountains, and is too thickly populated. There is not much wealth here, and the soil scarcely yields enough to support you. On this account you kill and devour each other, and carry on war and mutually destroy each other. Let your hatred and quarrels cease, your civil wars come to an end, and all your dissensions stop.",
+     "len": 1647
+    },
+    {
+     "idx": 3,
+     "summary": "以流奶與蜜之聖地情懷動員：耶路撒冷為第二人間樂園，參與征途者得赦罪並獲天國不朽之榮耀。",
+     "keywords": [
+      "聖地",
+      "耶路撒冷",
+      "贖罪",
+      "天國"
+     ],
+     "content": "(...)\nSet out on the road to the holy sepulchre, take the land from that wicked people, and make it your own. That land which, as the Scripture says, is flowing with milk and honey, God gave to the children of Israel. Jerusalem is the best of all lands, more fruitful than all others, as it were a second Paradise of delights. This land our Saviour made illustrious by his birth, beautiful with his life, and sacred with his suffering; he redeemed it with his death and glorified it with his tomb. This royal city is now held captive by her enemies, and made pagan by those who know not God. She asks and longs to be liberated and does not cease to beg you to come to her aid. She asks aid especially from you because, as I have said, God has given more of the military spirit to you than to other nations. Set out on this journey and you will obtain the remission of your sins and be sure of the incorruptible glory of the kingdom of heaven.",
+     "len": 942
+    },
+    {
+     "idx": 4,
+     "summary": "群眾齊呼「這是上帝的意旨」（Deus vult），教宗定此為戰鬥口號，稱應驗福音聚會之應許。",
+     "keywords": [
+      "Deus vult",
+      "戰鬥口號",
+      "福音"
+     ],
+     "content": "(...)\nWhen Pope Urban had said this and much more of the same sort, all who were present were moved to cry out with one accord, \"It is the will of God, it is the will of God.\" When the pope heard this he raised his eyes to heaven and gave thanks to God, and, commanding silence with a gesture of his hand, he said: \"My dear brethren, today there is fulfilled in you that which the Lord says in the Gospel, 'Where two or three are gathered together in my name, there am I in the midst.' For unless the Lord God had been in your minds you would not all have said the same thing. For although you spoke with many voices, nevertheless it was one and the same thing that made you speak. So I say unto you, God, who put those words into your hearts, has caused you to utter them. Therefore let these words be your battle-cry, because God caused you to speak them. Whenever you meet the enemy in battle, you shall all cry out, 'It is the will of God, it is the will of God.'\"",
+     "len": 968
+    },
+    {
+     "idx": 5,
+     "summary": "徵募規章：年老體弱、無眷屬女子與未獲准神職人員不得出發，富人須助窮人；出征者佩十字為記。",
+     "keywords": [
+      "徵募",
+      "十字標誌",
+      "誓願",
+      "規章"
+     ],
+     "content": "(...)\nAnd we do not command the old or weak to go, or those who cannot bear arms. No women shall go without their husbands, or brothers, or proper companions, for such would be a hindrance rather than a help, a burden rather than an advantage. Let the rich aid the poor and equip them for fighting and take them with them. Clergymen shall not go without the consent of their bishop, for otherwise the journey would be of no value to them. Nor will this pilgrimage be of any benefit to a layman if he goes without the blessing of his priest. Whoever therefore shall determine to make this journey and shall make a vow to God and shall offer himself as a living sacrifice, holy, acceptable to God, shall wear a cross on his brow or on his breast. And when he returns after having fulfilled his vow he shall wear the cross on his back. In this way he will obey the command of the Lord, \"Whosoever doth not bear his cross and come after me is not worthy of me.\"\n**中文譯文**（本站課程翻譯）：\n(……)\n噢，法蘭克之族，翻山越嶺而來之種族，為上帝所揀選與鍾愛之種族——這已從你們諸多作為中昭然顯現——憑藉你們土地的形勢、公教之信仰，以及對聖教會之尊崇，你們與萬國有別：我們的話正是向你們說的，我們的勸勉正是為你們而發。我們要讓你們知道，何等重大之事把我們帶到你們的國土。從耶路撒冷與君士坦丁堡傳來了悲痛的消息：波斯人——一個受咒詛的異族，上帝的仇敵，「心不專一、其心靈不向神堅定的一代」——已入侵這些基督徒的土地，以刀劍、劫掠與烈火蹂躪之。有些基督徒被擄為奴，有些被處死。教堂或遭摧毀，或改作清真寺；祭壇被他們褻瀆、掀翻。他們為基督徒行割禮，把割禮之血傾倒在祭壇上或洗禮池中。有些人被以駭人的方式殺害：剖開腹部，抽出內臟之一端縛於木樁，然後鞭打他們，迫其前行，直到腸肚盡數拖出、倒地身亡。有些人被當作箭靶。有些人被迫伸出脖子，他們想要試試能否一劍斬下首級。至於他們對婦女令人髮指的行徑，更是令人不忍多言。他們已奪取希臘帝國廣大之土地，廣大到徒步需兩個多月方能穿越。\n(……)\n為此復仇、收復那片土地，若非你們，還能有誰？因為比起其他民族，主賜予你們更多尚武之精神、勇氣、敏捷之體魄，以及擊倒抵抗者之膽識。讓你們的心因先祖之偉業而昂揚——因查理大帝與其子路德維希，以及歷代摧毀土耳其王國、在其地建立基督信仰之諸王。而尤其應感動你們的，是如今被不潔之民佔據的吾主救主之聖墓，以及那些遭受羞辱、被不敬之穢行玷污的聖地。",
+     "len": 1585
+    },
+    {
+     "idx": 6,
+     "summary": "中文譯文後半：勇武騎士、聖地情懷、Deus vult 口號之頌揚，與佩戴十字架之命令的中文翻譯。",
+     "keywords": [
+      "中譯",
+      "聖墓",
+      "十字架",
+      "誓願"
+     ],
+     "content": "(……)\n噢，最勇敢的騎士們，不屈不撓先祖的後裔，切莫比先祖軟弱，要記住他們的勇氣。若你們因眷戀兒女、親族與妻子而躊躇不前，請記住主在福音中的教訓：「愛父母勝過愛我的，不配作我的門徒」；「凡為我的名撇下房屋、弟兄、姊妹、父母、妻子、兒女或田地的，必得百倍，並承受永生。」莫讓財物牽絆你們，莫為田產憂慮。你們的土地四面被大海與群山環繞，人煙過於稠密；此地財富不多，土地僅堪勉強養活你們。正因如此，你們互相殘殺吞噬，彼此征戰、相互毀滅。讓你們的仇恨與爭吵止息，讓內戰終結，讓一切紛爭平息。\n(……)\n踏上通往聖墓的道路吧，從那邪惡之民手中奪取那片土地，使之成為你們自己的。那流著奶與蜜之地，正如聖經所言，是上帝賜給以色列子民的。耶路撒冷是萬地之最，比一切土地更豐饒，猶如人間的第二座樂園。吾主救主以他的誕生使此地榮耀，以他的生平使其美好，以他的苦難使其神聖；他以死救贖此地，以墳墓榮耀此地。這座御城如今被其敵人俘虜，被不認識上帝之人使之異教化。她渴望解放，懇求你們前來相救。她尤其向你們求援，因為正如我所說，上帝賜予你們的尚武精神勝於其他民族。踏上這趟旅程，你們將獲得罪過的赦免，並確定無疑地獲得天國不朽之榮耀。\n(……)\n當烏爾班教宗說完這番話以及許多類此之言，在場眾人無不感動，異口同聲高呼：「這是上帝的意旨！這是上帝的意旨！」教宗聽見，舉目望天，感謝上帝；他以手勢令眾人肅靜，然後說：「我親愛的弟兄們，今日主在福音中的應許在你們身上應驗了——『無論在哪裡，有兩三個人奉我的名聚會，那裡就有我在他們中間。』若非主上帝在你們心中，你們不會異口同聲說出同樣的話。雖然你們以眾多聲音發言，使你們發言的根本是同一件事。所以我告訴你們：上帝在你們心中放入了這些話，並使你們說出來。因此，讓這些話成為你們的戰鬥口號，因為是上帝使你們如此呼喊。每當你們在戰場上遭遇敵人，你們都要齊聲高喊：『這是上帝的意旨！這是上帝的意旨！』」\n(……)\n我們並不令老者、弱者或不慣於持械的人出發。婦女不得在沒有丈夫、兄弟或合適同伴的情況下出發，因為這只會是障礙而非援助，是負擔而非利益。讓富人資助窮人，為他們配備武器並帶他們同行。神職人員未經其主教同意不得前往，否則此趟旅程對他們毫無益處；同樣，俗人若未獲其司鐸祝福而行，這趟朝聖亦無益於他。因此，凡決定踏上此途、向上帝立誓、將自己獻為聖潔而蒙上帝悅納的活祭的人，應在額前或胸前佩帶十字架。完成誓願歸來後，則應將十字架佩於背後。如此，他便是遵從主的命令：「凡不肯背起他的十字架跟從我的，也不配作我的門徒。」",
+     "len": 1063
     }
    ]
   }

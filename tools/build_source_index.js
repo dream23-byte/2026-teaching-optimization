@@ -89,6 +89,7 @@ async function callGemini(prompt) {
   for (const model of models) {
     for (let attempt = 0; attempt < 4; attempt++) {
       try {
+        await new Promise(r => setTimeout(r, 6000));
         const ctrl = new AbortController();
         const to = setTimeout(() => ctrl.abort(), 30000);
         const res = await fetch(
@@ -180,7 +181,7 @@ async function buildSource(fileName, text) {
   } catch (e) {
     segMeta = ruleMeta(fileName, paras);
   }
-  const segs = await mapLimit(paras, 2, async (p, i) => {
+  const segs = await mapLimit(paras, 1, async (p, i) => {
     let summary = p.slice(0, 80);
     let keys = ruleKeywords(p.slice(0, 400), 5);
     try {
