@@ -1841,6 +1841,25 @@
             scored.sort(function(a, b) { return b.score - a.score; });
             return scored.slice(0, limit || 4).map(function(x) { return x.st; });
         }
+        function dedupeSourceHits(rows) {
+            // 同一份史料若被綁到多個事件，會各自導入相同段落（content 完全相同）；
+            // 依 (title + content) 去重，保留首次出現的段落，避免命中清單與 AI prompt 膨脹
+            var seen = {};
+            return (rows || []).filter(function(r) {
+                var k = (r.title || '') + '|' + String(r.content || '').slice(0, 200);
+                if (seen[k]) return false;
+                seen[k] = true;
+                return true;
+            });
+        }
+        function formatSourceHitsTitle(hits) {
+            var map = {};
+            hits.forEach(function(s) { map[s.title] = (map[s.title] || 0) + 1; });
+            var titles = Object.keys(map);
+            var parts = titles.map(function(t) { return map[t] > 1 ? '《' + t + '》(' + map[t] + ' 段)' : '《' + t + '》'; });
+            var hasMulti = titles.some(function(t) { return map[t] > 1; });
+            return titles.length + ' 份史料' + (hasMulti ? '、共 ' + hits.length + ' 段' : '') + '：' + parts.join('、');
+        }
         function buildSourcePrompt(sources, title) {
             if (!sources || sources.length === 0) return '';
             var lines = ['\n' + title + '（以下為內建史料檢索結果，優先於其上作答並以〔史料：《標題》〕標註引用）'];
@@ -1982,9 +2001,28 @@
         }
 
         var aiMsgCounter = 0;
+        function citeTooltip(title) {
+            // hover 〔史料：…〕顯示：摘要＋史料身分（source_name/creator/date），供學生驗證引用
+            var st = null;
+            if (sourceTexts) {
+                for (var i = 0; i < sourceTexts.length; i++) {
+                    if ((sourceTexts[i].title || '') === title) { st = sourceTexts[i]; break; }
+                }
+            }
+            if (!st || !st.summary) return '此為史料引用標記';
+            var lines = ['《' + title + '》', '', st.summary];
+            var meta = [];
+            if (st.sourceName) meta.push('史料　' + st.sourceName);
+            if (st.creator) meta.push('當事人　' + st.creator);
+            if (st.date) meta.push('日期　' + st.date);
+            if (meta.length) lines.push('', meta.join('\n'));
+            return lines.join('\n');
+        }
         function renderAiText(text) {
             var safe = escapeHtml(text);
-            safe = safe.replace(/〔史料：([^〕]{1,80})〕/g, '<span class="source-cite" title="此為史料引用標記">〔史料：$1〕</span>');
+            safe = safe.replace(/〔史料：([^〕]{1,80})〕/g, function(m, t) {
+                return '<span class="source-cite" title="' + escapeHtml(citeTooltip(t)).replace(/\n/g, '&#10;') + '">〔史料：' + t + '〕</span>';
+            });
             return safe.replace(/\n/g, '<br>');
         }
         function appendMessage(sender, text) {
@@ -2172,8 +2210,9 @@
                     semanticUsed = srcHits.length > 0;
                 } catch (e) { srcHits = []; }
                 if (!semanticUsed) srcHits = retrieveSources(text + ' ' + conversationContext.slice(-600), selectedEvent ? selectedEvent.id : null, 4);
+                srcHits = dedupeSourceHits(srcHits);
                 const srcBlock = buildSourcePrompt(srcHits, '【內建史料檢索】');
-                if (srcHits.length > 0) appendSystemMessage(`🔎 內建史料檢索命中 ${srcHits.length} 份：${srcHits.map(s => '《' + s.title + '》').join('、')}${semanticUsed ? '（語意）' : ''}`);
+                if (srcHits.length > 0) appendSystemMessage(`🔎 內建史料檢索命中 ${formatSourceHitsTitle(srcHits)}${semanticUsed ? '（語意）' : ''}`);
                 const prompt = `${srcBlock}${eventCtx ? '\n' + eventCtx : ''}\n\n目前的對話紀錄：\n${conversationContext}\n\n請根據你的角色設定，接續上述對話給予自然、深刻且口語化的回應。切勿使用死板的模板，請針對 User 的最新提問或回答進行針對性的互動與延伸。`;
                 const aiResponse = await fetchGeminiWithRetry(prompt, currentPersona.systemPrompt);
                 document.getElementById('ai-loading').classList.add('hidden');

@@ -43,6 +43,7 @@
 - [x] **內建史料集 Phase 2 前置**（embedding vector(768) + HNSW 索引 + `match_source_texts` RPC + 前端語意檢索層 `retrieveSemanticSources`，失敗自動退回關鍵字；`tools/backfill_embeddings.js` 待跑）
 - [x] **內建史料集 Phase 2**（metadata 全 17 份已 LLM 升級並同步 DB 26 列；embedding 已用 `gemini-embedding-001` + `outputDimensionality=768` 回填 26/26 列並驗證 `match_source_texts` 語意檢索正常；`史料/_embeddings.sql` 留存）
 - [x] **內建史料集 Phase 3（近古批次）**（漢穆拉比法典 Harper 1904 譯本＋中譯、Robert the Monk 版烏爾班二世克萊蒙演說＋中譯入庫；`source_texts` 114 列、114/114 帶 768 維向量；`史料/_index.json` 50 份 metadata 併入手寫 16 段摘要；search 驗證十字軍/漢穆拉比 query 皆精準命中）
+- [ ] **史料引用 tooltip 第二階段**（`source_texts.source_url` 欄位已存在但 0/114 有值；`_index.json` 加 `url` 欄位 → `gen_import_sql.js` 帶入 → DB 回填 50 份來源網址 → 前端 `citeTooltip` 加「來源：⋯ ↗」可點連結）
 - [ ] 史料庫網站層
 - [ ] 其他國家領土 polygon 驗證
 - [ ] 歷史事件描述/butterfly effect 擴充
