@@ -2020,7 +2020,8 @@
         }
         function renderAiText(text) {
             var safe = escapeHtml(text);
-            safe = safe.replace(/〔史料：([^〕]{1,80})〕/g, function(m, t) {
+            // 匹配 AI 可能使用的兩種括號格式：〔史料：…〕（正確）與【史料：…】（常見偏離），輸出統一為〔〕
+            safe = safe.replace(/[〔【]史料：([^〕】]{1,80})[〕】]/g, function(m, t) {
                 return '<span class="source-cite" title="' + escapeHtml(citeTooltip(t)).replace(/\n/g, '&#10;') + '">〔史料：' + t + '〕</span>';
             });
             return safe.replace(/\n/g, '<br>');
