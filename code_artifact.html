@@ -2194,7 +2194,10 @@
                     return data.choices?.[0]?.message?.content || '抱歉，我無法產出回應。';
                 } catch (error) {
                     if (i === retries - 1) throw error;
-                    await new Promise(function(res) { setTimeout(res, delays[i]); });
+                    // 503 = Gemini 端暫時過載，用更長退避（最長 30s）避免短時間內連打
+                    var is503 = /HTTP 503/.test(String(error.message));
+                    var wait = is503 ? Math.min(30000, 5000 * Math.pow(2, i)) : delays[i];
+                    await new Promise(function(res) { setTimeout(res, wait); });
                 }
             }
         }
@@ -2239,6 +2242,7 @@
                 var errMsg = error.message || String(error);
                 if (errMsg.includes('401') || errMsg.includes('403')) errMsg = 'API Key 無效或已過期，請重新設定 ⚙️';
                 else if (errMsg.includes('429')) errMsg = 'API 速率限制，請稍後再試';
+                else if (errMsg.includes('503')) errMsg = 'Gemini 伺服器暫時忙碌，請稍候一兩分鐘再試';
                 else if (errMsg.includes('fetch') || errMsg.includes('network') || errMsg.includes('CORS')) errMsg = '網路連線失敗，請檢查網路或 API 網址';
                 appendMessage('AI', '⚠️ ' + errMsg);
                 console.error('AI Error:', error);
