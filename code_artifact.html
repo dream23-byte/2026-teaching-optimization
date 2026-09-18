@@ -2163,41 +2163,51 @@
 
         async function fetchGeminiWithRetry(prompt, systemInstruction, retries = 5) {
             var delays = [1000, 2000, 4000, 8000, 16000];
+            // 主要模型 gemini-3.6-flash；若連續 503（端點過載）自動依序切換備援模型
+            var geminiModels = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash'];
             var provider = localStorage.getItem('hlab_ai_provider') || 'gemini';
-            for (var i = 0; i < retries; i++) {
-                try {
-                    var url, body;
-                    if (provider === 'groq') {
-                        url = 'https://api.groq.com/openai/v1/chat/completions';
-                        body = JSON.stringify({ model: 'openai/gpt-oss-20b', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
-                    } else if (provider === 'gemini') {
-                        url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=' + apiKey;
-                        body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] }, safetySettings: [
-                            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
-                        ] });
-                    } else {
-                        // OpenAI-compatible (OpenAI, DeepSeek, etc.)
-                        var baseUrl = provider === 'openai' ? 'https://api.openai.com/v1' : provider;
-                        url = baseUrl + '/chat/completions';
-                        body = JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
+            for (var mi = 0; mi < geminiModels.length; mi++) {
+                var model = geminiModels[mi];
+                for (var i = 0; i < retries; i++) {
+                    try {
+                        var url, body;
+                        if (provider === 'groq') {
+                            url = 'https://api.groq.com/openai/v1/chat/completions';
+                            body = JSON.stringify({ model: 'openai/gpt-oss-20b', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
+                        } else if (provider === 'gemini') {
+                            url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
+                            body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] }, safetySettings: [
+                                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                                { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                                { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
+                            ] });
+                        } else {
+                            // OpenAI-compatible (OpenAI, DeepSeek, etc.)
+                            var baseUrl = provider === 'openai' ? 'https://api.openai.com/v1' : provider;
+                            url = baseUrl + '/chat/completions';
+                            body = JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }], temperature: 0.9, max_tokens: 2048 });
+                        }
+                        var headers = { 'Content-Type': 'application/json' };
+                        if (provider !== 'gemini') headers['Authorization'] = 'Bearer ' + apiKey;
+
+                        var response = await fetch(url, { method: 'POST', headers: headers, body: body });
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        var data = await response.json();
+
+                        if (provider === 'gemini') return data.candidates?.[0]?.content?.parts?.[0]?.text || '抱歉，我無法產出回應。';
+                        return data.choices?.[0]?.message?.content || '抱歉，我無法產出回應。';
+                    } catch (error) {
+                        var is503 = /HTTP 503/.test(String(error.message));
+                        if (is503) {
+                            // 此模型暫時過載：還有備援模型就先切換，否則延長退避重試
+                            if (mi < geminiModels.length - 1) break;
+                            if (i === retries - 1) throw error;
+                            await new Promise(function(res) { setTimeout(res, Math.min(30000, 5000 * Math.pow(2, i))); });
+                            continue;
+                        }
+                        if (i === retries - 1) throw error;
+                        await new Promise(function(res) { setTimeout(res, delays[i]); });
                     }
-                    var headers = { 'Content-Type': 'application/json' };
-                    if (provider !== 'gemini') headers['Authorization'] = 'Bearer ' + apiKey;
-
-                    var response = await fetch(url, { method: 'POST', headers: headers, body: body });
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
-                    var data = await response.json();
-
-                    if (provider === 'gemini') return data.candidates?.[0]?.content?.parts?.[0]?.text || '抱歉，我無法產出回應。';
-                    return data.choices?.[0]?.message?.content || '抱歉，我無法產出回應。';
-                } catch (error) {
-                    if (i === retries - 1) throw error;
-                    // 503 = Gemini 端暫時過載，用更長退避（最長 30s）避免短時間內連打
-                    var is503 = /HTTP 503/.test(String(error.message));
-                    var wait = is503 ? Math.min(30000, 5000 * Math.pow(2, i)) : delays[i];
-                    await new Promise(function(res) { setTimeout(res, wait); });
                 }
             }
         }
