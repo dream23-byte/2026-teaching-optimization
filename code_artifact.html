@@ -481,6 +481,9 @@
         var savedKey = localStorage.getItem('hlab_ai_key') || '';
         var savedProvider = localStorage.getItem('hlab_ai_provider') || 'gemini';
         var apiKey = savedKey;
+        // 混合模式：embedding 專用 Gemini 金鑰（與聊天 provider 解耦）
+        var savedGeminiEmbedKey = localStorage.getItem('hlab_gemini_embed_key') || '';
+        var embedKey = savedGeminiEmbedKey || (savedProvider === 'gemini' ? apiKey : '');
         
         // ✨ 【設定區】GAS 網頁應用（歷史沙龍後端）
         // 負責 Google 登入、貼文/回覆儲存、資料查詢
@@ -1884,8 +1887,8 @@
         // --- Phase 2：語意檢索（Gemini embedding + Supabase RPC；無 embedding 資料或失敗時自動退回關鍵字）---
         var semanticCache = {};
         async function _geminiEmbedding(text) {
-            if (!apiKey) throw new Error('no key');
-            var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=' + apiKey, {
+            if (!embedKey) throw new Error('no embed key');
+            var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=' + embedKey, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ model: 'models/gemini-embedding-001', content: { parts: [{ text: String(text).slice(0, 8000) }] }, outputDimensionality: 768 })
@@ -1897,8 +1900,8 @@
             return v;
         }
         async function retrieveSemanticSources(question, eventId, limit) {
-            if (!supabaseClient || !apiKey) return [];
-            if (savedProvider !== 'gemini') return [];
+            if (!supabaseClient || !embedKey) return [];
+            // 混合模式：embedding 檢索與聊天 provider 解耦（只要有 Gemini 金鑰就跑語意檢索）
             var cacheKey = (eventId || 'global') + ':' + String(question || '').slice(0, 60);
             if (semanticCache[cacheKey] !== undefined) return semanticCache[cacheKey];
             try {
@@ -2262,7 +2265,16 @@
         function showApiKeyInput() {
             var currentProvider = localStorage.getItem('hlab_ai_provider') || 'gemini';
             var currentKey = localStorage.getItem('hlab_ai_key') || '';
-            var msg = '選擇 AI 服務並輸入 API Key：\n\n1 = Groq (gsk_...)\n2 = Gemini (AQ... 或 AIza...)\n3 = OpenAI (sk-...)\n4 = 自訂網址\n\n格式：服務代碼|你的Key（或直接貼上 Key，系統會自動偵測）\n目前：' + currentProvider + '|' + currentKey.slice(0,8) + '...\n\n範例：groq|gsk_xxx 或 gemini|AQ_xxx 或 openai|sk-xxx 或 https://自訂網址|sk-xxx';
+            var currentEmbed = localStorage.getItem('hlab_gemini_embed_key') || '';
+            var providerLabel = { groq: 'Groq (gsk_...)', gemini: 'Gemini (AQ... / AIza...)', openai: 'OpenAI (sk-...)' };
+            var msg = '選擇 AI 聊天服務並輸入 API Key：\n\n'
+                + '1 = Groq (gsk_...)\n'
+                + '2 = Gemini (AQ... 或 AIza...)\n'
+                + '3 = OpenAI (sk-...)\n'
+                + '4 = 自訂網址\n\n'
+                + '格式：服務代碼|你的Key（或直接貼上 Key，系統會自動偵測）\n'
+                + '目前：' + currentProvider + '|' + currentKey.slice(0,8) + '...\n\n'
+                + '範例：groq|gsk_xxx 或 gemini|AQ_xxx 或 openai|sk-xxx 或 https://自訂網址|sk-xxx';
             var input = prompt(msg, currentProvider + '|' + currentKey);
             if (input === null) return;
             var provider, key;
@@ -2275,14 +2287,32 @@
                 if (key.startsWith('gsk_')) provider = 'groq';
                 else if (key.startsWith('AIza') || key.startsWith('AQ.')) provider = 'gemini';
                 else if (key.startsWith('sk-')) provider = 'openai';
-                else if (key.startsWith('http')) provider = key; // custom URL
+                else if (key.startsWith('http')) provider = key;
                 else provider = 'groq';
             }
-            if (key) {
-                localStorage.setItem('hlab_ai_provider', provider);
-                localStorage.setItem('hlab_ai_key', key);
-                apiKey = key;
-                showToast('✅ 已設定：' + provider);
+            if (!key) return;
+            localStorage.setItem('hlab_ai_provider', provider);
+            localStorage.setItem('hlab_ai_key', key);
+            apiKey = key;
+            // 混合模式：非 Gemini 聊天時，請輸入 Gemini Embedding 金鑰（用於史料語意檢索）
+            if (provider !== 'gemini') {
+                var embedMsg = '請輸入 Gemini Embedding 金鑰（用於史料語意檢索）\n格式：AQ... 或 AIza...\n若無可按取消跳過（將使用關鍵字檢索）';
+                var embedInput = prompt(embedMsg, currentEmbed || '');
+                if (embedInput !== null && embedInput.trim()) {
+                    var gemKey = embedInput.trim();
+                    localStorage.setItem('hlab_gemini_embed_key', gemKey);
+                    embedKey = gemKey;
+                    showToast('✅ 已設定：' + provider + ' + Gemini Embedding');
+                } else {
+                    localStorage.removeItem('hlab_gemini_embed_key');
+                    embedKey = '';
+                    showToast('✅ 已設定：' + provider + '（無 embedding，僅關鍵字檢索）');
+                }
+            } else {
+                // 主聊天就是 Gemini：embedding 直接用主 key，移除舊的獨立金鑰
+                localStorage.removeItem('hlab_gemini_embed_key');
+                embedKey = key;
+                showToast('✅ 已設定：' + provider + '（含語意檢索）');
             }
         }
 
