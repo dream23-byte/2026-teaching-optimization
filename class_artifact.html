@@ -362,6 +362,9 @@
                         <button onclick="openNewPostModal()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-3 py-2 rounded-lg shadow transition whitespace-nowrap text-sm">
                             <i class="fa-solid fa-pen-fancy mr-1"></i> 發起新議題
                         </button>
+                        <button onclick="openSuggestionModal()" class="bg-panel border border-gray-700 hover:border-primary text-gray-300 hover:text-white font-bold px-3 py-2 rounded-lg shadow transition whitespace-nowrap text-sm">
+                            <i class="fa-regular fa-envelope mr-1"></i> 精進信箱
+                        </button>
                     </div>
                 </div>
 
@@ -485,6 +488,28 @@
             <div class="flex justify-end gap-4">
                 <button onclick="closeModal('forum-write-modal')" class="text-gray-400 hover:text-white px-4 py-2 font-medium">取消</button>
                 <button onclick="submitNewPost()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-6 py-2 rounded-lg transition shadow-lg">發布議題</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 精進信箱 Modal -->
+    <div id="suggestion-modal" class="fixed inset-0 modal-bg hidden items-center justify-center z-[9990] px-4">
+        <div class="bg-panel border border-gray-700 rounded-xl max-w-lg w-full shadow-2xl relative flex flex-col p-6">
+            <button onclick="closeModal('suggestion-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-primary mb-2 border-b border-gray-800 pb-2"><i class="fa-regular fa-envelope mr-2"></i> 精進信箱</h2>
+            <p class="text-sm text-gray-400 mb-4">您的建議與回饋將幫助我們了解使用者需求、持續優化平台，非常感謝！</p>
+            <label class="text-sm text-gray-400 mb-1">分類</label>
+            <select id="suggestion-category" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary mb-4 shadow-inner">
+                <option value="功能建議">功能建議</option>
+                <option value="史料勘誤">史料勘誤</option>
+                <option value="問題回報">問題回報</option>
+                <option value="其他">其他</option>
+            </select>
+            <label class="text-sm text-gray-400 mb-1">您的建議 <span class="text-[10px] text-gray-500">（必填）</span></label>
+            <textarea id="suggestion-message" rows="5" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary resize-none mb-6 shadow-inner" placeholder="請描述您的建議或遇到的問題..."></textarea>
+            <div class="flex justify-end gap-4">
+                <button onclick="closeModal('suggestion-modal')" class="text-gray-400 hover:text-white px-4 py-2 font-medium">取消</button>
+                <button onclick="submitSuggestion()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-6 py-2 rounded-lg transition shadow-lg">送出建議</button>
             </div>
         </div>
     </div>
@@ -3100,6 +3125,22 @@
                 f.onload = function(){ setTimeout(resolve, 400); };
                 document.body.appendChild(form); form.submit(); document.body.removeChild(form);
             });
+        }
+
+        // ─── 精進信箱 ────────────────────────────
+        function openSuggestionModal() {
+            document.getElementById('suggestion-message').value = '';
+            document.getElementById('suggestion-modal').classList.remove('hidden');
+            document.getElementById('suggestion-modal').classList.add('flex');
+        }
+        async function submitSuggestion() {
+            var content = document.getElementById('suggestion-message').value.trim();
+            if (!content) { showToast('⚠️ 請輸入建議內容'); return; }
+            var category = document.getElementById('suggestion-category').value;
+            await writeToGAS({ action: 'addSuggestion', userEmail: (googleUser && googleUser.email) || '', category: category, message: content, source: location.href.slice(0, 200) });
+            closeModal('suggestion-modal');
+            document.getElementById('suggestion-message').value = '';
+            showToast('✅ 感謝你的建議！');
         }
 
         // ─── 渲染論壇 ────────────────────────────

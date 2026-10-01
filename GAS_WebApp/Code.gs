@@ -3,7 +3,8 @@ const S = {
   LIKES: "PostLikes", COLLECTS: "PostCollects", REACTIONS: "ReplyReactions",
   CONVERSATIONS: "Conversations", AIFeedback: "AIFeedback",
   CLASSES: "Classes", CLASS_MEMBERS: "ClassMembers",
-  MATERIALS: "Materials", INQUIRY_RECORDS: "InquiryRecords"
+  MATERIALS: "Materials", INQUIRY_RECORDS: "InquiryRecords",
+  SUGGESTIONS: "Suggestions"
 };
 
 function onOpen() { ensureSheets(); }
@@ -21,6 +22,7 @@ function ensureSheets() {
   h(S.CLASS_MEMBERS, ["ClassCode","UserEmail","Role"]);
   h(S.MATERIALS, ["Timestamp","UserEmail","ClassCode","Title","Type","Url","Content","Author","Source","License","Tags"]);
   h(S.INQUIRY_RECORDS, ["Timestamp","UserEmail","ClassCode","ConvId","EventId","Questions","Summary","Score"]);
+  h(S.SUGGESTIONS, ["Timestamp","UserEmail","Category","Message","Source"]);
 }
 
 // 取得使用者角色: class owner / member / student / super-admin
@@ -223,6 +225,14 @@ function processAction(p) {
       msg = "ok";
     } else if (p.action === "getClassConversations") {
       msg = JSON.stringify({ conversations: loadClassConversations(p.classCode, u) });
+    } else if (p.action === "addSuggestion") {
+      const content = String(p.message || '').trim();
+      if (!content) { msg = "⚠️ 請輸入建議內容"; }
+      else {
+        const cat = ['功能建議','史料勘誤','問題回報','其他'].includes(p.category) ? p.category : '其他';
+        ss.getSheetByName(S.SUGGESTIONS).appendRow([new Date(), u, cat, content, String(p.source || '').slice(0, 200)]);
+        msg = "✅ 感謝你的建議！";
+      }
     } else { msg = "⚠️ 未知操作"; }
   } catch(err) { msg = "❌ " + err.message; }
   return msg;
