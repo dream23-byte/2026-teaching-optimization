@@ -168,6 +168,12 @@
 
                 <!-- Map Container -->
                 <div id="map" class="flex-1 w-full relative z-0"></div>
+                <div id="map-legend" class="absolute bottom-3 left-3 z-[500] bg-gray-900/90 backdrop-blur border border-gray-700 rounded-lg px-2.5 py-2 text-[11px] text-gray-300 shadow-xl pointer-events-none select-none">
+                    <div class="font-bold text-primary mb-0.5"><i class="fa-solid fa-draw-polygon mr-1"></i>疆域圖例</div>
+                    <div>Cliopatria 歷史政體疆域（CC BY 4.0）</div>
+                    <div class="text-gray-400">僅作勢力範圍示意，非精確國界</div>
+                    <div class="text-gray-500 mt-0.5">概念上參考 Seshat Global History Databank</div>
+                </div>
             </div>
 
             <!-- 下半部 (40%)：時間軸區塊 -->
@@ -214,6 +220,7 @@
                 </div>
                 <div class="p-5 bg-darker overflow-y-auto flex-1 custom-scrollbar">
                     <p id="panel-desc" class="text-gray-300 leading-relaxed mb-6 border-l-4 border-gray-700 pl-4">事件描述...</p>
+                    <div class="text-[10px] text-gray-500 mb-4">多數跨區域因果連結為史家詮釋，並非定論。</div>
                     <div class="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-inner">
                         <h3 class="text-primary font-bold mb-3 flex items-center"><i class="fa-solid fa-shuffle mr-2"></i>蝴蝶效應 (連鎖影響)</h3>
                         <ul id="panel-effects" class="list-disc list-outside ml-5 text-gray-300 space-y-2 text-sm marker:text-primary"></ul>
@@ -319,6 +326,12 @@
                             <button onclick="sendAIMessage()" class="bg-primary hover:bg-yellow-600 text-dark font-bold px-6 py-2 rounded-lg transition-colors flex items-center justify-center shrink-0 shadow-lg">
                                 傳送 <i class="fa-solid fa-paper-plane ml-2"></i>
                             </button>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2 flex-wrap">
+                            <button onclick="askAnotherPerspective()" class="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-600 hover:border-primary text-gray-300 hover:text-primary px-3 py-1.5 rounded-lg transition shadow">
+                                <i class="fa-solid fa-people-arrows mr-1"></i> 換個立場想想
+                            </button>
+                            <span class="text-[11px] text-gray-500">讓 AI 從另一個歷史行動者的角度重新詮釋</span>
                         </div>
                         <div id="ai-loading" class="hidden text-xs text-primary mt-2 animate-pulse">AI 正在深度思考中...</div>
                         <div id="ai-key-note" class="hidden text-[11px] text-amber-400/80 mt-2"><i class="fa-solid fa-circle-info mr-1"></i>點擊 ⚙️ 設定 API Key（支援 Groq / Gemini / OpenAI / 自訂）</div>
@@ -1741,6 +1754,11 @@
 - 然後呢？（後果的後果）
 - 如果沒有呢？（反事實思考）
 
+【因果謹慎原則】
+- 避免使用「導致」「造成」「決定」「必然」等斷定性因果用語
+- 優先使用「促成」「加速」「間接影響」「為...提供條件」「限制了可行選項」等較謹慎的表達
+- 若僅能推測，必須明確說明「可能」或「屬史家詮釋」
+
 【禁止事項】
 - 不要用完整表格呈現
 - 不要一次問超過 2 個問題
@@ -1756,45 +1774,65 @@
 3. 提出需要使用者抉擇的歷史難題
 4. 從該人物的視角解釋事件，而非以上帝視角叙述
 
-【多方視角】
-- 在對話中自然地呈現其他立場的觀點（例如：作為皇帝時，提及百姓的處境）
+【多方視角與觀點轉換】
+- 在對話中自然地呈現其他立場的觀點（例如：作為皇帝時，提及百姓的處境、地方官吏、商人等不同群體）
 - 讓學生理解「不同的人對同一事件有不同理解」
+- 當學生要求「換個立場」時，立即切換到另一個關鍵行動者，並完整說明其考量、利益、可獲得的資訊與侷限
+
+【因果謹慎原則】
+- 避免使用「導致」「造成」「決定」「必然」等斷定性因果用語
+- 優先使用「促成」「加速」「間接影響」「為...提供條件」等較謹慎的表達
+- 若僅能推測，必須明確說明「可能」或「屬史家詮釋」
 
 【格式】
 - 整體以角色口吻的對話體呈現
 - 列舉多項條件、訴求或處境時可用列點（•）提升可讀性
 
-【爭議議題】對於有爭議的歷史議題，以該人物身分呈現多元看法，避免單一立場；同時承認其他觀點的存在，維持中立、教育導向的態度。
+【爭議議題】對於有爭議的歷史議題，以該人物身分呈現多元看法，避免單一立場；同時承認其他觀點的存在，維持教育導向的態度。
 
-【回應長度】100-250字，簡潔有力的對話體
+【回應長度】100-250 字
 
 【禁止事項】
 - 不要用完整表格呈現
 - 不要跳出角色做客觀分析
 - 不要回答與歷史無關的問題` },
-            'comparative': { name: '跨文明比較分析', systemPrompt: `你是一位擅長跨文明比較的歷史導師。你的任務不是整理資訊，而是幫學生「看见差異背後的原因」。
+            'comparative': { name: '跨文明比較分析', systemPrompt: `你是一位擅長跨文明比較的歷史導師。你的任務不是整理資訊，而是幫學生「透過換位思考」看見不同行動者的立場差異。
 
-【你的風格】
-- 先提出一個讓學生好奇的觀察（例如：「同一時期，日本在做X，中國卻在做Y，為什麼？」）
-- 然後只聚焦 1-2 個最關鍵的差異因素，簡要解釋
-- 最後留下一個開放問題讓學生繼續想
+【立場卡（必須遵守）】
+針對本次討論，找出最相關且立場明顯不同的 2～3 個歷史行動者，並針對每個行動者**逐一**完成「立場卡」：
+- 身份與角色：該行動者在當時的身分
+- 當時處境：時間、地點脈絡下的現實處境
+- 考量與利益：最關心什麼？試圖達成什麼？
+- 可獲得的資訊：當時實際可能知道什麼（避免用後見之明）
+- 行動侷限：制度、資源、威脅、人力等限制
+
+**先完整呈現所有立場卡，再進行差異比較。不要一開始就直接歸納結論。**
+
+【比較原則】
+- 僅針對差異點比較，指出各自考量不同之處與可能的衝突
+- 不要評斷「誰對誰錯」，著重說明「為何會有不同選擇」
+- 若涉及跨區域影響，僅能說明時序關聯，並留意判定依據
+
+【因果謹慎原則】
+- 避免使用「導致」「造成」「決定」「必然」等斷定性用語
+- 優先使用「促成」「加速」「間接影響」「為...提供條件」「限制了可行選項」等較謹慎的表達
+- 若僅能推測，必須明確使用「可能」「傾向於」或說明「屬史家詮釋」
+- 跨區域因果多屬推斷，務必交代不確定性
 
 【格式】
 - 整體維持口語對話風格
-- 比較時可用列點（•）對照各文明的關鍵差異，讓差異一目瞭然
-- 不要產出完整表格（那是教科書的工作）
+- 列舉各立場要點時可用列點（•）
+- 不要產出完整表格
+- 不要一次比較 3 個以上文明（聚焦 2～3 個最具對比意義的行動者即可）
 
-【比較切入點】（依事件選擇最相關的 1-2 個）
-- 地理與資源如何塑造不同的選擇？
-- 制度差異如何影響應對危機的方式？
-- 文化價值如何引導不同的發展路徑？
+【回應長度】150-250 字
 
 【禁止事項】
-- 不要一次比較 3 個以上文明（聚焦才有深度）
-- 不要產出超過 250 字
-- 不要產出「為什麼走上不同道路？」這種步驟式標題
+- 不要用「整體而言」「最終來說」直接下定論
+- 不要用歐洲中心論或中國中心論
+- 不要跳過立場卡直接比較
 
-【爭議議題】避免歐洲中心論或中國中心論，保持平衡視角` }
+【爭議議題】對於有爭議議題，務必呈現不同史家詮釋與爭議點，而非單一立場` },
         };
 
         // 史料約束（統一追加至三個 persona，防止不當引用與幻覺）
@@ -2245,9 +2283,26 @@
             const inputEl = document.getElementById('ai-input');
             const text = inputEl.value.trim();
             if (!text) return;
-
-            appendMessage('User', text);
             inputEl.value = '';
+            await runAITurn(text, '');
+        }
+
+        // 換個立場：以另一個歷史行動者的角度重新詮釋同一主題
+        async function askAnotherPerspective() {
+            if (!currentPersona) return;
+            var lastUser = null;
+            for (var i = aiChatHistory.length - 1; i >= 0; i--) {
+                if (aiChatHistory[i].indexOf('User: ') === 0) { lastUser = aiChatHistory[i].slice(6); break; }
+            }
+            var topic = lastUser || (selectedEvent ? selectedEvent.title : '');
+            if (!topic) { showToast('⚠️ 請先選擇歷史事件或先輸入一段對話'); return; }
+            var text = '換個立場想想：請從「另一個歷史行動者」的角度重新詮釋「' + topic + '」。';
+            var extra = '【換個立場任務】請務必選擇與前面對話中已出現的立場不同的歷史行動者（例如：先前若是統治者，這次改為商人、農民、地方官吏、傳教士、士兵或外來者等）。依「立場卡」結構說明：身分與角色、當時處境、考量與利益、可獲得的資訊、行動侷限。不要重複先前已呈現過的立場。';
+            await runAITurn(text, extra);
+        }
+
+        async function runAITurn(text, extraInstruction) {
+            appendMessage('User', text);
             aiChatHistory.push(`User: ${text}`);
             saveConversationMsg('user', text, currentPersona ? (Object.keys(personas).find(k => personas[k] === currentPersona) || 'socratic') : 'socratic');
 
@@ -2269,7 +2324,8 @@
                 srcHits = dedupeSourceHits(srcHits);
                 const srcBlock = buildSourcePrompt(srcHits, '【內建史料檢索】');
                 if (srcHits.length > 0) appendSystemMessage(`🔎 內建史料檢索命中 ${formatSourceHitsTitle(srcHits)}${semanticUsed ? '（語意）' : ''}`);
-                const prompt = `${srcBlock}${eventCtx ? '\n' + eventCtx : ''}\n\n目前的對話紀錄：\n${conversationContext}\n\n請根據你的角色設定，接續上述對話給予自然、深刻且口語化的回應。切勿使用死板的模板，請針對 User 的最新提問或回答進行針對性的互動與延伸。`;
+                var prompt = `${srcBlock}${eventCtx ? '\n' + eventCtx : ''}\n\n目前的對話紀錄：\n${conversationContext}\n\n請根據你的角色設定，接續上述對話給予自然、深刻且口語化的回應。切勿使用死板的模板，請針對 User 的最新提問或回答進行針對性的互動與延伸。`;
+                if (extraInstruction) prompt += '\n\n' + extraInstruction;
                 const aiResponse = await fetchGeminiWithRetry(prompt, currentPersona.systemPrompt);
                 document.getElementById('ai-loading').classList.add('hidden');
                 appendMessage('AI', aiResponse);
