@@ -220,9 +220,10 @@
                 </div>
                 <div class="p-5 bg-darker overflow-y-auto flex-1 custom-scrollbar">
                     <p id="panel-desc" class="text-gray-300 leading-relaxed mb-6 border-l-4 border-gray-700 pl-4">事件描述...</p>
-                    <div class="text-[10px] text-gray-500 mb-4">多數跨區域因果連結為史家詮釋，並非定論。</div>
+                    <div class="text-[10px] text-gray-500 mb-4">多數跨區域因果連結為史家詮釋，並非定論；多數影響由多重因素共同促成，並非單一事件所決定。</div>
+                    <div id="panel-contested" class="hidden mb-4 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-[11px] leading-relaxed text-gray-300"></div>
                     <div class="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-inner">
-                        <h3 class="text-primary font-bold mb-3 flex items-center"><i class="fa-solid fa-shuffle mr-2"></i>蝴蝶效應 (連鎖影響)</h3>
+                        <h3 class="text-primary font-bold mb-3 flex items-center"><i class="fa-solid fa-shuffle mr-2"></i>連鎖影響</h3>
                         <ul id="panel-effects" class="list-disc list-outside ml-5 text-gray-300 space-y-2 text-sm marker:text-primary"></ul>
                     </div>
                 </div>
@@ -1403,6 +1404,19 @@
             const ul = document.getElementById('panel-effects');
             ul.innerHTML = '';
             event.effects.forEach(eff => { const li = document.createElement('li'); li.textContent = eff; ul.appendChild(li); });
+            const contestedBox = document.getElementById('panel-contested');
+            const contestedNote = findContestedNote(event);
+            if (contestedBox) {
+                if (contestedNote) {
+                    contestedBox.classList.remove('hidden');
+                    contestedBox.innerHTML = '<div class="font-bold text-amber-400 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>史學爭議：' + contestedNote.title + '</div>'
+                        + contestedNote.views.map(v => '<div class="mb-1">• ' + v + '</div>').join('')
+                        + '<div class="text-gray-500 mt-1">判定依據：' + contestedNote.criteria + '</div>';
+                } else {
+                    contestedBox.classList.add('hidden');
+                    contestedBox.innerHTML = '';
+                }
+            }
             document.getElementById('event-panel').classList.remove('translate-x-full');
         }
 
@@ -1836,7 +1850,7 @@
         };
 
         // 史料約束（統一追加至三個 persona，防止不當引用與幻覺）
-        var SOURCE_CONSTRAINT = '\n\n【史料約束】回答歷史問題時，必須優先依據對話紀錄中提供的「相關史料」與事件描述作答；若史料不足或與提問無關，必須明確說明「依據現有所知，無法確認」，不得編造具體史料原文、頁碼或來源。引用「相關史料」中的具體史料時，以〔史料：《標題》〕格式標記其來源。';
+        var SOURCE_CONSTRAINT = '\n\n【史料約束】回答歷史問題時，必須優先依據對話紀錄中提供的「相關史料」與事件描述作答；若史料不足或與提問無關，必須明確說明「依據現有所知，無法確認」，不得編造具體史料原文、頁碼或來源。引用「相關史料」中的具體史料時，以〔史料：《標題》〕格式標記其來源。回答時，每個主要論點盡量對應至少一段檢索到的史料；史料未涵蓋的脈絡才用一般史識補充，並標明為「背景補充」。若檢索結果與提問關聯薄弱，寧可直說關聯有限，不要硬套。';
         for (var pk in personas) {
             personas[pk].systemPrompt += SOURCE_CONSTRAINT;
         }
@@ -1995,6 +2009,59 @@
             }
         }
 
+        // 史學爭議標記：只挑少數真的「史家有不同詮釋」的事件，避免每件事都貼標籤而稀釋效果
+        // key 用「事件標題包含的字串」比對——資料庫的 id 是流水號（如 41），靜態備援資料是英文 slug（如 boxer），
+        // 用標題比對兩邊都能命中，換資料庫重建也不會失效。
+        var CONTESTED_NOTES = {
+            '義和團': {
+                title: '義和團與八國聯軍的性質與責任歸屬',
+                views: [
+                    '民間反帝動員：基層社會對傳教活動、鐵路與外來經濟勢力的抵抗，帶有宗教與地方自衛色彩。',
+                    '清廷決策失誤：高層利用義和團牽制列強、內部權力競逐，使外交與軍事判斷失準。',
+                    '列強行動的擴張性：八國聯軍的進軍與後續條件，也反映列強在華勢力的競逐，不只是「平定動亂」。'
+                ],
+                criteria: '須區分「拳民行動」與「清廷決策」兩條線；可對照清宮檔案、傳教士紀錄與列強外交文件。'
+            },
+            '五四運動': {
+                title: '五四運動的性質與範圍',
+                views: [
+                    '愛國抗議事件：起因於巴黎和會的山東問題，以學生遊行、罷課罷市為核心。',
+                    '思想文化運動：新文化運動的延續，重點在民主與科學、白話文與反傳統，政治抗議只是其中一環。',
+                    '概念區分：部分史家主張把「五四愛國運動」與「五四新文化運動」分開討論，混用會模糊焦點。'
+                ],
+                criteria: '取決於採用哪些史料：學生宣言與遊行紀錄，或《新青年》等刊物文章，會導向不同的重心。'
+            },
+            '二二八事件': {
+                title: '二二八事件的成因與影響範圍',
+                views: [
+                    '導火線與結構因素：查緝私菸的衝突是導火線，背景則是戰後經濟混亂、行政失當與省籍隔閡的長期積累。',
+                    '治理體制的研究取向：部分研究聚焦戰後接收體制的運作、群眾動員與隨後的軍事處置過程。',
+                    '後續影響的評估差異：事件對省籍政治、長期政治管制與臺灣社會記憶的作用，各家估計與評價不一。'
+                ],
+                criteria: '可對照官方檔案、受難者口述與當時報刊；傷亡數字與責任歸屬至今仍有不同估計。'
+            },
+            '馬關條約': {
+                title: '馬關條約割臺的性質與臺灣社會的回應',
+                views: [
+                    '條約框架下的領土轉讓：依當時國際法形式完成割讓，日本取得臺灣與澎湖。',
+                    '殖民治理的雙面性：總督府推動近代化建設（鐵路、衛生、教育）的同時，也伴隨警察統治、經濟剝削與同化壓力。',
+                    '臺灣本地的武裝抵抗：乙未戰爭與後續抗日行動，說明「接收」並非平靜過程，地方社會有不同的回應方式。'
+                ],
+                criteria: '可對照條約文本、總督府統計與地方志、口述史料；單看官方統計容易忽略抵抗與日常層面。'
+            }
+        };
+
+        // 以事件 id（slug）或標題關鍵字找出爭議標記
+        function findContestedNote(ev) {
+            if (!ev) return null;
+            if (CONTESTED_NOTES[String(ev.id)]) return CONTESTED_NOTES[String(ev.id)];
+            var title = ev.title || '';
+            for (var k in CONTESTED_NOTES) {
+                if (title.indexOf(k) >= 0) return CONTESTED_NOTES[k];
+            }
+            return null;
+        }
+
         function buildEventContext(ev) {
             if (!ev) return '';
             var yearStr = ev.year < 0 ? '西元前 ' + Math.abs(ev.year) : '西元 ' + ev.year;
@@ -2007,6 +2074,15 @@
             if (ev.effects && ev.effects.length > 0) {
                 ctx += '\n【多面向因果脈絡】\n';
                 ev.effects.forEach(function(eff) { ctx += eff + '\n'; });
+            }
+
+            // 史學爭議：僅少數事件有此標記，注入兩種以上詮釋與判定依據
+            var contested = findContestedNote(ev);
+            if (contested) {
+                ctx += '\n【史學爭議】' + contested.title + '\n';
+                contested.views.forEach(function(v, i) { ctx += '觀點 ' + (i + 1) + '：' + v + '\n'; });
+                ctx += '判定依據：' + contested.criteria + '\n';
+                ctx += '回應時請呈現上述不同詮釋與各自的判定依據，不要斷定單一答案。\n';
             }
             
             // Find active periods from DB
@@ -2297,7 +2373,17 @@
             var topic = lastUser || (selectedEvent ? selectedEvent.title : '');
             if (!topic) { showToast('⚠️ 請先選擇歷史事件或先輸入一段對話'); return; }
             var text = '換個立場想想：請從「另一個歷史行動者」的角度重新詮釋「' + topic + '」。';
-            var extra = '【換個立場任務】請務必選擇與前面對話中已出現的立場不同的歷史行動者（例如：先前若是統治者，這次改為商人、農民、地方官吏、傳教士、士兵或外來者等）。依「立場卡」結構說明：身分與角色、當時處境、考量與利益、可獲得的資訊、行動侷限。不要重複先前已呈現過的立場。';
+            var personaKey = Object.keys(personas).find(function(k) { return personas[k] === currentPersona; }) || 'socratic';
+            var extra;
+            if (personaKey === 'socratic') {
+                // 蘇格拉底模式禁止長篇與給答案，改用輕量換位指令，避免與「只問 1-2 個問題、200 字內」衝突
+                extra = '【換個立場任務（蘇格拉底模式）】不要輸出完整立場卡，全文 120 字以內。只需做到三件事：①用一句話點出另一位歷史行動者最在意什麼；②指出他/她當時可能不知道或誤判的一件事；③提出 1～2 個讓學生自己判斷的問題，不要替學生回答。';
+            } else if (personaKey === 'roleplay') {
+                // 人物扮演要求維持第一人稱，改用角色內切換，避免「跳出角色做客觀分析」
+                extra = '【換個立場任務（人物扮演模式）】請直接用第一人稱切換成與前面對話不同的另一位歷史行動者（例如：先前若是統治者，這次改為商人、農民、地方官吏、傳教士、士兵或外來者）。先用 2～3 句表明「我是誰、我當時的處境、我最在意什麼、我可能不知道什麼」，再提出一個需要學生抉擇的歷史難題。不要跳回旁觀者語氣分析。';
+            } else {
+                extra = '【換個立場任務】請務必選擇與前面對話中已出現的立場不同的歷史行動者（例如：先前若是統治者，這次改為商人、農民、地方官吏、傳教士、士兵或外來者等）。依「立場卡」結構說明：身分與角色、當時處境、考量與利益、可獲得的資訊、行動侷限。不要重複先前已呈現過的立場。';
+            }
             await runAITurn(text, extra);
         }
 
