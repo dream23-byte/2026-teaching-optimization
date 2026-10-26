@@ -46,8 +46,9 @@
 - [ ] **史料引用 tooltip 第二階段**（`source_texts.source_url` 欄位已存在但 0/114 有值；`_index.json` 加 `url` 欄位 → `gen_import_sql.js` 帶入 → DB 回填 50 份來源網址 → 前端 `citeTooltip` 加「來源：⋯ ↗」可點連結）
 - [ ] 史料庫網站層
 - [ ] 其他國家領土 polygon 驗證
-- [ ] 歷史事件描述/butterfly effect 擴充
+- [ ] 歷史事件描述／連鎖影響擴充
 - [ ] UI/UX 持續優化
+- [x] **AI 鷹架一致性（主站＋班級版）**（2026-10-26）：事件面板「蝴蝶效應」改名「**連鎖影響**」＋多重因果說明行；「換個立場想想」依 persona 分流（蘇格拉底／人物扮演／跨文明比較各自指令，避免與各模式風格限制衝突）；`SOURCE_CONSTRAINT` 補上「每個主要論點對應至少一段史料、背景補充需標明」；新增史學爭議標記（義和團、五四、二二八、馬關條約——面板琥珀色卡片＋AI prompt 自動注入，以**標題關鍵字**比對，DB 流水號 id 與靜態 slug id 皆可命中）
 
 ## 關鍵技術決策
 - **前端**: 單一 HTML 檔案（code_artifact.html）
@@ -57,6 +58,7 @@
 - **地圖**: Leaflet.js + Cliopatria/Seshat 歷史 empire 資料
 - **美國領土**: 硬編碼 polygon（DB 無此資料），參照 Van Zandt (1976) 權威來源
 - **區域篩選**: DB `region_tags` 陣列欄位，前端6 track checkbox，預設只勾「世界」
+- **已退役檔案**: `歷史互動實驗室.html`（2026-10-26 移除）——該檔為 HTML 美化工具的損毀輸出（字串／屬性被插入換行、`</texta rea>` 等破損標籤），script 區塊自始無法執行，且 `index.html` 從未連到它。內容已由 `code_artifact.html` 取代，需要舊版介面參考時用 `git log -- 歷史互動實驗室.html` 追溯。**不要再從美化工具產生新副本**
 
 ## 重要連結
 - GitHub: https://github.com/dream23-byte/2026-teaching-optimization
