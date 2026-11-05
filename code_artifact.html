@@ -168,11 +168,19 @@
 
                 <!-- Map Container -->
                 <div id="map" class="flex-1 w-full relative z-0"></div>
-                <div id="map-legend" class="absolute bottom-3 left-3 z-[500] bg-gray-900/90 backdrop-blur border border-gray-700 rounded-lg px-2.5 py-2 text-[11px] text-gray-300 shadow-xl pointer-events-none select-none">
-                    <div class="font-bold text-primary mb-0.5"><i class="fa-solid fa-draw-polygon mr-1"></i>疆域圖例</div>
-                    <div>Cliopatria 歷史政體疆域（CC BY 4.0）</div>
-                    <div class="text-gray-400">僅作勢力範圍示意，非精確國界</div>
-                    <div class="text-gray-500 mt-0.5">概念上參考 Seshat Global History Databank</div>
+                <!-- 疆域圖例：預設收合成一顆小標籤，點擊才展開（避免遮住地圖；出處仍可見） -->
+                <div id="map-legend" class="absolute bottom-3 left-3 z-[500] text-[11px] text-gray-300 select-none">
+                    <button id="map-legend-toggle" onclick="toggleMapLegend()" class="bg-gray-900/85 backdrop-blur border border-gray-700 rounded-lg px-2 py-1.5 shadow-xl hover:border-primary hover:text-primary transition flex items-center gap-1.5" title="展開／收合疆域圖例">
+                        <i class="fa-solid fa-draw-polygon text-primary"></i>
+                        <span class="hidden sm:inline">Cliopatria 疆域（CC BY 4.0）</span>
+                        <i id="map-legend-chevron" class="fa-solid fa-chevron-up text-gray-500"></i>
+                    </button>
+                    <div id="map-legend-body" class="hidden mt-1 bg-gray-900/90 backdrop-blur border border-gray-700 rounded-lg px-2.5 py-2 shadow-xl pointer-events-none">
+                        <div class="font-bold text-primary mb-0.5"><i class="fa-solid fa-draw-polygon mr-1"></i>疆域圖例</div>
+                        <div>Cliopatria 歷史政體疆域（CC BY 4.0）</div>
+                        <div class="text-gray-400">僅作勢力範圍示意，非精確國界</div>
+                        <div class="text-gray-500 mt-0.5">概念上參考 Seshat Global History Databank</div>
+                    </div>
                 </div>
             </div>
 
@@ -955,6 +963,21 @@
         let empireLayerVisible = true;
         let mapPanTimeout = null;
 
+        // 疆域圖例：預設收合，點擊展開；關閉領土圖層時一併隱藏
+        let mapLegendExpanded = false;
+        function toggleMapLegend() {
+            mapLegendExpanded = !mapLegendExpanded;
+            var body = document.getElementById('map-legend-body');
+            var chevron = document.getElementById('map-legend-chevron');
+            if (!body) return;
+            body.classList.toggle('hidden', !mapLegendExpanded);
+            if (chevron) chevron.className = 'fa-solid ' + (mapLegendExpanded ? 'fa-chevron-down' : 'fa-chevron-up') + ' text-gray-500';
+        }
+        function setMapLegendVisible(show) {
+            var el = document.getElementById('map-legend');
+            if (el) el.classList.toggle('hidden', !show);
+        }
+
         function toggleEmpireLayer() {
             if (!empireLayer || !map) return;
             empireLayerVisible = !empireLayerVisible;
@@ -964,12 +987,14 @@
                 btn.classList.remove('border-gray-600', 'text-gray-400');
                 btn.classList.add('border-primary', 'text-primary');
                 document.getElementById('empire-layer-label').textContent = '領土';
+                setMapLegendVisible(true);
                 showToast('已開啟領土圖層');
             } else {
                 map.removeLayer(empireLayer);
                 btn.classList.remove('border-primary', 'text-primary');
                 btn.classList.add('border-gray-600', 'text-gray-400');
                 document.getElementById('empire-layer-label').textContent = '領土';
+                setMapLegendVisible(false);
                 showToast('已關閉領土圖層');
             }
         }
