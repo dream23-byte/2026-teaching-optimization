@@ -696,6 +696,10 @@
         var savedKey = localStorage.getItem('hlab_ai_key') || '';
         var savedProvider = localStorage.getItem('hlab_ai_provider') || 'gemini';
         var apiKey = savedKey;
+        // 混合模式：聊天可用 Groq/OpenAI，史料語意檢索（embedding）可另外使用 Gemini 金鑰
+        var savedGeminiEmbedKey = localStorage.getItem('hlab_gemini_embed_key') || '';
+        var embedKey = savedGeminiEmbedKey || (savedProvider === 'gemini' ? apiKey : '');
+        var semanticCache = {};
         
         // ✨ 【設定區】GAS 網頁應用（歷史沙龍後端）
         // 負責 Google 登入、貼文/回覆儲存、資料查詢
@@ -2108,13 +2112,99 @@
             scored.sort(function(a, b) { return b.score - a.score; });
             return scored.slice(0, limit || 4).map(function(x) { return x.st; });
         }
-        function buildSourcePrompt(sources, title) {
+        function dedupeSourceHits(rows) {
+            var seen = {};
+            return (rows || []).filter(function(r) {
+                var k = (r.title || '') + '|' + String(r.content || '').slice(0, 200);
+                if (seen[k]) return false;
+                seen[k] = true;
+                return true;
+            });
+        }
+        function formatSourceHitsTitle(hits) {
+            var map = {};
+            hits.forEach(function(s) { map[s.title] = (map[s.title] || 0) + 1; });
+            var titles = Object.keys(map);
+            var parts = titles.map(function(t) { return map[t] > 1 ? '《' + t + '》(' + map[t] + ' 段)' : '《' + t + '》'; });
+            var hasMulti = titles.some(function(t) { return map[t] > 1; });
+            return titles.length + ' 份史料' + (hasMulti ? '、共 ' + hits.length + ' 段' : '') + '：' + parts.join('、');
+        }
+        function buildSourcePrompt(sources, title, opts) {
+            opts = opts || {};
+            var maxItems = opts.maxItems != null ? opts.maxItems : 3;
+            var snippetLen = opts.snippetLen != null ? opts.snippetLen : 220;
+            var summaryLen = opts.summaryLen != null ? opts.summaryLen : 80;
             if (!sources || sources.length === 0) return '';
             var lines = ['\n' + title + '（以下為內建史料檢索結果，優先於其上作答並以〔史料：《標題》〕標註引用）'];
-            sources.slice(0, 4).forEach(function(st) {
-                lines.push('• 《' + st.title + '》（' + [st.sourceName, st.creator, st.date].filter(Boolean).join('，') + '）：' + (st.summary ? st.summary : '') + '｜節錄：' + (st.content ? st.content.substring(0, 400) : '無全文'));
+            sources.slice(0, maxItems).forEach(function(st) {
+                var meta = [st.sourceName, st.creator, st.date].filter(Boolean).join('，');
+                var summary = st.summary ? String(st.summary).replace(/\s+/g, ' ').trim() : '';
+                if (summary.length > summaryLen) summary = summary.slice(0, summaryLen) + '…';
+                var snippet = st.content ? String(st.content).replace(/\s+/g, ' ').trim() : '';
+                if (snippet.length > snippetLen) snippet = snippet.slice(0, snippetLen) + '…';
+                lines.push('• 《' + st.title + '》（' + meta + '）：' + summary + '｜節錄：' + (snippet || '無全文'));
             });
             return lines.join('\n');
+        }
+        function buildConversationContext(history, maxMessages, maxChars) {
+            var list = (history || []).slice(-(maxMessages || 12));
+            var out = [];
+            var total = 0;
+            var budget = maxChars != null ? maxChars : 3200;
+            for (var i = list.length - 1; i >= 0; i--) {
+                var msg = String(list[i] || '');
+                if (msg.length > 900) msg = msg.slice(0, 900) + '…';
+                if (total + msg.length > budget && out.length > 0) break;
+                out.unshift(msg);
+                total += msg.length;
+            }
+            return out.join('\n');
+        }
+
+        // --- 語意檢索：可用 Gemini embedding（與聊天 provider 分離）；失敗時自動退回關鍵字 ---
+        async function _geminiEmbedding(text) {
+            if (!embedKey) throw new Error('no embed key');
+            var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=' + embedKey, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: 'models/gemini-embedding-001', content: { parts: [{ text: String(text).slice(0, 8000) }] }, outputDimensionality: 768 })
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            var data = await res.json();
+            var v = data.embedding && data.embedding.values;
+            if (!v || v.length !== 768) throw new Error('bad embedding');
+            return v;
+        }
+        async function retrieveSemanticSources(question, eventId, limit) {
+            if (!supabaseClient || !embedKey) return [];
+            var cacheKey = (eventId || 'global') + ':' + String(question || '').slice(0, 60);
+            if (semanticCache[cacheKey] !== undefined) return semanticCache[cacheKey];
+            try {
+                var emb = await _geminiEmbedding(question);
+                var res = await supabaseClient.rpc('match_source_texts', { query_embedding: emb, match_count: limit || 4 });
+                if (res.error) throw res.error;
+                var rows = (res.data || []).map(function(r) {
+                    return {
+                        id: r.id,
+                        eventId: r.event_id != null ? String(r.event_id) : null,
+                        title: r.title || '',
+                        sourceName: r.source_name || '',
+                        creator: r.creator || '',
+                        date: r.date || '',
+                        language: 'zh',
+                        materialType: '',
+                        summary: r.summary || '',
+                        keywords: r.keywords ? String(r.keywords).replace(/[{}"]/g, '').split(',').map(function(k){ return k.trim(); }).filter(Boolean) : [],
+                        content: r.content || '',
+                        similarity: r.similarity
+                    };
+                });
+                semanticCache[cacheKey] = rows;
+                return rows;
+            } catch (e) {
+                semanticCache[cacheKey] = [];
+                return [];
+            }
         }
 
         // 史學爭議標記：只挑少數真的「史家有不同詮釋」的事件，避免每件事都貼標籤而稀釋效果
@@ -2170,75 +2260,71 @@
             return null;
         }
 
-        function buildEventContext(ev) {
+        function buildEventContext(ev, opts) {
             if (!ev) return '';
+            opts = opts || {};
+            var compact = !!opts.compact;
+            var minimal = !!opts.minimal;
+            var descMax = minimal ? 120 : (compact ? 180 : 320);
+            var effectsMax = minimal ? 2 : (compact ? 3 : (ev.effects ? ev.effects.length : 0));
+            var worldMax = minimal ? 0 : (compact ? 2 : 4);
+            var periodMax = minimal ? 0 : (compact ? 6 : 10);
+            var biblioMax = minimal ? 0 : (compact ? 2 : 3);
             var yearStr = ev.year < 0 ? '西元前 ' + Math.abs(ev.year) : '西元 ' + ev.year;
             var ctx = '【事件背景】\n';
             ctx += '時間：' + yearStr + ' 年\n';
-            ctx += '標題：' + ev.title + '\n';
-            ctx += '描述：' + ev.desc + '\n';
-            
-            // 多面向因果脈絡（已有分類標籤如「政治：」「經濟：」）
-            if (ev.effects && ev.effects.length > 0) {
+            ctx += '標題：' + (ev.title || '') + '\n';
+            var desc = String(ev.desc || '').replace(/\s+/g, ' ').trim();
+            if (desc.length > descMax) desc = desc.slice(0, descMax) + '…';
+            ctx += '描述：' + desc + '\n';
+
+            if (ev.effects && ev.effects.length > 0 && effectsMax > 0) {
                 ctx += '\n【多面向因果脈絡】\n';
-                ev.effects.forEach(function(eff) { ctx += eff + '\n'; });
+                ev.effects.slice(0, effectsMax).forEach(function(eff) { ctx += eff + '\n'; });
             }
 
-            // 史學爭議：僅少數事件有此標記，注入兩種以上詮釋與判定依據
             var contested = findContestedNote(ev);
-            if (contested) {
+            if (contested && !minimal) {
                 ctx += '\n【史學爭議】' + contested.title + '\n';
                 contested.views.forEach(function(v, i) { ctx += '觀點 ' + (i + 1) + '：' + v + '\n'; });
                 ctx += '判定依據：' + contested.criteria + '\n';
                 ctx += '回應時請呈現上述不同詮釋與各自的判定依據，不要斷定單一答案。\n';
             }
-            
-            // Find active periods from DB
-            if (periodsData.length > 0) {
+
+            if (periodsData.length > 0 && periodMax > 0) {
                 var activePeriods = periodsData.filter(function(p) {
                     return p.start_year != null && p.end_year != null && ev.year >= p.start_year && ev.year <= p.end_year && p.region !== 'TW';
-                });
+                }).slice(0, periodMax);
                 if (activePeriods.length > 0) {
                     ctx += '\n【同期政權/疆域】\n' + activePeriods.map(function(p) { return p.name_zh; }).join('、') + '\n';
                 }
             }
-            
-            // 同時期世界脈絡（±50年，含不同地區，最多8個）
-            var worldEvents = historyData.filter(function(e) {
-                return e && e.id !== ev.id && Math.abs(e.year - ev.year) <= 50 && Math.abs(e.year - ev.year) > 0;
-            }).slice(0, 8);
-            if (worldEvents.length > 0) {
-                ctx += '\n【同時期世界脈絡】（同一時期其他地區的發展）\n';
-                worldEvents.forEach(function(e) {
-                    var y = e.year < 0 ? '前' + Math.abs(e.year) : '' + e.year;
-                    ctx += '• ' + e.title + '（' + y + '年）：' + e.desc.substring(0, 60) + '...\n';
-                });
-            }
-            
-            // 相關史料：優先內建史料全文檢索；未命中再退回書目層級
-            var stHits = retrieveSources((ev.title || '') + ' ' + (ev.desc || ''), ev.id, 4);
-            var srcs = (sourcesByEvent && ev.id ? sourcesByEvent[String(ev.id)] : null) || [];
-            if (stHits.length > 0) {
-                ctx += buildSourcePrompt(stHits, '【內建史料檢索】');
-                if (srcs.length > 0) {
-                    ctx += '\n【相關書目】\n' + srcs.slice(0, 2).map(function(s) {
-                        var c = '《' + s.title_zh + '》';
-                        if (s.source_name || s.creator || s.date) c += '（' + [s.source_name, s.creator, s.date].filter(Boolean).join('，') + '）';
-                        return '• ' + c;
-                    }).join('\n');
+
+            if (worldMax > 0) {
+                var worldEvents = historyData.filter(function(e) {
+                    return e && e.id !== ev.id && Math.abs(e.year - ev.year) <= 50 && Math.abs(e.year - ev.year) > 0;
+                }).slice(0, worldMax);
+                if (worldEvents.length > 0) {
+                    ctx += '\n【同時期世界脈絡】\n';
+                    worldEvents.forEach(function(e) {
+                        var y = e.year < 0 ? '前' + Math.abs(e.year) : '' + e.year;
+                        var d = String(e.desc || '').replace(/\s+/g, ' ').trim();
+                        if (d.length > 40) d = d.slice(0, 40) + '…';
+                        ctx += '• ' + e.title + '（' + y + '年）：' + d + '\n';
+                    });
                 }
-            } else if (srcs.length > 0) {
-                ctx += '\n【相關史料】\n';
-                srcs.slice(0, 5).forEach(function(s) {
-                    var cite = '《' + s.title_zh + '》';
-                    if (s.source_name) cite += '（' + s.source_name;
-                    if (s.creator) cite += '，' + s.creator;
-                    if (s.date) cite += '，' + s.date;
-                    if (s.source_name || s.creator || s.date) cite += '）';
-                    ctx += '• ' + cite + '：' + (s.description || s.source_description || '無描述') + '\n';
-                });
             }
-            
+
+            // 僅附短書目提示；實際史料節錄由 runAITurn 的檢索結果統一提供，避免重複與 payload 膨脹
+            var srcs = (sourcesByEvent && ev.id ? sourcesByEvent[String(ev.id)] : null) || [];
+            if (srcs.length > 0 && biblioMax > 0) {
+                ctx += '\n【相關書目】\n' + srcs.slice(0, biblioMax).map(function(s) {
+                    var c = '《' + s.title_zh + '》';
+                    if (s.source_name || s.creator || s.date) c += '（' + [s.source_name, s.creator, s.date].filter(Boolean).join('，') + '）';
+                    return '• ' + c;
+                }).join('\n') + '\n';
+            }
+
             return ctx;
         }
 
@@ -2389,7 +2475,8 @@
             }
         }
 
-        async function fetchGeminiWithRetry(prompt, systemInstruction, retries = 5) {
+        async function fetchGeminiWithRetry(prompt, systemInstruction, retries) {
+            if (retries == null) retries = 4;
             var delays = [1000, 2000, 4000, 8000, 16000];
             // 主要模型 gemini-3.6-flash；若連續 503（端點過載）自動依序切換備援模型
             var geminiModels = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash'];
@@ -2425,19 +2512,29 @@
                         if (provider === 'gemini') return data.candidates?.[0]?.content?.parts?.[0]?.text || '抱歉，我無法產出回應。';
                         return data.choices?.[0]?.message?.content || '抱歉，我無法產出回應。';
                     } catch (error) {
-                        var is503 = /HTTP 503/.test(String(error.message));
+                        var msg = String(error && error.message || error || '');
+                        var is413 = /HTTP 413/.test(msg);
+                        var is429 = /HTTP 429|RESOURCE_EXHAUSTED|rate limit/i.test(msg);
+                        var is503 = /HTTP 503/.test(msg);
+                        if (is413) throw error; // payload 過大：不可原樣重試，交由呼叫端降載
+                        if (is429) {
+                            if (i === retries - 1) throw error;
+                            await new Promise(function(res) { setTimeout(res, Math.min(30000, 3000 * Math.pow(2, i))); });
+                            continue;
+                        }
                         if (is503) {
                             // 此模型暫時過載：還有備援模型就先切換，否則延長退避重試
-                            if (mi < geminiModels.length - 1) break;
+                            if (provider === 'gemini' && mi < geminiModels.length - 1) break;
                             if (i === retries - 1) throw error;
                             await new Promise(function(res) { setTimeout(res, Math.min(30000, 5000 * Math.pow(2, i))); });
                             continue;
                         }
                         if (i === retries - 1) throw error;
-                        await new Promise(function(res) { setTimeout(res, delays[i]); });
+                        await new Promise(function(res) { setTimeout(res, delays[i] || 8000); });
                     }
                 }
             }
+            throw new Error('AI 請求失敗，請稍後再試');
         }
 
         // 內容安全過濾
@@ -2457,8 +2554,22 @@
             return text;
         }
 
+        var aiTurnInFlight = false;
+        function setAiTurnBusy(busy) {
+            aiTurnInFlight = !!busy;
+            var btn = document.querySelector('button[onclick="sendAIMessage()"]');
+            var persp = document.querySelector('button[onclick="askAnotherPerspective()"]');
+            var loading = document.getElementById('ai-loading');
+            [btn, persp].forEach(function(el) {
+                if (!el) return;
+                if (busy) { el.setAttribute('disabled', 'disabled'); el.classList.add('opacity-60', 'cursor-not-allowed'); }
+                else { el.removeAttribute('disabled'); el.classList.remove('opacity-60', 'cursor-not-allowed'); }
+            });
+            if (loading) loading.classList.toggle('hidden', !busy);
+        }
+
         async function sendAIMessage() {
-            if (!currentPersona) return;
+            if (!currentPersona || aiTurnInFlight) return;
             const inputEl = document.getElementById('ai-input');
             const text = inputEl.value.trim();
             if (!text) return;
@@ -2468,7 +2579,7 @@
 
         // 換個立場：以另一個歷史行動者的角度重新詮釋同一主題
         async function askAnotherPerspective() {
-            if (!currentPersona) return;
+            if (!currentPersona || aiTurnInFlight) return;
             var lastUser = null;
             for (var i = aiChatHistory.length - 1; i >= 0; i--) {
                 if (aiChatHistory[i].indexOf('User: ') === 0) { lastUser = aiChatHistory[i].slice(6); break; }
@@ -2491,6 +2602,9 @@
         }
 
         async function runAITurn(text, extraInstruction) {
+            if (!currentPersona) return;
+            if (aiTurnInFlight) { showToast('AI 正在回應中，請稍候'); return; }
+
             // 用戶端內容審查過濾
             var filteredUserText = filterInappropriateContent(text);
             if (filteredUserText.includes('已被安全過濾')) {
@@ -2500,44 +2614,88 @@
             }
 
             appendMessage('User', text);
-            aiChatHistory.push(`User: ${text}`);
-            saveConversationMsg('user', text, currentPersona ? (Object.keys(personas).find(k => personas[k] === currentPersona) || 'socratic') : 'socratic');
+            aiChatHistory.push('User: ' + text);
+            var personaKey = currentPersona ? (Object.keys(personas).find(function(k) { return personas[k] === currentPersona; }) || 'socratic') : 'socratic';
+            saveConversationMsg('user', text, personaKey);
 
             if (!apiKey) {
-                appendMessage('AI', '⚠️ 尚未設定 API 金鑰。請點擊左側 ⚙️ 輸入你的 Gemini API Key（AIza...）。');
+                appendMessage('AI', '⚠️ 尚未設定 API 金鑰。請點擊左側 ⚙️ 輸入你的 API Key（Gemini/Groq/OpenAI）；若聊天使用 Groq，可另外填入 Gemini 金鑰供史料語意檢索。');
                 return;
             }
 
-            const conversationContext = aiChatHistory.slice(-20).join("\n");
-            document.getElementById('ai-loading').classList.remove('hidden');
+            setAiTurnBusy(true);
             try {
-                const eventCtx = selectedEvent && selectedEvent.id ? buildEventContext(selectedEvent) : '';
-                const srcHits = retrieveSources(text + ' ' + conversationContext.slice(-600), selectedEvent ? selectedEvent.id : null, 4);
-                const srcBlock = buildSourcePrompt(srcHits, '【內建史料檢索】');
-                if (srcHits.length > 0) appendSystemMessage(`🔎 內建史料檢索命中 ${srcHits.length} 份：${srcHits.map(s => '《' + s.title + '》').join('、')}`);
-                var prompt = `${srcBlock}${eventCtx ? '\n' + eventCtx : ''}\n\n目前的對話紀錄：\n${conversationContext}\n\n請先具體回應學生最新的發言（肯定、釐清或修正），再依當前角色與模式設定自然推進對話。除非學生明確要求結束或只要求總結，回覆結尾請提出 1 個開放式問題或 2 個思考方向。避免死板模板與資訊過載；若需要結構化整理，除非學生已明確要求或系統已觸發對應任務，否則先徵得同意。`;
-                if (extraInstruction) prompt += '\n\n' + extraInstruction;
-                let aiResponse = await fetchGeminiWithRetry(prompt, currentPersona.systemPrompt);
+                // 先檢索史料：優先使用 Gemini embedding 做語意檢索（可與聊天 provider 分離），失敗退回關鍵字
+                var retrievalQuery = text + ' ' + aiChatHistory.slice(-4).join(' ').slice(-400);
+                var srcHits = [], semanticUsed = false;
+                try {
+                    srcHits = await retrieveSemanticSources(retrievalQuery, selectedEvent ? selectedEvent.id : null, 4);
+                    semanticUsed = srcHits.length > 0;
+                } catch (e) { srcHits = []; semanticUsed = false; }
+                if (!semanticUsed) srcHits = retrieveSources(retrievalQuery, selectedEvent ? selectedEvent.id : null, 4);
+                srcHits = dedupeSourceHits(srcHits || []);
+                if (srcHits.length > 0) appendSystemMessage('🔎 內建史料檢索命中 ' + formatSourceHitsTitle(srcHits) + (semanticUsed ? '（語意）' : ''));
+
+                var tiers = [
+                    { label: 'normal', srcMax: 3, snippetLen: 220, summaryLen: 80, histMsgs: 10, histChars: 3200, ev: {} },
+                    { label: 'compact', srcMax: 2, snippetLen: 140, summaryLen: 50, histMsgs: 6, histChars: 1800, ev: { compact: true } },
+                    { label: 'minimal', srcMax: 1, snippetLen: 90, summaryLen: 40, histMsgs: 4, histChars: 900, ev: { compact: true, minimal: true } }
+                ];
+
+                var aiResponse = null;
+                var lastErr = null;
+                for (var ti = 0; ti < tiers.length; ti++) {
+                    var t = tiers[ti];
+                    var conversationContext = buildConversationContext(aiChatHistory, t.histMsgs, t.histChars);
+                    var eventCtx = (selectedEvent && selectedEvent.id) ? buildEventContext(selectedEvent, t.ev) : '';
+                    var srcBlock = buildSourcePrompt(srcHits, '【內建史料檢索】', { maxItems: t.srcMax, snippetLen: t.snippetLen, summaryLen: t.summaryLen });
+                    var prompt = srcBlock + (eventCtx ? '\n' + eventCtx : '') + '\n\n目前的對話紀錄：\n' + conversationContext + '\n\n請先具體回應學生最新的發言（肯定、釐清或修正），再依當前角色與模式設定自然推進對話。除非學生明確要求結束或只要求總結，回覆結尾請提出 1 個開放式問題或 2 個思考方向。避免死板模板與資訊過載；若需要結構化整理，除非學生已明確要求或系統已觸發對應任務，否則先徵得同意。';
+                    if (extraInstruction) prompt += '\n\n' + extraInstruction;
+                    try {
+                        aiResponse = await fetchGeminiWithRetry(prompt, currentPersona.systemPrompt);
+                        break;
+                    } catch (e) {
+                        lastErr = e;
+                        var em = String(e && e.message || e || '');
+                        if (/HTTP 413/.test(em) && ti < tiers.length - 1) {
+                            appendSystemMessage('⚠️ 本次參考資料較多（可能超過單次上限），已自動精簡史料與脈絡後重試…');
+                            continue;
+                        }
+                        throw e;
+                    }
+                }
+                if (aiResponse == null) throw lastErr || new Error('AI 無回應');
+
                 aiResponse = filterInappropriateContent(aiResponse);
-                document.getElementById('ai-loading').classList.add('hidden');
                 appendMessage('AI', aiResponse);
-                aiChatHistory.push(`AI: ${aiResponse}`);
-                saveConversationMsg('ai', aiResponse, currentPersona ? (Object.keys(personas).find(k => personas[k] === currentPersona) || 'socratic') : 'socratic');
+                aiChatHistory.push('AI: ' + aiResponse);
+                saveConversationMsg('ai', aiResponse, personaKey);
             } catch (error) {
-                document.getElementById('ai-loading').classList.add('hidden');
-                var errMsg = error.message || String(error);
-                if (errMsg.includes('401') || errMsg.includes('403')) errMsg = 'API Key 無效或已過期，請重新設定 ⚙️';
-                else if (errMsg.includes('429')) errMsg = 'API 速率限制，請稍後再試';
-                else if (errMsg.includes('fetch') || errMsg.includes('network') || errMsg.includes('CORS')) errMsg = '網路連線失敗，請檢查網路或 API 網址';
+                var errMsg = (error && error.message) ? error.message : String(error);
+                if (errMsg.includes('401') || errMsg.includes('403') || errMsg.includes('API key') || errMsg.includes('API_KEY')) errMsg = 'API Key 無效或已過期，請重新設定 ⚙️';
+                else if (errMsg.includes('413')) errMsg = '單次送出的參考資料仍過多（超過服務上限）。請縮短提問、點「開新對話」減少歷史，或避免附帶過長內容後再試。';
+                else if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || /rate limit/i.test(errMsg)) errMsg = '請求過於頻繁或達到速率上限（429），請稍候 20–60 秒再試；若連續發生，請確認 API 配額。';
+                else if (errMsg.includes('503')) errMsg = '模型服務暫時忙碌，請稍候一兩分鐘再試';
+                else if (errMsg.includes('fetch') || errMsg.includes('network') || errMsg.includes('Failed to fetch')) errMsg = '網路連線失敗，請檢查網路後再試';
                 appendMessage('AI', '⚠️ ' + errMsg);
                 console.error('AI Error:', error);
+            } finally {
+                setAiTurnBusy(false);
             }
         }
 
         function showApiKeyInput() {
             var currentProvider = localStorage.getItem('hlab_ai_provider') || 'gemini';
             var currentKey = localStorage.getItem('hlab_ai_key') || '';
-            var msg = '選擇 AI 服務並輸入 API Key：\n\n1 = Groq (gsk_...)\n2 = Gemini (AQ... 或 AIza...)\n3 = OpenAI (sk-...)\n4 = 自訂網址\n\n格式：服務代碼|你的Key（或直接貼上 Key，系統會自動偵測）\n目前：' + currentProvider + '|' + currentKey.slice(0,8) + '...\n\n範例：groq|gsk_xxx 或 gemini|AQ_xxx 或 openai|sk-xxx 或 https://自訂網址|sk-xxx';
+            var currentEmbed = localStorage.getItem('hlab_gemini_embed_key') || '';
+            var msg = '選擇 AI 聊天服務並輸入 API Key：\n\n'
+                + '1 = Groq (gsk_...)\n'
+                + '2 = Gemini (AQ... 或 AIza...)\n'
+                + '3 = OpenAI (sk-...)\n'
+                + '4 = 自訂網址\n\n'
+                + '格式：服務代碼|你的Key（或直接貼上 Key，系統會自動偵測）\n'
+                + '目前：' + currentProvider + '|' + currentKey.slice(0,8) + '...\n\n'
+                + '範例：groq|gsk_xxx 或 gemini|AQ_xxx 或 openai|sk-xxx 或 https://自訂網址|sk-xxx';
             var input = prompt(msg, currentProvider + '|' + currentKey);
             if (input === null) return;
             var provider, key;
@@ -2553,11 +2711,32 @@
                 else if (key.startsWith('http')) provider = key; // custom URL
                 else provider = 'groq';
             }
-            if (key) {
-                localStorage.setItem('hlab_ai_provider', provider);
-                localStorage.setItem('hlab_ai_key', key);
-                apiKey = key;
-                showToast('✅ 已設定：' + provider);
+            if (!key) return;
+            localStorage.setItem('hlab_ai_provider', provider);
+            localStorage.setItem('hlab_ai_key', key);
+            apiKey = key;
+            // 混合模式：非 Gemini 聊天時，可輸入 Gemini 金鑰供「史料語意檢索（embedding）」使用；文字生成仍由所選聊天服務處理
+            if (provider !== 'gemini') {
+                var embedMsg = '（選填）輸入 Gemini API Key 以啟用史料語意檢索（embedding）\n聊天仍使用你選的服務（如 Groq）生成文字。\n格式：AQ... 或 AIza...\n若無可按取消（將使用關鍵字檢索）';
+                var embedInput = prompt(embedMsg, currentEmbed || '');
+                if (embedInput !== null && embedInput.trim()) {
+                    var gemKey = embedInput.trim();
+                    localStorage.setItem('hlab_gemini_embed_key', gemKey);
+                    embedKey = gemKey;
+                    semanticCache = {};
+                    showToast('✅ 已設定：' + provider + ' 聊天 + Gemini 語意檢索');
+                } else {
+                    localStorage.removeItem('hlab_gemini_embed_key');
+                    embedKey = '';
+                    semanticCache = {};
+                    showToast('✅ 已設定：' + provider + '（無 Gemini embedding，僅關鍵字檢索）');
+                }
+            } else {
+                // 主聊天就是 Gemini：embedding 直接用主 key
+                localStorage.removeItem('hlab_gemini_embed_key');
+                embedKey = key;
+                semanticCache = {};
+                showToast('✅ 已設定：' + provider + '（含語意檢索）');
             }
         }
 
